@@ -6,8 +6,9 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "技術トレンド キャッチアップ 学習実績";
 
-export default async function OgImage({ params }: { params: { slug: string } }) {
-  const user = await prisma.user.findUnique({ where: { shareSlug: params.slug }, select: { id: true, publicNickname: true } });
+export default async function OgImage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const user = await prisma.user.findUnique({ where: { shareSlug: slug }, select: { id: true, publicNickname: true } });
   const stats = user ? await computeLearningStats(user.id) : null;
   const name = user?.publicNickname || "ユーザー";
 
