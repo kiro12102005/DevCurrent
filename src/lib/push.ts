@@ -68,6 +68,22 @@ function composePayload(articles: { title: string; url: string }[]): PushPayload
   };
 }
 
+type PersonalizableArticle = { title: string; url: string; tags: Tag[]; isBreakingChange: boolean };
+
+// A stack-keyword match on a breaking-change article is the highest-signal
+// notification this app can send ("something you actually use might stop
+// working") - lead with that specific article instead of the usual
+// "N articles found" summary, even if other relevant articles exist too.
+function composePersonalizedPayload(relevant: PersonalizableArticle[], matchedKeyword: string | null): PushPayload {
+  if (matchedKeyword) {
+    const breaking = relevant.find((a) => a.isBreakingChange);
+    if (breaking) {
+      return { title: `🚨 ${matchedKeyword}に破壊的変更の可能性`, body: breaking.title, url: breaking.url };
+    }
+  }
+  return composePayload(relevant);
+}
+
 // Personalizes by src/lib/tags.ts categories AND freeform stackKeywords
 // (substring match against the title - e.g. a user who added "PyTorch" gets
 // notified about a PyTorch article even though it's not one of the fixed
@@ -77,7 +93,7 @@ function composePayload(articles: { title: string; url: string }[]): PushPayload
 // users with no interests/keywords set at all, keep the original
 // "wants everything" broadcast behavior - personalization is opt-in.
 export async function sendPersonalizedPush(
-  articles: { title: string; url: string; tags: Tag[] }[]
+  articles: PersonalizableArticle[]
 ): Promise<{ sent: number; removed: number }> {
   if (!ensureConfigured() || articles.length === 0) {
     return { sent: 0, removed: 0 };
@@ -94,13 +110,14 @@ export async function sendPersonalizedPush(
       if (interests.length === 0 && keywords.length === 0) {
         return deliver(sub, composePayload(articles));
       }
+      const matchedKeyword = keywords.find((kw) => articles.some((a) => a.title.toLowerCase().includes(kw.toLowerCase()))) ?? null;
       const relevant = articles.filter(
         (a) =>
           a.tags.some((t) => interests.includes(t)) ||
           keywords.some((kw) => a.title.toLowerCase().includes(kw.toLowerCase()))
       );
       if (relevant.length === 0) return Promise.resolve("skipped" as const);
-      return deliver(sub, composePayload(relevant));
+      return deliver(sub, composePersonalizedPayload(relevant, matchedKeyword));
     })
   );
 

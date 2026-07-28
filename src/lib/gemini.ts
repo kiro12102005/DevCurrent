@@ -116,6 +116,8 @@ export interface GeneratedInsight {
   outlook: string;
   glossary: { term: string; explanation: string }[];
   githubRepo: string | null;
+  isBreakingChange: boolean;
+  breakingChangeSummary: string | null;
 }
 
 const RESPONSE_SCHEMA = {
@@ -173,8 +175,28 @@ const RESPONSE_SCHEMA = {
       description:
         "記事が中心的に扱っているGitHubリポジトリが明確にある場合のみ 'owner/repo' 形式で（例: 'vercel/next.js'）。記事中にGitHubのURLやリポジトリ名が明示されていない場合、または複数あって一つに絞れない場合は空文字列。憶測で補完しないこと。",
     },
+    isBreakingChange: {
+      type: "boolean",
+      description:
+        "この記事が、既存のコードを書き換えないと動かなくなるような破壊的変更（メジャーバージョンアップでのAPI廃止、非推奨化、デフォルト挙動の変更など）を報告している場合のみtrue。新機能の追加や単なる性能向上はfalse。",
+    },
+    breakingChangeSummary: {
+      type: "string",
+      description: "isBreakingChangeがtrueの場合のみ、何が壊れる可能性があるか1〜2文で。falseの場合は空文字列。",
+    },
   },
-  required: ["japaneseTitle", "country", "summary", "pros", "cons", "outlook", "glossary", "githubRepo"],
+  required: [
+    "japaneseTitle",
+    "country",
+    "summary",
+    "pros",
+    "cons",
+    "outlook",
+    "glossary",
+    "githubRepo",
+    "isBreakingChange",
+    "breakingChangeSummary",
+  ],
 } as const;
 
 export async function generateInsight(params: {
@@ -200,12 +222,17 @@ ${params.text}
 - outlook: 今後の展望を3〜5文で。この技術・製品が今後どう発展しうるか、関連分野や業界にどう影響しそうかまで具体的に
 - glossary: 記事本文全体を読み込み、初心者がつまずきそうな専門用語・略語・製品固有名詞・前提知識となる基礎概念を6〜10個ピックアップ。記事に直接出てくる語だけでなく、それを理解するために必要な基礎用語（例: 「LoRA」が出てきたら前提となる「ファインチューニング」も含める）も対象にする。それぞれ3〜4文で、(1)何であるか (2)この記事の文脈でなぜ重要か (3)具体例やたとえ話、を盛り込んで丁寧に解説する（一行の辞書的定義は禁止）。並び順は記事を読み進める順序に近づける
 - githubRepo: 記事が中心的に扱っているGitHubリポジトリが明確な場合のみ owner/repo 形式で（例: 'vercel/next.js'）。無ければ空文字列。
+- isBreakingChange / breakingChangeSummary: 既存コードが動かなくなる可能性がある破壊的変更（API廃止・非推奨化・デフォルト挙動変更など）を報告している記事かどうかを判定する。単なる新機能追加や性能向上はfalse。trueの場合はbreakingChangeSummaryに何が壊れるかを1〜2文で。falseの場合はbreakingChangeSummaryは空文字列。
 - すべて日本語で出力してください。記事に書かれていない情報を推測で補わないでください`;
 
   const result = await generateJson<GeneratedInsight>(prompt, RESPONSE_SCHEMA, params.apiKey, 0.4);
   // Gemini's structured output can't express null for a string field - it
-  // returns "" per the prompt instruction above when no repo was found.
-  return { ...result, githubRepo: result.githubRepo || null };
+  // returns "" per the prompt instruction above when no repo/breaking-change was found.
+  return {
+    ...result,
+    githubRepo: result.githubRepo || null,
+    breakingChangeSummary: result.isBreakingChange ? result.breakingChangeSummary || null : null,
+  };
 }
 
 const TITLE_TAG_SCHEMA = {

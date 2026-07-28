@@ -46,6 +46,7 @@ export async function POST(req: Request) {
   try {
     scraped = await scrapeArticle(normalizedUrl);
   } catch (err) {
+    console.error("[summarize] scrape failed:", normalizedUrl, err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "記事の取得に失敗しました" },
       { status: 422 }
@@ -59,6 +60,7 @@ export async function POST(req: Request) {
   try {
     insight = await generateInsight({ title: scraped.title, text: scraped.text, apiKey });
   } catch (err) {
+    console.error("[summarize] generation failed:", normalizedUrl, err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "AI生成に失敗しました" },
       { status: 502 }
@@ -80,6 +82,7 @@ export async function POST(req: Request) {
     });
     await persistInsight(article.id, scraped, insight);
   } catch (err) {
+    console.error("[summarize] persist failed:", normalizedUrl, err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "保存に失敗しました" },
       { status: 500 }

@@ -60,6 +60,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ code, sandboxUrl });
   } catch (err) {
+    console.error("[hands-on/generate] failed:", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "生成に失敗しました" },
       { status: 502 }

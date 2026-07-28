@@ -3,11 +3,26 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth/AuthContext";
 import type { LearningMapResponse } from "@/types/learningMap";
+import type { LearningLogResponse } from "@/types/learningLog";
+import { downloadTextFile } from "@/lib/download";
+import { learningLogToMarkdown } from "@/lib/exportMarkdown";
 
 export function LearningMap() {
   const { user, loading: authLoading } = useAuth();
   const [data, setData] = useState<LearningMapResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const res = await fetch("/api/learning-log");
+      const log = (await res.json()) as LearningLogResponse;
+      downloadTextFile("学習ログ.md", learningLogToMarkdown(log));
+    } finally {
+      setExporting(false);
+    }
+  }
 
   useEffect(() => {
     if (!user) return;
@@ -46,6 +61,17 @@ export function LearningMap() {
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex justify-end print:hidden">
+        <button
+          type="button"
+          onClick={handleExport}
+          disabled={exporting}
+          className="rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold disabled:opacity-40"
+        >
+          {exporting ? "生成中..." : "📝 技術学習ログをMDで出力"}
+        </button>
+      </div>
+
       <div className="grid grid-cols-3 gap-3">
         <StatTile label="既読" value={data.readCount} icon="✅" />
         <StatTile label="保存済み" value={data.savedCount} icon="🔖" />

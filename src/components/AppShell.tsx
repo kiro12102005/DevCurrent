@@ -9,6 +9,7 @@ import { MyPage } from "./MyPage";
 import { ApiKeySettings } from "./ApiKeySettings";
 import { NotificationSubscribe } from "./NotificationSubscribe";
 import { AuthMenu } from "./AuthMenu";
+import { OnboardingModal } from "./OnboardingModal";
 
 // マイページ hubs everything account-related (保存済み/学習マップ/模擬面接/共有ページ)
 // behind one tab instead of adding a new top-level tab per feature - keeps the
@@ -68,6 +69,7 @@ export function AppShell() {
 
   return (
     <div className="flex flex-col flex-1">
+      <OnboardingModal />
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-200/80 print:hidden">
         <div className="max-w-5xl mx-auto px-4 py-3.5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5 min-w-0">

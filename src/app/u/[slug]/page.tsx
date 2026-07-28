@@ -1,9 +1,30 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { computeLearningStats } from "@/lib/learningStats";
 
 export const dynamic = "force-dynamic"; // stats change as the user keeps reading - never statically cache someone's page
+
+// So the link actually looks like something when pasted into LinkedIn / a
+// job-hunting site / Slack - without this it falls back to the app's generic
+// metadata, which defeats the point of a personal share link.
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const user = await prisma.user.findUnique({ where: { shareSlug: slug }, select: { publicNickname: true } });
+  if (!user) return { title: "ページが見つかりません" };
+
+  const name = user.publicNickname || "ユーザー";
+  const title = `${name}さんの学習実績 | 技術トレンド キャッチアップ`;
+  const description = `${name}さんが技術トレンド キャッチアップでキャッチアップしてきた記事・分野別の学習マップを見る`;
+
+  return {
+    title,
+    description,
+    openGraph: { title, description, type: "profile" },
+    twitter: { card: "summary_large_image", title, description },
+  };
+}
 
 export default async function SharePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

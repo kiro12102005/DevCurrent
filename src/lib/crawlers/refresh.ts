@@ -231,12 +231,17 @@ export async function refreshFeed(): Promise<RefreshResult> {
   // auto-generate full insight for featured picks only (bounded volume, server's own key -
   // this is a shared curation job, not a per-user request, so BYOK doesn't apply here)
   const featuredArticles = createdArticles.filter((a) => cappedFeaturedHashes.has(a.urlHash));
-  const newlyFeatured: { title: string; url: string; tags: Tag[] }[] = [];
+  const newlyFeatured: { title: string; url: string; tags: Tag[]; isBreakingChange: boolean }[] = [];
 
   for (const article of featuredArticles) {
     try {
-      await generateInsightForArticle(article, undefined);
-      newlyFeatured.push({ title: article.title ?? article.url, url: article.url, tags: article.tags as Tag[] });
+      const insight = await generateInsightForArticle(article, undefined);
+      newlyFeatured.push({
+        title: article.title ?? article.url,
+        url: article.url,
+        tags: article.tags as Tag[],
+        isBreakingChange: insight.isBreakingChange,
+      });
     } catch (err) {
       errors.push(`insight generation failed for ${article.url}: ${err instanceof Error ? err.message : String(err)}`);
     }

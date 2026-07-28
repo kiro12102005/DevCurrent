@@ -38,6 +38,7 @@ export async function POST(req: Request) {
     const questions = await generateInterviewQuestions(articles, apiKey);
     return NextResponse.json({ questions });
   } catch (err) {
+    console.error("[interview/generate] failed:", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "生成に失敗しました" },
       { status: 502 }

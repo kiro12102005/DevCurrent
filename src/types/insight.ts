@@ -5,6 +5,8 @@ export interface Insight {
   outlook: string;
   glossary: { term: string; explanation: string }[];
   githubRepo: string | null;
+  isBreakingChange: boolean;
+  breakingChangeSummary: string | null;
 }
 
 export type SourceType = "QIITA" | "ZENN" | "HACKER_NEWS" | "ARXIV" | "AI_TOOL_PICK" | "USER_SUBMITTED";

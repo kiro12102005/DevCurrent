@@ -9,6 +9,7 @@ async function handleRefresh() {
     const result = await refreshAiToolPicks();
     return NextResponse.json(result);
   } catch (err) {
+    console.error("[tools/refresh] failed:", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "更新に失敗しました" },
       { status: 500 }

@@ -165,6 +165,13 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
             </div>
           </div>
 
+          {result.insight.isBreakingChange && (
+            <div className="rounded-xl bg-red-50 border border-red-200 p-4">
+              <p className="font-bold text-red-700 flex items-center gap-1.5 mb-1">🚨 破壊的変更の可能性</p>
+              <p className="text-sm text-red-700 leading-relaxed">{result.insight.breakingChangeSummary}</p>
+            </div>
+          )}
+
           {result.insight.githubRepo && <GithubRepoCard repo={result.insight.githubRepo} />}
 
           <HandsOnGenerator articleId={result.article.id} articleTitle={result.article.title ?? result.article.url} />
