@@ -152,6 +152,8 @@ export function AuthMenu() {
 
 function PreferencesPanel() {
   const [interestTags, setInterestTags] = useState<Tag[]>([]);
+  const [stackKeywords, setStackKeywords] = useState<string[]>([]);
+  const [keywordDraft, setKeywordDraft] = useState("");
   const [wantsWeeklyDigest, setWantsWeeklyDigest] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
@@ -161,6 +163,7 @@ function PreferencesPanel() {
         .then((res) => res.json())
         .then((data) => {
           setInterestTags(data.preferences?.interestTags ?? []);
+          setStackKeywords(data.preferences?.stackKeywords ?? []);
           setWantsWeeklyDigest(data.preferences?.wantsWeeklyDigest ?? false);
         })
         .catch(() => {})
@@ -168,7 +171,7 @@ function PreferencesPanel() {
     });
   }, []);
 
-  function savePreferences(next: { interestTags?: Tag[]; wantsWeeklyDigest?: boolean }) {
+  function savePreferences(next: { interestTags?: Tag[]; stackKeywords?: string[]; wantsWeeklyDigest?: boolean }) {
     fetch("/api/user/preferences", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -180,6 +183,22 @@ function PreferencesPanel() {
     const next = interestTags.includes(tag) ? interestTags.filter((t) => t !== tag) : [...interestTags, tag];
     setInterestTags(next);
     savePreferences({ interestTags: next });
+  }
+
+  function addKeyword(e: React.FormEvent) {
+    e.preventDefault();
+    const value = keywordDraft.trim();
+    if (!value || stackKeywords.includes(value) || stackKeywords.length >= 15) return;
+    const next = [...stackKeywords, value];
+    setStackKeywords(next);
+    setKeywordDraft("");
+    savePreferences({ stackKeywords: next });
+  }
+
+  function removeKeyword(value: string) {
+    const next = stackKeywords.filter((k) => k !== value);
+    setStackKeywords(next);
+    savePreferences({ stackKeywords: next });
   }
 
   function toggleDigest() {
@@ -210,6 +229,36 @@ function PreferencesPanel() {
           </button>
         ))}
       </div>
+
+      <p className="text-xs font-semibold text-gray-700 mb-1.5">気になる技術スタック（自由入力）</p>
+      <p className="text-[11px] text-gray-400 mb-2 leading-relaxed">
+        例: React, PyTorch, Rust。記事タイトルにこの単語が含まれると通知対象になります（上のタグと合わせてOR条件）。
+      </p>
+      {stackKeywords.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {stackKeywords.map((kw) => (
+            <span key={kw} className="flex items-center gap-1 rounded-full bg-indigo-50 text-indigo-700 px-2.5 py-1 text-[11px] font-semibold">
+              {kw}
+              <button type="button" onClick={() => removeKeyword(kw)} className="text-indigo-400 hover:text-indigo-700">
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+      <form onSubmit={addKeyword} className="flex gap-1.5 mb-3">
+        <input
+          type="text"
+          value={keywordDraft}
+          onChange={(e) => setKeywordDraft(e.target.value)}
+          placeholder="技術名を追加"
+          maxLength={40}
+          className="flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+        <button type="submit" className="rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-xs font-semibold">
+          追加
+        </button>
+      </form>
 
       <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
         <input type="checkbox" checked={wantsWeeklyDigest} onChange={toggleDigest} className="rounded" />

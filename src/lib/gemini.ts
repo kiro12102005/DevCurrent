@@ -115,6 +115,7 @@ export interface GeneratedInsight {
   cons: string[];
   outlook: string;
   glossary: { term: string; explanation: string }[];
+  githubRepo: string | null;
 }
 
 const RESPONSE_SCHEMA = {
@@ -167,8 +168,13 @@ const RESPONSE_SCHEMA = {
       description:
         "記事本文全体を精査し、初心者がつまずきそうな専門用語・略語・製品固有名詞・前提知識となる基礎概念を6〜10個ピックアップ（記事に明示的に出てくる語だけでなく、それを理解する前提となる基礎用語も含めてよい）。難しい順ではなく、記事を読み進める順序に近い並びにする",
     },
+    githubRepo: {
+      type: "string",
+      description:
+        "記事が中心的に扱っているGitHubリポジトリが明確にある場合のみ 'owner/repo' 形式で（例: 'vercel/next.js'）。記事中にGitHubのURLやリポジトリ名が明示されていない場合、または複数あって一つに絞れない場合は空文字列。憶測で補完しないこと。",
+    },
   },
-  required: ["japaneseTitle", "country", "summary", "pros", "cons", "outlook", "glossary"],
+  required: ["japaneseTitle", "country", "summary", "pros", "cons", "outlook", "glossary", "githubRepo"],
 } as const;
 
 export async function generateInsight(params: {
@@ -193,9 +199,13 @@ ${params.text}
 - cons: 同様に具体的な懸念点・制約を3〜5個、それぞれ1〜2文で詳しく
 - outlook: 今後の展望を3〜5文で。この技術・製品が今後どう発展しうるか、関連分野や業界にどう影響しそうかまで具体的に
 - glossary: 記事本文全体を読み込み、初心者がつまずきそうな専門用語・略語・製品固有名詞・前提知識となる基礎概念を6〜10個ピックアップ。記事に直接出てくる語だけでなく、それを理解するために必要な基礎用語（例: 「LoRA」が出てきたら前提となる「ファインチューニング」も含める）も対象にする。それぞれ3〜4文で、(1)何であるか (2)この記事の文脈でなぜ重要か (3)具体例やたとえ話、を盛り込んで丁寧に解説する（一行の辞書的定義は禁止）。並び順は記事を読み進める順序に近づける
+- githubRepo: 記事が中心的に扱っているGitHubリポジトリが明確な場合のみ owner/repo 形式で（例: 'vercel/next.js'）。無ければ空文字列。
 - すべて日本語で出力してください。記事に書かれていない情報を推測で補わないでください`;
 
-  return generateJson<GeneratedInsight>(prompt, RESPONSE_SCHEMA, params.apiKey, 0.4);
+  const result = await generateJson<GeneratedInsight>(prompt, RESPONSE_SCHEMA, params.apiKey, 0.4);
+  // Gemini's structured output can't express null for a string field - it
+  // returns "" per the prompt instruction above when no repo was found.
+  return { ...result, githubRepo: result.githubRepo || null };
 }
 
 const TITLE_TAG_SCHEMA = {
@@ -311,4 +321,63 @@ ${context}
 
   const parsed = await generateJson<{ questions: InterviewQuestion[] }>(prompt, INTERVIEW_SCHEMA, apiKey, 0.6);
   return parsed.questions;
+}
+
+const HANDS_ON_SCHEMA = {
+  type: "object",
+  properties: {
+    language: {
+      type: "string",
+      description: "生成したコードの主要言語/ランタイム（例: 'JavaScript', 'Python', 'TypeScript'）",
+    },
+    isWebPlayable: {
+      type: "boolean",
+      description:
+        "true = ブラウザだけで完結する内容（Node.js/JavaScript/TypeScript/HTML/CSSのみで、外部有償APIキーやGPU等を必要としない）でCodeSandbox等のオンラインエディタでそのまま動かせる。false = ローカル環境やPythonの特殊ライブラリ等が必要で、ブラウザだけでは完結しない。",
+    },
+    description: { type: "string", description: "このハンズオンで何を体験できるか、2〜3文で" },
+    files: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          path: { type: "string", description: "ファイルパス（例: 'index.js', 'package.json'）" },
+          content: { type: "string" },
+        },
+        required: ["path", "content"],
+      },
+      description: "3分程度で動かせる最小構成のファイル一式。package.jsonが必要な場合は含める",
+    },
+    runInstructions: { type: "string", description: "ローカルで実行する場合の手順を2〜4文で（コマンドを含めてよい）" },
+  },
+  required: ["language", "isWebPlayable", "description", "files", "runInstructions"],
+} as const;
+
+export interface HandsOnCode {
+  language: string;
+  isWebPlayable: boolean;
+  description: string;
+  files: { path: string; content: string }[];
+  runInstructions: string;
+}
+
+// User-triggered, personal generation (BYOK) - same cost-attribution rule as
+// the mock interview generator above (about a specific article the user is
+// actively reading, not shared/curated content).
+export async function generateHandsOnCode(article: { title: string; summary?: string }, apiKey?: string): Promise<HandsOnCode> {
+  const prompt = `あなたは実践重視のテックメンターです。以下の技術記事を読んだ人が「読むだけ」で終わらず、
+3分程度で実際に手を動かして試せる、最小構成のハンズオンコードを作成してください。
+
+# 記事タイトル
+${article.title}
+${article.summary ? `\n# 記事の要約\n${article.summary.slice(0, 800)}` : ""}
+
+# 要件
+- 記事のテーマに最も適した言語・ランタイムを選ぶ（JavaScript/TypeScript/Node.jsとは限らない。PythonやCLIツールが適切ならそちらを使う）
+- 実行するのに有償APIキー・GPU・特殊なクラウド環境を必要としないコードにする（記事のテーマがそもそも大規模モデルの学習など不可能な場合は、その概念を体験できる簡易版・モック版にする）
+- isWebPlayableは、生成したコードがNode.js/JavaScript/TypeScript/HTML/CSSのみで完結し、ブラウザ上のオンラインエディタ（外部ネットワークアクセス不要）でそのまま動作する場合のみtrue
+- ファイルは最小限（1〜3ファイル程度）。コメントで要点を説明する
+- 日本語で説明してください`;
+
+  return generateJson<HandsOnCode>(prompt, HANDS_ON_SCHEMA, apiKey, 0.5);
 }

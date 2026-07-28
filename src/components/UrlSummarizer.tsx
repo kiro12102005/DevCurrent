@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import type { SummarizeResponse } from "@/types/insight";
 import { GlossaryTerm } from "./GlossaryTerm";
 import { ArticleNotes } from "./ArticleNotes";
+import { GithubRepoCard } from "./GithubRepoCard";
+import { HandsOnGenerator } from "./HandsOnGenerator";
 import { useStoredApiKey } from "@/lib/apiKeyStorage";
 import { SOURCE_BADGE_CLASS, SOURCE_LABEL } from "@/lib/sourceLabels";
 import { formatArticleDate } from "@/lib/formatDate";
@@ -162,6 +164,10 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
               </button>
             </div>
           </div>
+
+          {result.insight.githubRepo && <GithubRepoCard repo={result.insight.githubRepo} />}
+
+          <HandsOnGenerator articleId={result.article.id} articleTitle={result.article.title ?? result.article.url} />
 
           <section className="rounded-xl bg-white shadow-sm border border-gray-200 border-l-4 border-l-indigo-500 p-5">
             <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-1.5">📝 要約</h3>

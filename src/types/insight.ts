@@ -4,6 +4,7 @@ export interface Insight {
   cons: string[];
   outlook: string;
   glossary: { term: string; explanation: string }[];
+  githubRepo: string | null;
 }
 
 export type SourceType = "QIITA" | "ZENN" | "HACKER_NEWS" | "ARXIV" | "AI_TOOL_PICK" | "USER_SUBMITTED";

@@ -68,11 +68,14 @@ function composePayload(articles: { title: string; url: string }[]): PushPayload
   };
 }
 
-// Personalizes by src/lib/tags.ts: a subscriber linked to a user who has
-// chosen interestTags only gets notified about newly-featured articles that
-// match at least one of them (skipped entirely if none match). Anonymous
-// subscriptions, and logged-in users who haven't set any interests, keep the
-// original "wants everything" broadcast behavior - personalization is opt-in.
+// Personalizes by src/lib/tags.ts categories AND freeform stackKeywords
+// (substring match against the title - e.g. a user who added "PyTorch" gets
+// notified about a PyTorch article even though it's not one of the fixed
+// tag categories). A subscriber linked to a user who has set either only
+// gets notified about newly-featured articles matching at least one
+// (skipped entirely if none match). Anonymous subscriptions, and logged-in
+// users with no interests/keywords set at all, keep the original
+// "wants everything" broadcast behavior - personalization is opt-in.
 export async function sendPersonalizedPush(
   articles: { title: string; url: string; tags: Tag[] }[]
 ): Promise<{ sent: number; removed: number }> {
@@ -81,13 +84,21 @@ export async function sendPersonalizedPush(
   }
 
   const subscriptions = await prisma.pushSubscription.findMany({
-    include: { user: { select: { interestTags: true } } },
+    include: { user: { select: { interestTags: true, stackKeywords: true } } },
   });
 
   const results = await Promise.all(
     subscriptions.map((sub) => {
       const interests = sub.user?.interestTags ?? [];
-      const relevant = interests.length === 0 ? articles : articles.filter((a) => a.tags.some((t) => interests.includes(t)));
+      const keywords = sub.user?.stackKeywords ?? [];
+      if (interests.length === 0 && keywords.length === 0) {
+        return deliver(sub, composePayload(articles));
+      }
+      const relevant = articles.filter(
+        (a) =>
+          a.tags.some((t) => interests.includes(t)) ||
+          keywords.some((kw) => a.title.toLowerCase().includes(kw.toLowerCase()))
+      );
       if (relevant.length === 0) return Promise.resolve("skipped" as const);
       return deliver(sub, composePayload(relevant));
     })

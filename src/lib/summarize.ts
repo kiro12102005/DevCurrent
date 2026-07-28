@@ -9,9 +9,18 @@ import type { Insight } from "@/types/insight";
 type GenerationRow = Pick<AIGeneration, "summary" | "prosAndCons" | "glossary">;
 
 export function parseGeneration(generation: GenerationRow): Insight {
+  const { pros, cons, outlook, githubRepo } = JSON.parse(generation.prosAndCons) as {
+    pros: string[];
+    cons: string[];
+    outlook: string;
+    githubRepo?: string | null;
+  };
   return {
     summary: generation.summary,
-    ...(JSON.parse(generation.prosAndCons) as { pros: string[]; cons: string[]; outlook: string }),
+    pros,
+    cons,
+    outlook,
+    githubRepo: githubRepo ?? null,
     glossary: JSON.parse(generation.glossary) as Insight["glossary"],
   };
 }
@@ -44,7 +53,12 @@ export async function persistInsight(
       data: {
         articleId,
         summary: insight.summary,
-        prosAndCons: JSON.stringify({ pros: insight.pros, cons: insight.cons, outlook: insight.outlook }),
+        prosAndCons: JSON.stringify({
+          pros: insight.pros,
+          cons: insight.cons,
+          outlook: insight.outlook,
+          githubRepo: insight.githubRepo,
+        }),
         glossary: JSON.stringify(insight.glossary),
       },
     });

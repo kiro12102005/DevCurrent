@@ -80,6 +80,7 @@ model User {
   createdAt    DateTime @default(now())
 
   interestTags     String[] @default([]) // opt-in topic filter for personalized push (see lib/tags.ts for the fixed tag list)
+  stackKeywords    String[] @default([]) // freeform specific technologies (e.g. "React", "PyTorch") - matched by title substring, same personalized-push path as interestTags but not limited to the fixed category list
   wantsWeeklyDigest Boolean @default(false) // opt-in - Resend digest email is off by default
 
   shareSlug      String?  @unique // random public identifier for the opt-in shareable achievement page (/u/[shareSlug]) - null until the user opts in, deliberately NOT the user id
