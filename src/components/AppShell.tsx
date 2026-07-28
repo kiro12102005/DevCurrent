@@ -5,19 +5,23 @@ import Image from "next/image";
 import { UrlSummarizer } from "./UrlSummarizer";
 import { FeedList } from "./FeedList";
 import { AiToolPicks } from "./AiToolPicks";
-import { SavedList } from "./SavedList";
+import { MyPage } from "./MyPage";
 import { ApiKeySettings } from "./ApiKeySettings";
 import { NotificationSubscribe } from "./NotificationSubscribe";
 import { AuthMenu } from "./AuthMenu";
 
-const TAB_ORDER = ["feed", "summarize", "tools", "saved"] as const;
+// マイページ hubs everything account-related (保存済み/学習マップ/模擬面接/共有ページ)
+// behind one tab instead of adding a new top-level tab per feature - keeps the
+// primary nav at 4 items (iOS HIG recommends staying well under ~5) as the
+// feature set has grown.
+const TAB_ORDER = ["feed", "summarize", "tools", "mypage"] as const;
 type Tab = (typeof TAB_ORDER)[number];
 
 const TAB_META: Record<Tab, { icon: string; label: string }> = {
   feed: { icon: "📰", label: "フィード" },
   summarize: { icon: "🔍", label: "URLで要約" },
   tools: { icon: "🤖", label: "AIツール" },
-  saved: { icon: "🔖", label: "保存済み" },
+  mypage: { icon: "👤", label: "マイページ" },
 };
 
 // Swipe must be a clearly-horizontal, deliberate gesture to count as a tab
@@ -64,7 +68,7 @@ export function AppShell() {
 
   return (
     <div className="flex flex-col flex-1">
-      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-200/80">
+      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-200/80 print:hidden">
         <div className="max-w-5xl mx-auto px-4 py-3.5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5 min-w-0">
             <Image
@@ -100,11 +104,11 @@ export function AppShell() {
         {tab === "feed" && <FeedList onSelectArticle={handleSelectArticle} />}
         {tab === "summarize" && <UrlSummarizer externalRequest={externalRequest} />}
         {tab === "tools" && <AiToolPicks />}
-        {tab === "saved" && <SavedList onSelectArticle={handleSelectArticle} />}
+        {tab === "mypage" && <MyPage onSelectArticle={handleSelectArticle} />}
       </main>
 
       {/* mobile bottom nav mirrors the header tabs */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur-md border-t border-gray-200 flex justify-around py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur-md border-t border-gray-200 flex justify-around py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] print:hidden">
         {TAB_ORDER.map((t) => (
           <button
             key={t}

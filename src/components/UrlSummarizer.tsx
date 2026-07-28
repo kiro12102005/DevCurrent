@@ -8,6 +8,8 @@ import { useStoredApiKey } from "@/lib/apiKeyStorage";
 import { SOURCE_BADGE_CLASS, SOURCE_LABEL } from "@/lib/sourceLabels";
 import { formatArticleDate } from "@/lib/formatDate";
 import { countryFlag } from "@/lib/countryLabels";
+import { downloadTextFile } from "@/lib/download";
+import { articleInsightToMarkdown } from "@/lib/exportMarkdown";
 
 // externalRequest.token must change (e.g. Date.now() at click time) even if the
 // same URL is picked twice in a row, so the effect below re-triggers reliably.
@@ -69,12 +71,12 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
   return (
     <div className="w-full max-w-3xl mx-auto flex flex-col gap-6 px-4 pb-24 pt-6 md:pb-6">
       {!apiKey && (
-        <p className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-amber-800 text-sm">
+        <p className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-amber-800 text-sm print:hidden">
           右上の「APIキー設定」から自分のGemini APIキーを登録してください（未登録の場合は生成に失敗します）。
         </p>
       )}
 
-      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
+      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 print:hidden">
         <input
           type="url"
           required
@@ -138,11 +140,27 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
                 元記事を読む ↗
               </a>
             </div>
-            {result.cached && (
-              <span className="text-xs rounded-full bg-green-100 text-green-700 px-2 py-1 shrink-0">
-                キャッシュ済み（API節約）
-              </span>
-            )}
+            <div className="flex items-center gap-1.5 shrink-0 print:hidden">
+              {result.cached && (
+                <span className="text-xs rounded-full bg-green-100 text-green-700 px-2 py-1">
+                  キャッシュ済み（API節約）
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => downloadTextFile(`${result.article.title ?? "article"}.md`, articleInsightToMarkdown(result))}
+                className="rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap"
+              >
+                📝 MD
+              </button>
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap"
+              >
+                🖨️ PDF
+              </button>
+            </div>
           </div>
 
           <section className="rounded-xl bg-white shadow-sm border border-gray-200 border-l-4 border-l-indigo-500 p-5">

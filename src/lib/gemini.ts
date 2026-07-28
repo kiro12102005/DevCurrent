@@ -255,3 +255,60 @@ ${titles.map((t, i) => `${i}: ${t}`).join("\n")}
   }
   return result;
 }
+
+const INTERVIEW_SCHEMA = {
+  type: "object",
+  properties: {
+    questions: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          question: { type: "string", description: "技術面接で聞かれそうな質問（日本語）" },
+          answerPoints: {
+            type: "string",
+            description: "模範解答というより「何を盛り込めば良い回答になるか」のポイントを3〜4文で。丸暗記させず、自分の言葉で話せるよう誘導する内容",
+          },
+          basedOn: { type: "string", description: "この質問の元になった記事タイトル（渡された一覧の中から1つ）" },
+        },
+        required: ["question", "answerPoints", "basedOn"],
+      },
+    },
+  },
+  required: ["questions"],
+} as const;
+
+export interface InterviewQuestion {
+  question: string;
+  answerPoints: string;
+  basedOn: string;
+}
+
+// User-triggered, personal generation (BYOK) - this is explicitly about
+// *their* reading history, not shared/curated content, so it follows the
+// same cost-attribution rule as /api/summarize rather than the operator-key
+// pattern used for featured picks / AI tool curation.
+export async function generateInterviewQuestions(
+  articles: { title: string; summary?: string }[],
+  apiKey?: string
+): Promise<InterviewQuestion[]> {
+  const context = articles
+    .map((a, i) => `${i + 1}. ${a.title}${a.summary ? `\n   要約: ${a.summary.slice(0, 300)}` : ""}`)
+    .join("\n");
+
+  const prompt = `あなたは技術面接官です。就活生・エンジニア未経験者が最近読んで保存した以下の技術記事一覧をもとに、
+技術面接で実際に聞かれそうな質問を5〜8個作成してください。
+
+# 保存された記事一覧
+${context}
+
+# 要件
+- 記事の内容を丸暗記させるクイズではなく、「この技術をなぜ・どう使うと良いか」「メリデメ」「実務でどう活かせるか」を自分の言葉で説明させる、実際の面接に近い質問にする
+- 1つの記事から複数の質問を作っても良いが、記事一覧全体からバランスよく出題する
+- answerPointsは模範解答の丸写しではなく、回答に含めるべき観点を3〜4文で示す（採点基準に近いイメージ）
+- basedOnには、その質問の元になった記事のタイトルをそのまま入れる
+- すべて日本語で出力してください`;
+
+  const parsed = await generateJson<{ questions: InterviewQuestion[] }>(prompt, INTERVIEW_SCHEMA, apiKey, 0.6);
+  return parsed.questions;
+}

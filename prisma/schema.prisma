@@ -82,6 +82,9 @@ model User {
   interestTags     String[] @default([]) // opt-in topic filter for personalized push (see lib/tags.ts for the fixed tag list)
   wantsWeeklyDigest Boolean @default(false) // opt-in - Resend digest email is off by default
 
+  shareSlug      String?  @unique // random public identifier for the opt-in shareable achievement page (/u/[shareSlug]) - null until the user opts in, deliberately NOT the user id
+  publicNickname String?  // shown on the public share page instead of email; null = shown as "ユーザー"
+
   notes             UserNote[]
   pushSubscriptions PushSubscription[]
   articleStates     UserArticleState[]

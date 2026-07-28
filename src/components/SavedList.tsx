@@ -5,6 +5,8 @@ import { useAuth } from "@/lib/auth/AuthContext";
 import type { SavedItem } from "@/types/saved";
 import { SOURCE_BADGE_CLASS, SOURCE_LABEL } from "@/lib/sourceLabels";
 import { formatArticleDate } from "@/lib/formatDate";
+import { downloadTextFile } from "@/lib/download";
+import { savedListToMarkdown } from "@/lib/exportMarkdown";
 
 // Unified "保存済み" tab: bookmarked articles, each with any notes attached.
 // Bookmarking (from a feed card) and note-taking (from the article detail
@@ -67,7 +69,7 @@ export function SavedList({ onSelectArticle }: { onSelectArticle: (url: string) 
 
   if (!user) {
     return (
-      <div className="w-full max-w-3xl mx-auto flex flex-col items-center gap-2 px-4 pb-24 pt-16 md:pb-6 text-center">
+      <div className="flex flex-col items-center gap-2 py-16 text-center">
         <p className="text-4xl mb-2">🔒</p>
         <p className="text-gray-500 text-sm">保存済み記事を使うには右上からログインしてください。</p>
       </div>
@@ -75,10 +77,30 @@ export function SavedList({ onSelectArticle }: { onSelectArticle: (url: string) 
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto flex flex-col gap-4 px-4 pb-24 pt-6 md:pb-6">
-      <p className="text-xs text-gray-500">
-        フィードで🔖保存した記事、またはメモを書いた記事がここにまとまります。
-      </p>
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-3 print:hidden">
+        <p className="text-xs text-gray-500">
+          フィードで🔖保存した記事、またはメモを書いた記事がここにまとまります。
+        </p>
+        {items.length > 0 && (
+          <div className="flex gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => downloadTextFile("saved-articles.md", savedListToMarkdown(items))}
+              className="rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap"
+            >
+              📝 MD
+            </button>
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap"
+            >
+              🖨️ PDF
+            </button>
+          </div>
+        )}
+      </div>
 
       {loading ? (
         <div className="flex flex-col gap-3">
