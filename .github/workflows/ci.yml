@@ -1,0 +1,43 @@
+name: CI
+
+# Runs on every push/PR so type errors, lint issues, test failures, or build
+# breaks are caught before merge - previously the only verification was
+# running these commands manually before each deploy. No secrets are needed:
+# prisma.config.ts falls back to a local SQLite URL when DATABASE_URL is
+# unset, and every API route is server-rendered on demand (not statically
+# built), so `next build` never touches a real database.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build

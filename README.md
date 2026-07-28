@@ -55,6 +55,24 @@ pnpm dev        # http://localhost:3000
 > Next.js 16 はデフォルトで Turbopack ですが、`next-pwa` が webpack プラグインのため
 > `dev` / `build` は `--webpack` フラグ付きで実行しています（`package.json` 参照）。
 
+## テスト・CI
+
+```bash
+pnpm test          # vitest run（一度きり）
+pnpm test:watch    # 変更監視
+pnpm test:coverage # カバレッジ付き
+```
+
+DB接続・外部APIキーが不要な純粋関数（URL正規化・タグ判定・WAV変換・JST日付計算・
+`package.json`依存関係の照合・HTMLエンティティのデコードなど）をvitestで単体テストしている。
+中には実際に見つけたバグの再発防止テストも含む（`repoCheck.test.ts`の`@eslint/js`→`"js"`誤マッチ、
+`hnComments.test.ts`の`&#x27;`未デコード、どちらも本番投入前のライブ検証で発見・修正したもの）。
+
+`.github/workflows/ci.yml`が`push`/`pull_request`のたびに型チェック・Lint・テスト・ビルドを自動実行する
+（`.github/workflows/cron-refresh.yml`とは別ワークフロー・目的が異なる）。シークレット不要で動く設計:
+`prisma.config.ts`が`DATABASE_URL`未設定時にSQLiteへフォールバックし、全APIルートが動的レンダリング
+（ビルド時に実DBへ接続しない）のため。
+
 ## 自動収集の仕組み
 
 「自分から探しに行かないと情報にたどり着けない」問題への対策として、フィードは完全自動で更新されます。

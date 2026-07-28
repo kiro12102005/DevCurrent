@@ -12,7 +12,9 @@ const MIN_COMMENTS = 5; // below this, a pro/con matrix would be thinly-sourced 
 const MAX_COMMENTS = 25;
 const MAX_TOTAL_CHARS = 6000; // bounds the Gemini prompt size regardless of how chatty a thread got
 
-function stripHtml(html: string): string {
+// Exported for unit testing (see hnComments.test.ts's regression test for
+// the &#x27; entity-decoding bug found before this feature shipped).
+export function stripHtml(html: string): string {
   return html
     .replace(/<[^>]+>/g, " ")
     .replace(/&#x2F;/g, "/")
