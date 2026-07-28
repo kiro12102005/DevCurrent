@@ -28,16 +28,19 @@ model Article {
   country           String?   // best-guess origin country (Qiita/Zenn: always Japan; others: Gemini-inferred from title/content)
   engagementScore   Int?      // normalized popularity signal from the source (likes/points/stocks) at crawl time
   isFeatured        Boolean   @default(false) // top picks from a refresh cycle - these get auto-summarized + push notified
+  tags              String[]  @default([]) // cheap keyword-derived topic tags (see lib/tags.ts) - no extra Gemini cost, used for interest-based filtering
   fetchedAt   DateTime   @default(now())
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
   generation  AIGeneration?
   userNotes   UserNote[]
+  userStates  UserArticleState[]
 
   @@index([sourceType])
   @@index([sourcePublishedAt])
   @@index([isFeatured])
+  @@index([tags], type: Gin)
 }
 
 enum SourceType {
@@ -76,8 +79,32 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
 
+  interestTags     String[] @default([]) // opt-in topic filter for personalized push (see lib/tags.ts for the fixed tag list)
+  wantsWeeklyDigest Boolean @default(false) // opt-in - Resend digest email is off by default
+
   notes             UserNote[]
   pushSubscriptions PushSubscription[]
+  articleStates     UserArticleState[]
+}
+
+// Per-user read/bookmark state for an article. One row per (user, article) pair -
+// created lazily on first interaction, not backfilled for every article up front.
+model UserArticleState {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  articleId    String
+  article      Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  isRead       Boolean  @default(false)
+  isBookmarked Boolean  @default(false)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, articleId])
+  @@index([userId])
+  @@index([articleId])
 }
 
 // Freeform memo / interview-prep note a user attaches to an article.

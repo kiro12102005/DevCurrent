@@ -15,6 +15,10 @@
 - **オフライン対応**: 直近に開いたページはキャッシュから表示可能。未キャッシュのページに完全オフラインでアクセスした場合も専用のオフライン画面を表示（エラー画面にならない）。
 - PWA設定済み（`manifest.json` / apple-touch-icon / next-pwa による service worker、iOSの「ホーム画面に追加」に対応）
 - 4タブ構成（フィード / URLで要約 / AIツール / マイメモ）で、モバイルでは左右スワイプでもタブ切り替え可能
+- **記事検索**: フィード画面上部の検索ボックスで、期間に関係なく全記事のタイトルを横断検索できる（Postgresの`ILIKE`検索）。
+- **既読管理・ブックマーク**: ログイン中は記事カードから既読/ブックマークを切り替え可能。「未読のみ」「ブックマークのみ」で絞り込み表示もできる。
+- **興味タグ・パーソナライズ通知**: アカウントメニューから興味のあるタグ（AI・機械学習、フロントエンドなど）を選ぶと、注目ピックアップのプッシュ通知がそのタグに関連する記事だけに絞られる（記事のタグは`src/lib/tags.ts`のキーワード一致で無料判定・タグ未選択なら従来通り全件通知）。
+- **週次ダイジェストメール**: アカウントメニューでオプトインすると、その週の注目記事まとめがResend経由でメール配信される（要`RESEND_API_KEY`、下記参照）。
 
 ## セットアップ
 
@@ -34,6 +38,7 @@ pnpm dev        # http://localhost:3000
 | `VAPID_PUBLIC_KEY` / `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | Push通知を使うなら✅ | `npx web-push generate-vapid-keys`で生成。`.env`には開発用のペアが同梱済み。 |
 | `CRON_SECRET` | 任意 | `GET /api/feed/refresh`・`GET /api/tools/refresh`（Vercel Cron専用）の認証。`POST`（アプリ内の更新ボタン・GitHub Actionsが使用）は誰でも呼べる設計のため対象外。未設定でも動作する。 |
 | `ENABLE_AUTO_FEED_CRON` / `FEED_REFRESH_INTERVAL_HOURS` | 任意 | サーバー内蔵の自動更新タイマー（下記参照）のON/OFFと間隔（時間）。デフォルトON・3時間おき。 |
+| `RESEND_API_KEY` / `RESEND_FROM` | 任意 | 週次ダイジェストメール送信用（[resend.com](https://resend.com)で取得、`re_`から始まる）。未設定でも他の機能はすべて動作し、ダイジェスト送信だけスキップされる。`RESEND_FROM`は検証済みドメインのアドレス、テスト用途なら`onboarding@resend.dev`のままでも送信可（到達率は低い）。 |
 
 > Next.js 16 はデフォルトで Turbopack ですが、`next-pwa` が webpack プラグインのため
 > `dev` / `build` は `--webpack` フラグ付きで実行しています（`package.json` 参照）。

@@ -32,3 +32,11 @@ jobs:
         env:
           APP_URL: ${{ secrets.APP_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
+
+      - name: Send weekly digest email
+        if: github.event.schedule == '0 0 * * 1' || github.event_name == 'workflow_dispatch'
+        run: |
+          curl -sf "$APP_URL/api/digest/send" -H "x-cron-secret: $CRON_SECRET"
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}

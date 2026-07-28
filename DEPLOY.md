@@ -76,12 +76,13 @@ npx vercel --prod # 本番デプロイ
 | `VAPID_SUBJECT` | `mailto:` + 実際の連絡先 |
 | `CRON_SECRET` | 任意。Vercel Cron（GET）だけを保護する（下記参照）。設定しなくても動作する |
 | `ENABLE_AUTO_FEED_CRON` | `"false"`にする（Vercelはサーバーレスなので`instrumentation.ts`のインプロセスタイマーは使えない。下記のスケジューラで代替） |
+| `RESEND_API_KEY` / `RESEND_FROM` | 任意。週次ダイジェストメール用（[resend.com](https://resend.com)で取得）。未設定でも他機能に影響なし |
 
-## 5. 定期実行（自動クロール・自動キュレーション）
+## 5. 定期実行（自動クロール・自動キュレーション・週次ダイジェスト）
 
 `instrumentation.ts`のインプロセスタイマーはVercel（サーバーレス）では動作しません。代わりに:
 
-- **`vercel.json`**（このリポジトリに含み済み）: `/api/tools/refresh`を毎週月曜0時に実行するVercel Cronを設定済み。
+- **`vercel.json`**（このリポジトリに含み済み）: `/api/tools/refresh`と`/api/digest/send`を毎週月曜0時に実行するVercel Cronを設定済み（`/api/digest/send`は`CRON_SECRET`未設定だと誰でも叩けてしまうため、本番では`CRON_SECRET`の設定を強く推奨）。
   Vercelは`CRON_SECRET`という名前の環境変数が設定されていれば、Cron実行時に自動で`Authorization: Bearer $CRON_SECRET`ヘッダーを付けてくれます。
   **Vercel Hobbyプランはcronの実行頻度が1日1回までの制限があるため**、3時間おきが必要な`/api/feed/refresh`はここに含めていません。
 - **`.github/workflows/cron-refresh.yml`**（このリポジトリに含み済み）: `/api/feed/refresh`を3時間おき、`/api/tools/refresh`を毎週実行するGitHub Actionsワークフロー。

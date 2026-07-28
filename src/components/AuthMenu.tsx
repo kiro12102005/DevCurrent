@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { TAG_OPTIONS, type Tag } from "@/lib/tags";
 
 type Mode = "login" | "signup";
 
@@ -58,15 +59,18 @@ export function AuthMenu() {
           <span className="max-w-[8rem] truncate">{user.email}</span>
         </button>
         {open && (
-          <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:left-auto sm:mt-2 sm:w-56 rounded-xl border border-gray-200 bg-white p-3 shadow-xl shadow-indigo-900/10 z-20">
+          <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:left-auto sm:mt-2 sm:w-80 rounded-xl border border-gray-200 bg-white p-3 shadow-xl shadow-indigo-900/10 z-20 max-h-[80vh] overflow-y-auto">
             <p className="px-1 text-xs text-gray-500 truncate">{user.email}</p>
+
+            <PreferencesPanel />
+
             <button
               type="button"
               onClick={async () => {
                 await logout();
                 setOpen(false);
               }}
-              className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               ログアウト
             </button>
@@ -142,6 +146,75 @@ export function AuthMenu() {
           </p>
         </div>
       )}
+    </div>
+  );
+}
+
+function PreferencesPanel() {
+  const [interestTags, setInterestTags] = useState<Tag[]>([]);
+  const [wantsWeeklyDigest, setWantsWeeklyDigest] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      fetch("/api/user/preferences")
+        .then((res) => res.json())
+        .then((data) => {
+          setInterestTags(data.preferences?.interestTags ?? []);
+          setWantsWeeklyDigest(data.preferences?.wantsWeeklyDigest ?? false);
+        })
+        .catch(() => {})
+        .finally(() => setLoaded(true));
+    });
+  }, []);
+
+  function savePreferences(next: { interestTags?: Tag[]; wantsWeeklyDigest?: boolean }) {
+    fetch("/api/user/preferences", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(next),
+    }).catch(() => {});
+  }
+
+  function toggleTag(tag: Tag) {
+    const next = interestTags.includes(tag) ? interestTags.filter((t) => t !== tag) : [...interestTags, tag];
+    setInterestTags(next);
+    savePreferences({ interestTags: next });
+  }
+
+  function toggleDigest() {
+    const next = !wantsWeeklyDigest;
+    setWantsWeeklyDigest(next);
+    savePreferences({ wantsWeeklyDigest: next });
+  }
+
+  if (!loaded) return <div className="skeleton h-16 w-full rounded-lg mt-3" />;
+
+  return (
+    <div className="mt-3 pt-3 border-t border-gray-100">
+      <p className="text-xs font-semibold text-gray-700 mb-1.5">興味のあるタグ</p>
+      <p className="text-[11px] text-gray-400 mb-2 leading-relaxed">
+        選ぶと、注目ピックアップのプッシュ通知がこのタグに関連する記事だけになります（未選択なら全件通知）。
+      </p>
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        {TAG_OPTIONS.map((tag) => (
+          <button
+            key={tag}
+            type="button"
+            onClick={() => toggleTag(tag)}
+            className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+              interestTags.includes(tag) ? "brand-gradient text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            {tag}
+          </button>
+        ))}
+      </div>
+
+      <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
+        <input type="checkbox" checked={wantsWeeklyDigest} onChange={toggleDigest} className="rounded" />
+        週次ダイジェストメールを受け取る
+      </label>
     </div>
   );
 }

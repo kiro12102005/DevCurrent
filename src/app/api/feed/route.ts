@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { SourceType } from "@/generated/prisma";
+import { SourceType, type Prisma } from "@/generated/prisma";
 import { jstDayRange, jstTodayString, jstWeekRange } from "@/lib/dateRange";
+import { ARTICLE_LIST_SELECT, toFeedArticle } from "@/lib/articleSelect";
+import { getCurrentUser } from "@/lib/auth/session";
 
 const REGULAR_PAGE_SIZE = 30;
 const FEATURED_PER_SOURCE_DAY = 2;
@@ -9,41 +11,6 @@ const FEATURED_PER_SOURCE_WEEK = 3;
 // ArXiv has no engagement signal (always 0), so it never meaningfully "wins" a
 // top-N-by-engagement pick - leave it out of the featured computation.
 const FEATURED_SOURCES = [SourceType.QIITA, SourceType.ZENN, SourceType.HACKER_NEWS] as const;
-
-const SELECT = {
-  id: true,
-  url: true,
-  title: true,
-  sourceType: true,
-  sourcePublishedAt: true,
-  country: true,
-  engagementScore: true,
-  generation: { select: { id: true } },
-} as const;
-
-interface ArticleRow {
-  id: string;
-  url: string;
-  title: string | null;
-  sourceType: SourceType;
-  sourcePublishedAt: Date | null;
-  country: string | null;
-  engagementScore: number | null;
-  generation: { id: string } | null;
-}
-
-function toJson(a: ArticleRow) {
-  return {
-    id: a.id,
-    url: a.url,
-    title: a.title,
-    sourceType: a.sourceType,
-    publishedAt: a.sourcePublishedAt,
-    country: a.country,
-    engagementScore: a.engagementScore,
-    hasInsight: Boolean(a.generation),
-  };
-}
 
 // The feed is scoped to a day or a trailing 7-day week (JST) rather than
 // "everything ever crawled" - that's both what the user asked for (browse by
@@ -58,6 +25,18 @@ export async function GET(req: Request) {
   const period = searchParams.get("period") === "day" ? "day" : "week";
   const date = searchParams.get("date") || jstTodayString();
   const regularOffset = Math.max(0, Number(searchParams.get("regularOffset") ?? "0") || 0);
+  const unreadOnly = searchParams.get("unreadOnly") === "1";
+  const bookmarkedOnly = searchParams.get("bookmarkedOnly") === "1";
+
+  // read/bookmark filters are per-user, so they're a no-op for logged-out
+  // requests (nothing to filter against) rather than an error.
+  const user = unreadOnly || bookmarkedOnly ? await getCurrentUser() : null;
+  const stateFilter: Prisma.ArticleWhereInput = user
+    ? {
+        ...(unreadOnly ? { userStates: { none: { userId: user.id, isRead: true } } } : {}),
+        ...(bookmarkedOnly ? { userStates: { some: { userId: user.id, isBookmarked: true } } } : {}),
+      }
+    : {};
 
   const [rangeStart, rangeEnd] = period === "day" ? jstDayRange(date) : jstWeekRange(date);
   const perSource = period === "day" ? FEATURED_PER_SOURCE_DAY : FEATURED_PER_SOURCE_WEEK;
@@ -67,10 +46,10 @@ export async function GET(req: Request) {
       ? await Promise.all(
           FEATURED_SOURCES.map((sourceType) =>
             prisma.article.findMany({
-              where: { sourceType, sourcePublishedAt: { gte: rangeStart, lt: rangeEnd } },
+              where: { sourceType, sourcePublishedAt: { gte: rangeStart, lt: rangeEnd }, ...stateFilter },
               orderBy: { engagementScore: "desc" },
               take: perSource,
-              select: SELECT,
+              select: ARTICLE_LIST_SELECT,
             })
           )
         )
@@ -78,10 +57,11 @@ export async function GET(req: Request) {
   const featured = featuredBySource.flat();
   const featuredIds = featured.map((a) => a.id);
 
-  const regularWhere = {
+  const regularWhere: Prisma.ArticleWhereInput = {
     sourceType: { not: SourceType.USER_SUBMITTED },
     sourcePublishedAt: { gte: rangeStart, lt: rangeEnd },
     ...(featuredIds.length > 0 ? { id: { notIn: featuredIds } } : {}),
+    ...stateFilter,
   };
 
   const [regular, regularTotal] = await Promise.all([
@@ -90,7 +70,7 @@ export async function GET(req: Request) {
       orderBy: { sourcePublishedAt: "desc" },
       skip: regularOffset,
       take: REGULAR_PAGE_SIZE,
-      select: SELECT,
+      select: ARTICLE_LIST_SELECT,
     }),
     prisma.article.count({ where: regularWhere }),
   ]);
@@ -98,8 +78,8 @@ export async function GET(req: Request) {
   return NextResponse.json({
     period,
     date,
-    featured: featured.map(toJson),
-    regular: regular.map(toJson),
+    featured: featured.map(toFeedArticle),
+    regular: regular.map(toFeedArticle),
     regularOffset,
     regularCount: regularOffset + regular.length,
     regularTotal,

@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { normalizeUrl, sha256 } from "@/lib/hash";
 import { generateInsightForArticle } from "@/lib/summarize";
-import { sendPushToAllSubscribers } from "@/lib/push";
+import { sendPersonalizedPush } from "@/lib/push";
 import { translateTitles } from "@/lib/gemini";
 import { looksJapanese } from "@/lib/lang";
+import { deriveTags, type Tag } from "@/lib/tags";
 import { Prisma, SourceType } from "@/generated/prisma";
 import { crawlQiita } from "./qiita";
 import { crawlZenn } from "./zenn";
@@ -216,6 +217,7 @@ export async function refreshFeed(): Promise<RefreshResult> {
             country: item.country ?? null,
             engagementScore: item.engagement,
             isFeatured: cappedFeaturedHashes.has(item.urlHash),
+            tags: deriveTags(item.title),
           },
         });
       } catch (err) {
@@ -229,29 +231,19 @@ export async function refreshFeed(): Promise<RefreshResult> {
   // auto-generate full insight for featured picks only (bounded volume, server's own key -
   // this is a shared curation job, not a per-user request, so BYOK doesn't apply here)
   const featuredArticles = createdArticles.filter((a) => cappedFeaturedHashes.has(a.urlHash));
-  const newlyFeatured: { title: string; url: string }[] = [];
+  const newlyFeatured: { title: string; url: string; tags: Tag[] }[] = [];
 
   for (const article of featuredArticles) {
     try {
       await generateInsightForArticle(article, undefined);
-      newlyFeatured.push({ title: article.title ?? article.url, url: article.url });
+      newlyFeatured.push({ title: article.title ?? article.url, url: article.url, tags: article.tags as Tag[] });
     } catch (err) {
       errors.push(`insight generation failed for ${article.url}: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 
-  if (newlyFeatured.length === 1) {
-    await sendPushToAllSubscribers({
-      title: "注目の技術記事を見つけました",
-      body: newlyFeatured[0].title,
-      url: newlyFeatured[0].url,
-    });
-  } else if (newlyFeatured.length > 1) {
-    await sendPushToAllSubscribers({
-      title: `注目の技術記事を${newlyFeatured.length}件見つけました`,
-      body: newlyFeatured.map((a) => a.title).join(" / "),
-      url: "/",
-    });
+  if (newlyFeatured.length > 0) {
+    await sendPersonalizedPush(newlyFeatured);
   }
 
   return { crawled: crawled.length, newArticles: freshItems.length, featured: newlyFeatured, deletedOld, errors };
