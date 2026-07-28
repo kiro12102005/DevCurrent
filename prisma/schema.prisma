@@ -1,4 +1,4 @@
-// Tech Trend Catchup - DB schema (SQLite for local MVP, swap provider to "postgresql" for Supabase later)
+// Tech Trend Catchup - DB schema (PostgreSQL / Supabase)
 
 generator client {
   provider = "prisma-client-js"
@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // --- Content ingestion -------------------------------------------------
