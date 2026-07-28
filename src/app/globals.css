@@ -27,6 +27,13 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  /* Feed/AI-tools screens each have a horizontally-scrollable chip row
+     (date chips, category chips) nested inside them. Without this, iOS's
+     elastic rubber-band bounce at that inner row's scroll boundary can
+     propagate up to the whole page, making the entire screen feel
+     draggable left-right instead of just the chip row itself. */
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
 }
 
 /* shared brand gradient - matches the app icon */
