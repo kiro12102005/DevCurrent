@@ -59,6 +59,11 @@ pnpm dev        # http://localhost:3000
 - Service Workerのpushイベント処理は`worker/index.js`に実装し、next-pwaの`customWorkerSrc`機能で生成済みのsw.jsに自動的に組み込まれる。
 - **プッシュ通知はプロダクションビルドでのみ動作**（開発時はnext-pwaのService Worker自体を無効化しているため）。試す場合は `pnpm build && pnpm start` で起動してください。
 
+## 使用技術
+
+Next.js 16 (App Router) / TypeScript / React 19 / Tailwind CSS v4 / Prisma ORM (SQLite → PostgreSQL) /
+Google Gemini API (`@google/genai`) / Web Push (`web-push`) / bcryptjs + jose（自前認証） / next-pwa
+
 ## ディレクトリ構成
 
 ```
@@ -66,19 +71,27 @@ src/
   app/
     page.tsx                     # AppShellを描画するだけの薄いエントリ
     layout.tsx                   # PWA/iOSメタタグ、フォント
+    offline/page.tsx             # オフライン時のフォールバックページ（next-pwa）
     api/
       summarize/route.ts         # POST: URL手動入力 -> キャッシュ確認 -> スクレイピング -> Gemini生成(BYOK) -> 保存
       feed/route.ts              # GET: フィード記事一覧
       feed/refresh/route.ts      # POST: クロール実行トリガー（cron/手動共通）
       push/subscribe/route.ts    # POST: Push購読を保存
       push/unsubscribe/route.ts  # POST: Push購読を解除
+      auth/{signup,login,logout,me}/route.ts  # 自前認証（bcryptjs + jose JWTセッションCookie、外部サービス不要）
+      notes/route.ts, notes/[id]/route.ts      # ユーザーメモCRUD
+      tools/route.ts, tools/refresh/route.ts   # AIツールピックアップ一覧・Geminiキュレーションバッチ
   components/
-    AppShell.tsx                 # ヘッダー・タブ切り替え（フィード/URL要約）を統括するクライアントコンポーネント
+    AppShell.tsx                 # ヘッダー・4タブ切り替えを統括するクライアントコンポーネント
     FeedList.tsx                  # 自動収集フィード表示（注目ピックアップ＋最新記事一覧）
     UrlSummarizer.tsx              # URL手動入力フォーム＋結果カード（フィードからの選択も受け付ける）
     GlossaryTerm.tsx                # タップ/ホバーで用語解説を表示
     ApiKeySettings.tsx               # BYOK: 自分のGemini APIキー登録パネル
     NotificationSubscribe.tsx         # Push通知の購読/解除ボタン
+    AuthMenu.tsx                      # ログイン/新規登録パネル・アカウントメニュー
+    ArticleNotes.tsx                   # 記事詳細内のメモ追加・一覧
+    NotesList.tsx                       # 「マイメモ」タブ
+    AiToolPicks.tsx                      # 「AIツール」タブ
   lib/
     prisma.ts                    # PrismaClientシングルトン
     gemini.ts                    # Gemini 2.5 Flash 呼び出し（BYOK対応・構造化JSON出力）
@@ -88,37 +101,23 @@ src/
     push.ts                       # web-pushでの通知送信
     pushClient.ts                  # ブラウザ側のPush購読ヘルパー
     apiKeyStorage.ts                # localStorageでのBYOKキー管理（useSyncExternalStore）
+    cronAuth.ts                      # スケジューラ認証共通ロジック（x-cron-secret / Vercel CronのBearerヘッダー両対応）
+    auth/{session,password,AuthContext}.ts,tsx  # セッション発行/検証・パスワードハッシュ・クライアント側認証状態
+    curation/aiToolPicks.ts       # Gemini駆動のAIツールピックアップ生成バッチ
     crawlers/
       qiita.ts / zenn.ts / hackernews.ts / arxiv.ts   # ソース別クローラ
       refresh.ts                  # 4ソース統合クロール＋注目選定＋自動要約＋通知のオーケストレーション
       types.ts
-  types/insight.ts, feed.ts       # フロント/API共通の型
-  instrumentation.ts               # サーバー起動時に自動クロールタイマーを起動
-  generated/prisma/                # Prisma Client 生成物（gitignore対象）
+  types/                         # フロント/API共通の型
+  instrumentation.ts             # サーバー起動時に自動クロールタイマーを起動
+  generated/prisma/              # Prisma Client 生成物（gitignore対象）
 prisma/
-  schema.prisma                    # DBスキーマ（下記参照）
+  schema.prisma                  # DBスキーマ（下記参照）
+  postgresql-migrations/         # 本番(Postgres)用の初期マイグレーション（DEPLOY.md参照）
 worker/
-  index.js                         # カスタムService Worker（push / notificationclick処理）。next-pwaがsw.jsに自動組み込み
+  index.js                       # カスタムService Worker（push / notificationclick処理）。next-pwaがsw.jsに自動組み込み
 public/
   manifest.json, icon-*.png, apple-touch-icon.png
-```
-
-```
-src/
-  app/
-    api/auth/{signup,login,logout,me}/route.ts  # 自前認証（bcryptjs + jose JWTセッションCookie、外部サービス不要）
-    api/notes/route.ts, api/notes/[id]/route.ts  # ユーザーメモCRUD
-    api/tools/route.ts, api/tools/refresh/route.ts  # AIツールピックアップ一覧・Geminiキュレーションバッチ
-    offline/page.tsx             # オフライン時のフォールバックページ（next-pwa）
-  components/
-    AuthMenu.tsx                 # ログイン/新規登録パネル・アカウントメニュー
-    ArticleNotes.tsx              # 記事詳細内のメモ追加・一覧
-    NotesList.tsx                  # 「マイメモ」タブ
-    AiToolPicks.tsx                 # 「AIツール」タブ
-  lib/
-    auth/{session,password,AuthContext}.ts,tsx  # セッション発行/検証・パスワードハッシュ・クライアント側認証状態
-    curation/aiToolPicks.ts       # Gemini駆動のAIツールピックアップ生成バッチ
-    cronAuth.ts                    # スケジューラ認証共通ロジック（x-cron-secret / Vercel CronのBearerヘッダー両対応）
 ```
 
 ## DBスキーマ設計（`prisma/schema.prisma`）
