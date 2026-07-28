@@ -73,6 +73,21 @@ DB接続・外部APIキーが不要な純粋関数（URL正規化・タグ判定
 `prisma.config.ts`が`DATABASE_URL`未設定時にSQLiteへフォールバックし、全APIルートが動的レンダリング
 （ビルド時に実DBへ接続しない）のため。
 
+## セキュリティ
+
+- **依存関係の脆弱性監査**: `pnpm audit`で発見された8件のうち6件（PostCSS 3件・serialize-javascript 2件
+  ・sharp 1件、いずれも`next`/`next-pwa`の推移的依存）を`package.json`の`pnpm.overrides`でパッチ済みバージョンに固定して解消。
+  残り2件（`brace-expansion`、`next-pwa`のビルド時ツールチェーン経由）は意図的に未修正: 一律に上書きすると
+  ESLintが依存する`minimatch@3.1.5`と同一インスタンスを共有しており、実際に`eslint`が壊れることをローカルで確認した
+  （`TypeError: expand is not a function`）。この脆弱性はビルド時のみ・信頼済みの設定ファイルしか処理しないため
+  実際に攻撃者が到達できる経路がなく、ツールを壊してまで修正する価値がないと判断（リスク受容）。
+- **Dependabot**: `.github/dependabot.yml`でnpm依存関係とGitHub Actionsを毎週自動チェック。
+- **入力バリデーション**: `/api/feed`の`date`パラメータに形式チェックを追加（不正な値がPrismaまで届いて500になっていたのを400に）、
+  `/api/article-states`の`articleIds`に上限（200件）を追加、`/api/log-client-error`（未認証で誰でも叩ける設計上必須）に
+  zodでのフィールド長上限を追加し、ログ荒らしによるVercelログ容量の浪費を防止。
+- **レート制限（未公開・要ユーザー操作）**: Vercel Firewallにログのみのレート制限ルールをステージング済みだが、
+  本番反映には`vercel firewall publish --yes`をユーザー自身が実行する必要がある（[vercel-firewallスキルのベストプラクティス](https://vercel.com/docs/vercel-firewall)に従い、影響範囲の大きい変更を自動実行しない設計）。
+
 ## 自動収集の仕組み
 
 「自分から探しに行かないと情報にたどり着けない」問題への対策として、フィードは完全自動で更新されます。
