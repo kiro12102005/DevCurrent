@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { FileText, Bookmark } from "lucide-react";
 import { useAuth } from "@/lib/auth/AuthContext";
 import type { UserNoteDto } from "@/types/notes";
 
@@ -84,7 +85,9 @@ export function ArticleNotes({ articleId }: { articleId: string }) {
   return (
     <section className="rounded-xl bg-white shadow-sm border border-gray-200 p-5">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-bold text-gray-800 flex items-center gap-1.5">📝 メモ・保存</h3>
+        <h3 className="font-bold text-gray-800 flex items-center gap-1.5">
+          <FileText className="w-4 h-4" strokeWidth={2.25} /> メモ・保存
+        </h3>
         {user && (
           <button
             type="button"
@@ -93,7 +96,8 @@ export function ArticleNotes({ articleId }: { articleId: string }) {
               isBookmarked ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
             }`}
           >
-            🔖 {isBookmarked ? "保存済み" : "保存"}
+            <Bookmark className="w-3.5 h-3.5" strokeWidth={2.25} fill={isBookmarked ? "currentColor" : "none"} />
+            {isBookmarked ? "保存済み" : "保存"}
           </button>
         )}
       </div>

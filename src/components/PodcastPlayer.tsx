@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Mic } from "lucide-react";
 import type { PodcastEpisodeDto } from "@/types/podcast";
 
 function formatDuration(sec: number | null): string {
@@ -31,7 +32,7 @@ export function PodcastPlayer() {
     <div className="rounded-xl bg-white shadow-sm border border-gray-200 p-4 print:hidden">
       <div className="flex items-center justify-between gap-2 mb-2">
         <p className="font-bold text-gray-800 flex items-center gap-1.5">
-          🎙️ 今日のポッドキャスト
+          <Mic className="w-4 h-4" strokeWidth={2.25} /> 今日のポッドキャスト
           <span className="text-[11px] font-normal text-gray-400">
             {episode.date}{episode.durationSec ? ` ・ ${formatDuration(episode.durationSec)}` : ""}
           </span>

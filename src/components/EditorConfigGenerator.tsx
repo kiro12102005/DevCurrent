@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { Settings, Bot, Code2, MessageSquare } from "lucide-react";
 import { useStoredApiKey } from "@/lib/apiKeyStorage";
 import { downloadTextFile } from "@/lib/download";
 import type { EditorConfigFileDto } from "@/types/editorConfig";
 
-const TOOL_ICON: Record<EditorConfigFileDto["tool"], string> = {
-  claude_code: "🤖",
-  cursor: "▶️",
-  generic: "💬",
+const TOOL_ICON: Record<EditorConfigFileDto["tool"], typeof Bot> = {
+  claude_code: Bot,
+  cursor: Code2,
+  generic: MessageSquare,
 };
 
 // Turns "この記事のテーマ" into a ready-to-drop-in instructions file for the
@@ -45,7 +46,9 @@ export function EditorConfigGenerator({ articleId }: { articleId: string }) {
 
   return (
     <section className="rounded-xl bg-white shadow-sm border border-gray-200 p-5 print:hidden">
-      <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-1.5">⚙️ AIエディタ設定を生成</h3>
+      <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-1.5">
+        <Settings className="w-4 h-4" strokeWidth={2.25} /> AIエディタ設定を生成
+      </h3>
       <p className="text-xs text-gray-500 leading-relaxed mb-3">
         この記事の内容をもとに、Claude Code / Cursor / 汎用チャット用の指示ファイルをそのまま貼り付けられる形式で生成します。
       </p>
@@ -64,11 +67,14 @@ export function EditorConfigGenerator({ articleId }: { articleId: string }) {
 
       {files && (
         <div className="flex flex-col gap-3">
-          {files.map((f) => (
+          {files.map((f) => {
+            const ToolIcon = TOOL_ICON[f.tool];
+            return (
             <div key={f.tool} className="rounded-lg border border-gray-200 overflow-hidden">
               <div className="flex items-center justify-between bg-gray-50 px-3 py-1.5">
-                <span className="text-xs font-semibold text-gray-700">
-                  {TOOL_ICON[f.tool]} {f.label} <span className="font-mono text-gray-400">({f.filename})</span>
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-700">
+                  <ToolIcon className="w-3.5 h-3.5" strokeWidth={2.25} />
+                  {f.label} <span className="font-mono text-gray-400">({f.filename})</span>
                 </span>
                 <div className="flex gap-2 shrink-0">
                   <button
@@ -89,7 +95,8 @@ export function EditorConfigGenerator({ articleId }: { articleId: string }) {
               </div>
               <pre className="text-xs text-gray-700 p-3 overflow-x-auto bg-white whitespace-pre-wrap max-h-64 overflow-y-auto">{f.content}</pre>
             </div>
-          ))}
+            );
+          })}
           <button
             type="button"
             onClick={handleGenerate}

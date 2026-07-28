@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Bookmark, BarChart3, GraduationCap, Search, Share2 } from "lucide-react";
 import { SavedList } from "./SavedList";
 import { LearningMap } from "./LearningMap";
 import { InterviewPractice } from "./InterviewPractice";
@@ -8,11 +9,11 @@ import { SharePageSettings } from "./SharePageSettings";
 import { RepoBreakingChangeCheck } from "./RepoBreakingChangeCheck";
 
 const SECTIONS = [
-  { key: "saved", icon: "🔖", label: "保存済み" },
-  { key: "map", icon: "📊", label: "学習マップ" },
-  { key: "interview", icon: "🎓", label: "模擬面接" },
-  { key: "repo", icon: "🔍", label: "リポジトリチェック" },
-  { key: "share", icon: "🔗", label: "共有ページ" },
+  { key: "saved", icon: Bookmark, label: "保存済み" },
+  { key: "map", icon: BarChart3, label: "学習マップ" },
+  { key: "interview", icon: GraduationCap, label: "模擬面接" },
+  { key: "repo", icon: Search, label: "リポジトリチェック" },
+  { key: "share", icon: Share2, label: "共有ページ" },
 ] as const;
 type SectionKey = (typeof SECTIONS)[number]["key"];
 
@@ -31,11 +32,11 @@ export function MyPage({ onSelectArticle }: { onSelectArticle: (url: string) => 
             key={s.key}
             type="button"
             onClick={() => setSection(s.key)}
-            className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`inline-flex items-center gap-1.5 shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all ${
               section === s.key ? "brand-gradient text-white shadow-sm shadow-indigo-900/20" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
-            {s.icon} {s.label}
+            <s.icon className="w-3.5 h-3.5" strokeWidth={2.25} /> {s.label}
           </button>
         ))}
       </div>

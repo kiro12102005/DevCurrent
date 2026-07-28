@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Search, CircleCheckBig, TriangleAlert } from "lucide-react";
 import type { RepoCheckResponse } from "@/types/repoCheck";
 
 // "自分のリポジトリへの実害" チェック: 公開npmリポジトリのpackage.jsonを読み、
@@ -38,7 +39,9 @@ export function RepoBreakingChangeCheck() {
   return (
     <div className="flex flex-col gap-4">
       <div className="rounded-xl bg-white shadow-sm border border-gray-200 p-5">
-        <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-1.5">🔍 リポジトリチェック</h3>
+        <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-1.5">
+          <Search className="w-4 h-4" strokeWidth={2.25} /> リポジトリチェック
+        </h3>
         <p className="text-xs text-gray-500 leading-relaxed mb-3">
           公開GitHubリポジトリのpackage.jsonを読み込み、実際に使っているライブラリに関係する破壊的変更ニュースだけをピンポイントで表示します（現在npmプロジェクトのみ対応）。
         </p>
@@ -68,7 +71,9 @@ export function RepoBreakingChangeCheck() {
           </p>
           {result.matches.length === 0 ? (
             <div className="rounded-xl bg-green-50 border border-green-200 p-4">
-              <p className="text-sm text-green-700">✅ 現在検知されている破壊的変更との一致はありませんでした</p>
+              <p className="flex items-center gap-1.5 text-sm text-green-700">
+                <CircleCheckBig className="w-4 h-4" strokeWidth={2.25} /> 現在検知されている破壊的変更との一致はありませんでした
+              </p>
             </div>
           ) : (
             result.matches.map((m, i) => (
@@ -79,7 +84,9 @@ export function RepoBreakingChangeCheck() {
                 rel="noopener noreferrer"
                 className="block rounded-xl bg-red-50 border border-red-200 p-4 hover:border-red-300 transition-colors"
               >
-                <p className="font-bold text-red-700 flex items-center gap-1.5 mb-1">🚨 {m.keyword} に影響する可能性</p>
+                <p className="font-bold text-red-700 flex items-center gap-1.5 mb-1">
+                  <TriangleAlert className="w-4 h-4" strokeWidth={2.25} /> {m.keyword} に影響する可能性
+                </p>
                 <p className="text-xs text-red-600 mb-1">{m.articleTitle}</p>
                 <p className="text-sm text-red-700 leading-relaxed">{m.breakingChangeSummary}</p>
               </a>

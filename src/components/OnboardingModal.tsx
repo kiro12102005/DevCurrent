@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Newspaper, Search, Bot, User } from "lucide-react";
 
 const STORAGE_KEY = "onboarding_dismissed_v1";
 
 const STEPS = [
-  { icon: "📰", title: "フィード", desc: "Qiita/Zenn/Hacker News/ArXivから自動収集。日別・週間で見逃さずキャッチアップ。" },
-  { icon: "🔍", title: "URLで要約", desc: "気になる記事のURLを貼ると、深掘り要約・メリデメ・用語解説をAIが生成。" },
-  { icon: "🤖", title: "AIツール", desc: "今話題のAIサービス・アプリをカテゴリ別にチェック。" },
-  { icon: "👤", title: "マイページ", desc: "保存した記事・学習マップ・模擬面接・共有ページはここに集約されています。" },
+  { icon: Newspaper, title: "フィード", desc: "Qiita/Zenn/Hacker News/ArXivから自動収集。日別・週間で見逃さずキャッチアップ。" },
+  { icon: Search, title: "URLで要約", desc: "気になる記事のURLを貼ると、深掘り要約・メリデメ・用語解説をAIが生成。" },
+  { icon: Bot, title: "AIツール", desc: "今話題のAIサービス・アプリをカテゴリ別にチェック。" },
+  { icon: User, title: "マイページ", desc: "保存した記事・学習マップ・模擬面接・共有ページはここに集約されています。" },
 ];
 
 // Shown once per browser (localStorage-gated) - the app has grown to 4 tabs
@@ -43,7 +44,9 @@ export function OnboardingModal() {
         <ul className="flex flex-col gap-3 mb-5">
           {STEPS.map((s) => (
             <li key={s.title} className="flex items-start gap-3">
-              <span className="text-2xl shrink-0">{s.icon}</span>
+              <span className="shrink-0 rounded-lg bg-indigo-50 text-indigo-600 p-2">
+                <s.icon className="w-5 h-5" strokeWidth={2} />
+              </span>
               <div>
                 <p className="text-sm font-semibold text-gray-800">{s.title}</p>
                 <p className="text-xs text-gray-500 leading-relaxed">{s.desc}</p>

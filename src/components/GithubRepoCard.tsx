@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { GitFork, Star } from "lucide-react";
 import type { GithubStats } from "@/types/github";
 
 function timeAgo(iso: string): string {
@@ -39,8 +40,12 @@ export function GithubRepoCard({ repo }: { repo: string }) {
       className="block rounded-xl bg-white shadow-sm border border-gray-200 p-4 hover:border-indigo-200 hover:shadow-md transition-all"
     >
       <div className="flex items-center justify-between gap-2">
-        <p className="font-bold text-gray-800 flex items-center gap-1.5">🐙 {stats.fullName}</p>
-        <span className="text-xs text-gray-500">⭐ {stats.stars.toLocaleString()}</span>
+        <p className="font-bold text-gray-800 flex items-center gap-1.5">
+          <GitFork className="w-4 h-4 text-gray-500" strokeWidth={2.25} /> {stats.fullName}
+        </p>
+        <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+          <Star className="w-3.5 h-3.5" strokeWidth={2.25} fill="currentColor" /> {stats.stars.toLocaleString()}
+        </span>
       </div>
       <p className="text-[11px] text-gray-500 mt-1">
         GitHub上の実データ（一次情報）

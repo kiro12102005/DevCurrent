@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Lock, FileText, Printer, Bookmark } from "lucide-react";
 import { useAuth } from "@/lib/auth/AuthContext";
 import type { SavedItem } from "@/types/saved";
 import { SOURCE_BADGE_CLASS, SOURCE_LABEL } from "@/lib/sourceLabels";
@@ -70,7 +71,7 @@ export function SavedList({ onSelectArticle }: { onSelectArticle: (url: string) 
   if (!user) {
     return (
       <div className="flex flex-col items-center gap-2 py-16 text-center">
-        <p className="text-4xl mb-2">🔒</p>
+        <Lock className="w-10 h-10 mb-1 text-gray-300" strokeWidth={1.5} />
         <p className="text-gray-500 text-sm">保存済み記事を使うには右上からログインしてください。</p>
       </div>
     );
@@ -80,23 +81,23 @@ export function SavedList({ onSelectArticle }: { onSelectArticle: (url: string) 
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3 print:hidden">
         <p className="text-xs text-gray-500">
-          フィードで🔖保存した記事、またはメモを書いた記事がここにまとまります。
+          フィードで保存した記事、またはメモを書いた記事がここにまとまります。
         </p>
         {items.length > 0 && (
           <div className="flex gap-1.5 shrink-0">
             <button
               type="button"
               onClick={() => downloadTextFile("saved-articles.md", savedListToMarkdown(items))}
-              className="rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap"
+              className="inline-flex items-center gap-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap"
             >
-              📝 MD
+              <FileText className="w-3 h-3" strokeWidth={2.25} /> MD
             </button>
             <button
               type="button"
               onClick={() => window.print()}
-              className="rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap"
+              className="inline-flex items-center gap-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap"
             >
-              🖨️ PDF
+              <Printer className="w-3 h-3" strokeWidth={2.25} /> PDF
             </button>
           </div>
         )}
@@ -113,8 +114,8 @@ export function SavedList({ onSelectArticle }: { onSelectArticle: (url: string) 
         </div>
       ) : items.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-4xl mb-3">🔖</p>
-          <p className="text-gray-400 text-sm">まだ保存した記事がありません。フィードの🔖ボタンから保存できます。</p>
+          <Bookmark className="w-10 h-10 mx-auto mb-3 text-gray-300" strokeWidth={1.5} />
+          <p className="text-gray-400 text-sm">まだ保存した記事がありません。フィードの保存ボタンから保存できます。</p>
         </div>
       ) : (
         <ul className="flex flex-col gap-3">

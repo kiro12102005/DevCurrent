@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Settings } from "lucide-react";
 import { clearStoredApiKey, maskApiKey, setStoredApiKey, useStoredApiKey } from "@/lib/apiKeyStorage";
 
 export function ApiKeySettings() {
@@ -27,7 +28,7 @@ export function ApiKeySettings() {
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-1 rounded-full border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:border-indigo-300 transition-colors"
       >
-        ⚙️ APIキー設定
+        <Settings className="w-3.5 h-3.5" strokeWidth={2.25} /> APIキー設定
         {savedKey && <span className="w-1.5 h-1.5 rounded-full bg-green-500" />}
       </button>
 

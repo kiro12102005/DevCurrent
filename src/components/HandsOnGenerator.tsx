@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { FlaskConical, PlayCircle, Monitor, FileText } from "lucide-react";
 import { useStoredApiKey } from "@/lib/apiKeyStorage";
 import { downloadTextFile } from "@/lib/download";
 import type { HandsOnResponse } from "@/types/handsOn";
@@ -38,7 +39,9 @@ export function HandsOnGenerator({ articleId, articleTitle }: { articleId: strin
 
   return (
     <section className="rounded-xl bg-white shadow-sm border border-gray-200 p-5 print:hidden">
-      <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-1.5">🧪 3分ハンズオン</h3>
+      <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-1.5">
+        <FlaskConical className="w-4 h-4" strokeWidth={2.25} /> 3分ハンズオン
+      </h3>
       <p className="text-xs text-gray-500 leading-relaxed mb-3">
         この記事のテーマを、Geminiが生成する最小構成コードで実際に試せます。
       </p>
@@ -64,13 +67,14 @@ export function HandsOnGenerator({ articleId, articleTitle }: { articleId: strin
               href={result.sandboxUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="self-start rounded-lg brand-gradient px-4 py-2 text-sm font-semibold text-white"
+              className="inline-flex items-center gap-1.5 self-start rounded-lg brand-gradient px-4 py-2 text-sm font-semibold text-white"
             >
-              ▶️ CodeSandboxで開く
+              <PlayCircle className="w-4 h-4" strokeWidth={2.25} /> CodeSandboxで開く
             </a>
           ) : (
-            <p className="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600 leading-relaxed">
-              💻 ローカルでの実行方法: {result.code.runInstructions}
+            <p className="flex items-start gap-1.5 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600 leading-relaxed">
+              <Monitor className="w-3.5 h-3.5 shrink-0 mt-0.5" strokeWidth={2.25} />
+              ローカルでの実行方法: {result.code.runInstructions}
             </p>
           )}
 
@@ -103,9 +107,9 @@ export function HandsOnGenerator({ articleId, articleTitle }: { articleId: strin
                     .join("\n\n")}\n\n## ローカル実行方法\n${result.code.runInstructions}\n`
                 )
               }
-              className="rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold"
+              className="inline-flex items-center gap-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold"
             >
-              📝 MDでダウンロード
+              <FileText className="w-3 h-3" strokeWidth={2.25} /> MDでダウンロード
             </button>
             <button
               type="button"

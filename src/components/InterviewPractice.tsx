@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Lock, GraduationCap } from "lucide-react";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useStoredApiKey } from "@/lib/apiKeyStorage";
 import type { InterviewQuestionDto } from "@/types/interview";
@@ -49,7 +50,7 @@ export function InterviewPractice() {
   if (!user) {
     return (
       <div className="flex flex-col items-center gap-2 py-16 text-center">
-        <p className="text-4xl mb-2">🔒</p>
+        <Lock className="w-10 h-10 mb-1 text-gray-300" strokeWidth={1.5} />
         <p className="text-gray-500 text-sm">模擬面接AIを使うにはログインしてください。</p>
       </div>
     );
@@ -58,7 +59,9 @@ export function InterviewPractice() {
   return (
     <div className="flex flex-col gap-4">
       <div className="rounded-xl bg-white shadow-sm border border-gray-200 p-4">
-        <h3 className="font-bold text-gray-800 mb-1.5 flex items-center gap-1.5">🎓 模擬面接AI</h3>
+        <h3 className="font-bold text-gray-800 mb-1.5 flex items-center gap-1.5">
+          <GraduationCap className="w-4 h-4" strokeWidth={2.25} /> 模擬面接AI
+        </h3>
         <p className="text-xs text-gray-500 leading-relaxed mb-3">
           「保存済み」に入れた記事をもとに、Geminiが技術面接で聞かれそうな質問を作成します。まず自分の言葉で考えてから、回答のポイントを確認しましょう。
         </p>

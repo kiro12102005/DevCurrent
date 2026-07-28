@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Lock, FileText, CircleCheckBig, Bookmark, Flame, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/lib/auth/AuthContext";
 import type { LearningMapResponse } from "@/types/learningMap";
 import type { LearningLogResponse } from "@/types/learningLog";
@@ -41,7 +42,7 @@ export function LearningMap() {
   if (!user) {
     return (
       <div className="flex flex-col items-center gap-2 py-16 text-center">
-        <p className="text-4xl mb-2">🔒</p>
+        <Lock className="w-10 h-10 mb-1 text-gray-300" strokeWidth={1.5} />
         <p className="text-gray-500 text-sm">学習マップを見るにはログインしてください。</p>
       </div>
     );
@@ -66,16 +67,16 @@ export function LearningMap() {
           type="button"
           onClick={handleExport}
           disabled={exporting}
-          className="rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold disabled:opacity-40"
+          className="inline-flex items-center gap-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold disabled:opacity-40"
         >
-          {exporting ? "生成中..." : "📝 技術学習ログをMDで出力"}
+          <FileText className="w-3 h-3" strokeWidth={2.25} /> {exporting ? "生成中..." : "技術学習ログをMDで出力"}
         </button>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
-        <StatTile label="既読" value={data.readCount} icon="✅" />
-        <StatTile label="保存済み" value={data.savedCount} icon="🔖" />
-        <StatTile label="直近30日の活動日数" value={data.activeDaysLast30} icon="🔥" />
+        <StatTile label="既読" value={data.readCount} icon={CircleCheckBig} />
+        <StatTile label="保存済み" value={data.savedCount} icon={Bookmark} />
+        <StatTile label="直近30日の活動日数" value={data.activeDaysLast30} icon={Flame} />
       </div>
 
       <div className="rounded-xl bg-white shadow-sm border border-gray-200 p-4">
@@ -105,10 +106,10 @@ export function LearningMap() {
   );
 }
 
-function StatTile({ label, value, icon }: { label: string; value: number; icon: string }) {
+function StatTile({ label, value, icon: Icon }: { label: string; value: number; icon: LucideIcon }) {
   return (
     <div className="rounded-xl bg-white shadow-sm border border-gray-200 p-3 flex flex-col items-center text-center">
-      <span className="text-lg">{icon}</span>
+      <Icon className="w-5 h-5 text-indigo-500" strokeWidth={2.25} />
       <span className="text-xl font-bold brand-gradient-text leading-tight">{value}</span>
       <span className="text-[10px] text-gray-500 leading-tight">{label}</span>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { RefreshCw, Search, Calendar, Bookmark, Star, Sprout, CircleCheckBig, Square } from "lucide-react";
 import type { FeedArticle, FeedPeriod, FeedResponse } from "@/types/feed";
 import type { SearchResponse } from "@/types/search";
 import { SOURCE_BADGE_CLASS, SOURCE_LABEL } from "@/lib/sourceLabels";
@@ -192,20 +193,23 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
           disabled={refreshing}
           className="flex items-center gap-1 text-xs font-semibold rounded-full px-3.5 py-1.5 text-white brand-gradient shadow-sm shadow-indigo-900/20 disabled:opacity-50 shrink-0 transition-transform active:scale-95"
         >
-          <span className={refreshing ? "animate-spin" : ""}>↻</span>
+          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} strokeWidth={2.5} />
           {refreshing ? "更新中..." : "今すぐ更新"}
         </button>
       </div>
 
       <PodcastPlayer />
 
-      <input
-        type="search"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="🔍 記事タイトルを検索（全期間対象）"
-        className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-      />
+      <div className="relative">
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" strokeWidth={2} />
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="記事タイトルを検索（全期間対象）"
+          className="w-full rounded-lg border border-gray-300 pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+      </div>
 
       {!isSearching && (
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
@@ -216,7 +220,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
               setDate(jstTodayString());
             }}
           >
-            📅 週間まとめ
+            <Calendar className="w-3.5 h-3.5" strokeWidth={2.25} /> 週間まとめ
           </PeriodChip>
           {DAY_CHIPS.map((d, i) => (
             <PeriodChip
@@ -239,7 +243,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
             未読のみ
           </PeriodChip>
           <PeriodChip active={bookmarkedOnly} onClick={() => setBookmarkedOnly((v) => !v)}>
-            🔖 ブックマークのみ
+            <Bookmark className="w-3.5 h-3.5" strokeWidth={2.25} fill={bookmarkedOnly ? "currentColor" : "none"} /> ブックマークのみ
           </PeriodChip>
         </div>
       )}
@@ -252,7 +256,11 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
         <FeedSkeleton />
       ) : isEmpty ? (
         <div className="text-center py-16">
-          <p className="text-4xl mb-3">{isSearching ? "🔍" : "🌱"}</p>
+          {isSearching ? (
+            <Search className="w-10 h-10 mx-auto mb-3 text-gray-300" strokeWidth={1.5} />
+          ) : (
+            <Sprout className="w-10 h-10 mx-auto mb-3 text-gray-300" strokeWidth={1.5} />
+          )}
           <p className="text-gray-400 text-sm">
             {isSearching
               ? `「${debouncedQuery}」に一致する記事が見つかりませんでした。`
@@ -265,8 +273,9 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
         <>
           {featured.length > 0 && (
             <section className="flex flex-col gap-3">
-              <h2 className="text-sm font-bold text-amber-700">
-                ⭐ 注目ピックアップ（{period === "day" ? formatShortDateWithWeekday(date) : "今週"}）
+              <h2 className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-700">
+                <Star className="w-4 h-4" strokeWidth={2.25} fill="currentColor" />
+                注目ピックアップ（{period === "day" ? formatShortDateWithWeekday(date) : "今週"}）
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {featured.map((article) => (
@@ -337,7 +346,7 @@ function PeriodChip({
     <button
       type="button"
       onClick={onClick}
-      className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all ${
+      className={`inline-flex items-center gap-1 shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all ${
         active ? "brand-gradient text-white shadow-sm shadow-indigo-900/20" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
       }`}
     >
@@ -402,7 +411,8 @@ function FeedCard({
                 state?.isBookmarked ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
               }`}
             >
-              🔖 {state?.isBookmarked ? "保存済み" : "保存"}
+              <Bookmark className="w-3.5 h-3.5" strokeWidth={2.25} fill={state?.isBookmarked ? "currentColor" : "none"} />
+              {state?.isBookmarked ? "保存済み" : "保存"}
             </button>
             <button
               type="button"
@@ -411,7 +421,12 @@ function FeedCard({
                 state?.isRead ? "bg-indigo-100 text-indigo-700" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
               }`}
             >
-              {state?.isRead ? "✅ 既読" : "⬜ 未読"}
+              {state?.isRead ? (
+                <CircleCheckBig className="w-3.5 h-3.5" strokeWidth={2.25} />
+              ) : (
+                <Square className="w-3.5 h-3.5" strokeWidth={2.25} />
+              )}
+              {state?.isRead ? "既読" : "未読"}
             </button>
           </div>
         )}

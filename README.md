@@ -79,7 +79,8 @@ pnpm dev        # http://localhost:3000
 ## 使用技術
 
 Next.js 16 (App Router) / TypeScript / React 19 / Tailwind CSS v4 / Prisma ORM (SQLite → PostgreSQL) /
-Google Gemini API (`@google/genai`) / Web Push (`web-push`) / bcryptjs + jose（自前認証） / next-pwa
+Google Gemini API (`@google/genai`) / Web Push (`web-push`) / bcryptjs + jose（自前認証） / next-pwa /
+lucide-react（アプリ内アイコン・アプリアイコン共通のストロークベースのアイコン言語で統一）
 
 ## ディレクトリ構成
 

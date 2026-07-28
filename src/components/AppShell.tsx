@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
+import { Newspaper, Search, Bot, User, type LucideIcon } from "lucide-react";
 import { UrlSummarizer } from "./UrlSummarizer";
 import { FeedList } from "./FeedList";
 import { AiToolPicks } from "./AiToolPicks";
@@ -18,11 +19,11 @@ import { OnboardingModal } from "./OnboardingModal";
 const TAB_ORDER = ["feed", "summarize", "tools", "mypage"] as const;
 type Tab = (typeof TAB_ORDER)[number];
 
-const TAB_META: Record<Tab, { icon: string; label: string }> = {
-  feed: { icon: "📰", label: "フィード" },
-  summarize: { icon: "🔍", label: "URLで要約" },
-  tools: { icon: "🤖", label: "AIツール" },
-  mypage: { icon: "👤", label: "マイページ" },
+const TAB_META: Record<Tab, { icon: LucideIcon; label: string }> = {
+  feed: { icon: Newspaper, label: "フィード" },
+  summarize: { icon: Search, label: "URLで要約" },
+  tools: { icon: Bot, label: "AIツール" },
+  mypage: { icon: User, label: "マイページ" },
 };
 
 // Swipe must be a clearly-horizontal, deliberate gesture to count as a tab
@@ -94,11 +95,14 @@ export function AppShell() {
         {/* desktop-only: mobile already has the bottom nav for tab switching,
             showing both was redundant and ate vertical space on iOS */}
         <div className="hidden md:flex max-w-5xl mx-auto px-4 gap-1 border-t border-gray-100 overflow-x-auto">
-          {TAB_ORDER.map((t) => (
-            <TabButton key={t} active={tab === t} onClick={() => setTab(t)}>
-              {TAB_META[t].icon} {TAB_META[t].label}
-            </TabButton>
-          ))}
+          {TAB_ORDER.map((t) => {
+            const Icon = TAB_META[t].icon;
+            return (
+              <TabButton key={t} active={tab === t} onClick={() => setTab(t)}>
+                <Icon className="w-4 h-4" strokeWidth={2.25} /> {TAB_META[t].label}
+              </TabButton>
+            );
+          })}
         </div>
       </header>
 
@@ -111,17 +115,20 @@ export function AppShell() {
 
       {/* mobile bottom nav mirrors the header tabs */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur-md border-t border-gray-200 flex justify-around py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] print:hidden">
-        {TAB_ORDER.map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setTab(t)}
-            className={`flex flex-col items-center text-xs transition-colors ${tab === t ? "text-indigo-600 font-semibold" : "text-gray-400"}`}
-          >
-            <span className="text-lg">{TAB_META[t].icon}</span>
-            {TAB_META[t].label === "URLで要約" ? "要約" : TAB_META[t].label}
-          </button>
-        ))}
+        {TAB_ORDER.map((t) => {
+          const Icon = TAB_META[t].icon;
+          return (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTab(t)}
+              className={`flex flex-col items-center gap-0.5 text-xs transition-colors ${tab === t ? "text-indigo-600 font-semibold" : "text-gray-400"}`}
+            >
+              <Icon className="w-5 h-5" strokeWidth={tab === t ? 2.5 : 2} />
+              {TAB_META[t].label === "URLで要約" ? "要約" : TAB_META[t].label}
+            </button>
+          );
+        })}
       </nav>
     </div>
   );
@@ -132,7 +139,7 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
     <button
       type="button"
       onClick={onClick}
-      className={`shrink-0 px-3 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap ${
+      className={`inline-flex items-center gap-1.5 shrink-0 px-3 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap ${
         active ? "border-indigo-600 text-indigo-700" : "border-transparent text-gray-500 hover:text-gray-700"
       }`}
     >

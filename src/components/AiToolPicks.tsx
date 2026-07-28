@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Bot, Smartphone, Monitor, Wrench, Puzzle, Sparkles, RefreshCw, Bookmark } from "lucide-react";
 import type { AiToolPickDto, AiToolPicksResponse } from "@/types/tools";
 import { useAuth } from "@/lib/auth/AuthContext";
 
-const CATEGORY_ICON: Record<string, string> = {
-  AIサービス: "🤖",
-  iOSアプリ: "📱",
-  PC機能: "💻",
-  開発支援ツール: "🛠️",
-  ブラウザ拡張: "🧩",
+const CATEGORY_ICON: Record<string, typeof Bot> = {
+  AIサービス: Bot,
+  iOSアプリ: Smartphone,
+  PC機能: Monitor,
+  開発支援ツール: Wrench,
+  ブラウザ拡張: Puzzle,
 };
 
 export function AiToolPicks() {
@@ -126,7 +127,7 @@ export function AiToolPicks() {
           disabled={refreshing}
           className="flex items-center gap-1 text-xs font-semibold rounded-full px-3.5 py-1.5 text-white brand-gradient shadow-sm shadow-indigo-900/20 disabled:opacity-50 shrink-0 transition-transform active:scale-95"
         >
-          <span className={refreshing ? "animate-spin" : ""}>↻</span>
+          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} strokeWidth={2.5} />
           {refreshing ? "更新中..." : "更新する"}
         </button>
       </div>
@@ -154,11 +155,11 @@ export function AiToolPicks() {
         <button
           type="button"
           onClick={() => setBookmarkedOnly((v) => !v)}
-          className={`self-start shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all ${
+          className={`inline-flex items-center gap-1.5 self-start shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all ${
             bookmarkedOnly ? "brand-gradient text-white shadow-sm shadow-indigo-900/20" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
           }`}
         >
-          🔖 ブックマークのみ
+          <Bookmark className="w-3.5 h-3.5" strokeWidth={2.25} fill={bookmarkedOnly ? "currentColor" : "none"} /> ブックマークのみ
         </button>
       )}
 
@@ -174,7 +175,7 @@ export function AiToolPicks() {
         </div>
       ) : visible.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-4xl mb-3">🤖</p>
+          <Bot className="w-10 h-10 mx-auto mb-3 text-gray-300" strokeWidth={1.5} />
           <p className="text-gray-400 text-sm">
             {bookmarkedOnly
               ? "ブックマークしたツールがまだありません。"
@@ -190,8 +191,12 @@ export function AiToolPicks() {
                 className="group rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:border-indigo-200 transition-all duration-200"
               >
                 <div className="flex items-center justify-between gap-2 mb-1.5">
-                  <span className="rounded-full px-2 py-0.5 text-xs font-semibold bg-violet-100 text-violet-700">
-                    {CATEGORY_ICON[pick.category] ?? "✨"} {pick.category}
+                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold bg-violet-100 text-violet-700">
+                    {(() => {
+                      const CategoryIcon = CATEGORY_ICON[pick.category] ?? Sparkles;
+                      return <CategoryIcon className="w-3 h-3" strokeWidth={2.25} />;
+                    })()}
+                    {pick.category}
                   </span>
                   {user && (
                     <button
@@ -201,7 +206,8 @@ export function AiToolPicks() {
                         pick.isBookmarked ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                       }`}
                     >
-                      🔖 {pick.isBookmarked ? "保存済み" : "保存"}
+                      <Bookmark className="w-3.5 h-3.5" strokeWidth={2.25} fill={pick.isBookmarked ? "currentColor" : "none"} />
+                      {pick.isBookmarked ? "保存済み" : "保存"}
                     </button>
                   )}
                 </div>

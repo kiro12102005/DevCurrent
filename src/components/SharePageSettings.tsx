@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Share2 } from "lucide-react";
 
 export function SharePageSettings() {
   const [shareSlug, setShareSlug] = useState<string | null>(null);
@@ -55,7 +56,9 @@ export function SharePageSettings() {
 
   return (
     <div className="rounded-xl bg-white shadow-sm border border-gray-200 p-4 flex flex-col gap-3">
-      <h3 className="font-bold text-gray-800 flex items-center gap-1.5">🔗 共有可能な学習実績ページ</h3>
+      <h3 className="font-bold text-gray-800 flex items-center gap-1.5">
+        <Share2 className="w-4 h-4" strokeWidth={2.25} /> 共有可能な学習実績ページ
+      </h3>
       <p className="text-xs text-gray-500 leading-relaxed">
         公開すると、既読/保存件数や分野別の学習マップを誰でも見られる専用ページができます。メールアドレスなど個人情報は表示されません。履歴書や就活サイトへのリンクにどうぞ。
       </p>

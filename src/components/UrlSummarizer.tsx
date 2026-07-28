@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { FileText, Printer, TriangleAlert, Swords, ThumbsUp, ThumbsDown, CircleCheckBig, Telescope, BookOpen } from "lucide-react";
 import type { SummarizeResponse } from "@/types/insight";
 import { GlossaryTerm } from "./GlossaryTerm";
 import { ArticleNotes } from "./ArticleNotes";
@@ -152,23 +153,25 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
               <button
                 type="button"
                 onClick={() => downloadTextFile(`${result.article.title ?? "article"}.md`, articleInsightToMarkdown(result))}
-                className="rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap"
+                className="inline-flex items-center gap-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap"
               >
-                📝 MD
+                <FileText className="w-3 h-3" strokeWidth={2.25} /> MD
               </button>
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap"
+                className="inline-flex items-center gap-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap"
               >
-                🖨️ PDF
+                <Printer className="w-3 h-3" strokeWidth={2.25} /> PDF
               </button>
             </div>
           </div>
 
           {result.insight.isBreakingChange && (
             <div className="rounded-xl bg-red-50 border border-red-200 p-4">
-              <p className="font-bold text-red-700 flex items-center gap-1.5 mb-1">🚨 破壊的変更の可能性</p>
+              <p className="font-bold text-red-700 flex items-center gap-1.5 mb-1">
+                <TriangleAlert className="w-4 h-4" strokeWidth={2.25} /> 破壊的変更の可能性
+              </p>
               <p className="text-sm text-red-700 leading-relaxed">{result.insight.breakingChangeSummary}</p>
             </div>
           )}
@@ -177,11 +180,15 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
 
           {result.insight.debateMatrix && (result.insight.debateMatrix.pro.length > 0 || result.insight.debateMatrix.con.length > 0) && (
             <section className="rounded-xl bg-white shadow-sm border border-gray-200 p-5">
-              <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-1.5">🥊 技術論争サマライザー</h3>
+              <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-1.5">
+                <Swords className="w-4 h-4" strokeWidth={2.25} /> 技術論争サマライザー
+              </h3>
               <p className="text-[11px] text-gray-400 mb-3">Hacker Newsのコメント欄をもとにAIが分類</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs font-bold text-green-700 mb-2">👍 導入推奨派</p>
+                  <p className="inline-flex items-center gap-1.5 text-xs font-bold text-green-700 mb-2">
+                    <ThumbsUp className="w-3.5 h-3.5" strokeWidth={2.25} /> 導入推奨派
+                  </p>
                   <ul className="list-disc list-inside space-y-1.5 text-gray-700 text-sm leading-relaxed">
                     {result.insight.debateMatrix.pro.map((p, i) => (
                       <li key={i}>{p}</li>
@@ -189,7 +196,9 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
                   </ul>
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-amber-700 mb-2">🤔 懸念派</p>
+                  <p className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 mb-2">
+                    <ThumbsDown className="w-3.5 h-3.5" strokeWidth={2.25} /> 懸念派
+                  </p>
                   <ul className="list-disc list-inside space-y-1.5 text-gray-700 text-sm leading-relaxed">
                     {result.insight.debateMatrix.con.map((c, i) => (
                       <li key={i}>{c}</li>
@@ -205,13 +214,17 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
           <EditorConfigGenerator articleId={result.article.id} />
 
           <section className="rounded-xl bg-white shadow-sm border border-gray-200 border-l-4 border-l-indigo-500 p-5">
-            <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-1.5">📝 要約</h3>
+            <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-1.5">
+              <FileText className="w-4 h-4" strokeWidth={2.25} /> 要約
+            </h3>
             <p className="text-gray-700 leading-relaxed whitespace-pre-line">{result.insight.summary}</p>
           </section>
 
           <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="rounded-xl bg-white shadow-sm border border-gray-200 border-l-4 border-l-green-500 p-5">
-              <h3 className="font-bold text-green-700 mb-2 flex items-center gap-1.5">✅ メリット</h3>
+              <h3 className="font-bold text-green-700 mb-2 flex items-center gap-1.5">
+                <CircleCheckBig className="w-4 h-4" strokeWidth={2.25} /> メリット
+              </h3>
               <ul className="list-disc list-inside space-y-2 text-gray-700 text-sm leading-relaxed">
                 {result.insight.pros.map((p, i) => (
                   <li key={i}>{p}</li>
@@ -219,7 +232,9 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
               </ul>
             </div>
             <div className="rounded-xl bg-white shadow-sm border border-gray-200 border-l-4 border-l-amber-500 p-5">
-              <h3 className="font-bold text-amber-700 mb-2 flex items-center gap-1.5">⚠️ 懸念点</h3>
+              <h3 className="font-bold text-amber-700 mb-2 flex items-center gap-1.5">
+                <TriangleAlert className="w-4 h-4" strokeWidth={2.25} /> 懸念点
+              </h3>
               <ul className="list-disc list-inside space-y-2 text-gray-700 text-sm leading-relaxed">
                 {result.insight.cons.map((c, i) => (
                   <li key={i}>{c}</li>
@@ -229,12 +244,16 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
           </section>
 
           <section className="rounded-xl bg-white shadow-sm border border-gray-200 border-l-4 border-l-indigo-500 p-5">
-            <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-1.5">🔭 今後の展望</h3>
+            <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-1.5">
+              <Telescope className="w-4 h-4" strokeWidth={2.25} /> 今後の展望
+            </h3>
             <p className="text-gray-700 leading-relaxed text-sm whitespace-pre-line">{result.insight.outlook}</p>
           </section>
 
           <section className="rounded-xl bg-white shadow-sm border border-gray-200 p-5">
-            <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-1.5">📖 用語解説（タップで表示）</h3>
+            <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-1.5">
+              <BookOpen className="w-4 h-4" strokeWidth={2.25} /> 用語解説（タップで表示）
+            </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {result.insight.glossary.map((g, i) => (
                 <GlossaryTerm key={i} term={g.term} explanation={g.explanation} />
