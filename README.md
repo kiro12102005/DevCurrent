@@ -1,4 +1,0 @@
-# DevCurrent
-今のIT業界にかかわる人たちもそうでない人もAIの急速な変化の情報量に追い付いていけていません。（自分もその一人です）その莫大な情報量の中からIT、AIの最新情報、技術に着目して情報をピックアップ、紹介をし情報を得て自分の糧にするためのエンジニア関連者向けのニュースアプリを作成しました。私は日本人ですが海外の方も使用できるよう言語は日本語、英語に対応しています。学生の私が作成したため効率よく運営していくためにAPIは各自で取得していただき利用していただく必要があります。
-
-Whether you’re currently involved in the IT industry or not, it’s hard to keep up with the sheer volume of information surrounding the rapid changes in AI. (I’m one of those people, too.) To help engineers and others in the field sift through this vast amount of information, I created a news app that highlights the latest IT and AI trends and technologies, allowing users to access and incorporate this knowledge into their own work. Although I am Japanese, the app supports both Japanese and English so that people overseas can use it as well. Since I am a student, to ensure efficient operation, users will need to obtain and use the API on their own.
