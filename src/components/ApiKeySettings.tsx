@@ -32,7 +32,7 @@ export function ApiKeySettings() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 rounded-xl border border-gray-200 bg-white p-4 shadow-xl shadow-indigo-900/10 z-20">
+        <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:left-auto sm:mt-2 sm:w-80 rounded-xl border border-gray-200 bg-white p-4 shadow-xl shadow-indigo-900/10 z-20">
           <p className="text-sm font-semibold text-gray-800">あなたのGemini APIキー</p>
           <p className="mt-1 text-xs text-gray-500 leading-relaxed">
             このアプリはみんなで1つのAPIキーを共有せず、各自のキーで生成します。

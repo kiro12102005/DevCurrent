@@ -32,7 +32,7 @@ pnpm dev        # http://localhost:3000
 | `DATABASE_URL` | ✅ | SQLite接続文字列（デフォルトのままでOK） |
 | `GEMINI_API_KEY` | 任意 | **自動フィードの「注目ピックアップ」を自動要約するためのサーバー側キー。** 未設定でもアプリは動くが、注目記事の自動要約とプッシュ通知の中身が空になる。運営者自身のキーを設定する（無料枠で十分まわる想定・下記コスト設計参照）。ユーザーが手動でURLを貼って要約する機能は各自のBYOKキーを使うため、この変数とは無関係。 |
 | `VAPID_PUBLIC_KEY` / `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | Push通知を使うなら✅ | `npx web-push generate-vapid-keys`で生成。`.env`には開発用のペアが同梱済み。 |
-| `CRON_SECRET` | 本番推奨 | `POST /api/feed/refresh`を外部スケジューラから叩く際の認証（`x-cron-secret`ヘッダー）。ローカルでは空でOK。 |
+| `CRON_SECRET` | 任意 | `GET /api/feed/refresh`・`GET /api/tools/refresh`（Vercel Cron専用）の認証。`POST`（アプリ内の更新ボタン・GitHub Actionsが使用）は誰でも呼べる設計のため対象外。未設定でも動作する。 |
 | `ENABLE_AUTO_FEED_CRON` / `FEED_REFRESH_INTERVAL_HOURS` | 任意 | サーバー内蔵の自動更新タイマー（下記参照）のON/OFFと間隔（時間）。デフォルトON・3時間おき。 |
 
 > Next.js 16 はデフォルトで Turbopack ですが、`next-pwa` が webpack プラグインのため

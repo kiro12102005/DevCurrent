@@ -55,7 +55,7 @@ export function NotificationSubscribe() {
         {subscribed ? "🔔 通知ON" : "🔕 通知OFF"}
       </button>
       {error && (
-        <p className="absolute right-0 mt-1 w-56 rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-[11px] text-red-700 z-20">
+        <p className="fixed inset-x-4 top-16 sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:left-auto sm:mt-1 sm:w-56 rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-[11px] text-red-700 z-20">
           {error}
         </p>
       )}

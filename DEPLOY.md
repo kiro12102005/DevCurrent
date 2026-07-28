@@ -74,7 +74,7 @@ npx vercel --prod # 本番デプロイ
 | `GEMINI_MODEL` | 任意 |
 | `VAPID_PUBLIC_KEY` / `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | `npx web-push generate-vapid-keys`で本番用に新規生成 |
 | `VAPID_SUBJECT` | `mailto:` + 実際の連絡先 |
-| `CRON_SECRET` | 本番では必須推奨。ランダムな文字列を生成して設定 |
+| `CRON_SECRET` | 任意。Vercel Cron（GET）だけを保護する（下記参照）。設定しなくても動作する |
 | `ENABLE_AUTO_FEED_CRON` | `"false"`にする（Vercelはサーバーレスなので`instrumentation.ts`のインプロセスタイマーは使えない。下記のスケジューラで代替） |
 
 ## 5. 定期実行（自動クロール・自動キュレーション）
@@ -82,14 +82,16 @@ npx vercel --prod # 本番デプロイ
 `instrumentation.ts`のインプロセスタイマーはVercel（サーバーレス）では動作しません。代わりに:
 
 - **`vercel.json`**（このリポジトリに含み済み）: `/api/tools/refresh`を毎週月曜0時に実行するVercel Cronを設定済み。
-  Vercelは`CRON_SECRET`という名前の環境変数が設定されていれば、Cron実行時に自動で`Authorization: Bearer $CRON_SECRET`ヘッダーを付けてくれます（両APIルートは対応済み）。
+  Vercelは`CRON_SECRET`という名前の環境変数が設定されていれば、Cron実行時に自動で`Authorization: Bearer $CRON_SECRET`ヘッダーを付けてくれます。
   **Vercel Hobbyプランはcronの実行頻度が1日1回までの制限があるため**、3時間おきが必要な`/api/feed/refresh`はここに含めていません。
 - **`.github/workflows/cron-refresh.yml`**（このリポジトリに含み済み）: `/api/feed/refresh`を3時間おき、`/api/tools/refresh`を毎週実行するGitHub Actionsワークフロー。
   GitHubリポジトリの `Settings > Secrets and variables > Actions` で以下を設定してください:
   - `APP_URL`: デプロイ先のURL（例: `https://your-app.vercel.app`）
-  - `CRON_SECRET`: 上記で設定した値と同じもの
+  - `CRON_SECRET`: 設定するならVercelと同じ値（未設定でも動く。下記参照）
 
 両方設定しても問題ありません（`/api/tools/refresh`はupsert、`/api/feed/refresh`はurlHashのunique制約で冪等なので、重複実行しても壊れません）。
+
+**`CRON_SECRET`が実際に保護するのはGETだけ**: 両ルートとも `POST` は認証なしで受け付けます（アプリ内の「今すぐ更新」「更新する」ボタンがブラウザから直接この同じURLをPOSTで叩くため、サーバー専用シークレットを要求できません）。`GET`（Vercel Cronが自動送信するBearerヘッダー付きの呼び出し）だけ`CRON_SECRET`で保護されます。GitHub Actionsは`POST`を使うので、`CRON_SECRET`のヘッダーを付けていますが実際には未設定でも動作します。
 
 ## 6. デプロイ後の確認
 

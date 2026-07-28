@@ -4,14 +4,9 @@ import { isAuthorizedCronRequest } from "@/lib/cronAuth";
 
 // Triggers a crawl of all sources, marks top picks as featured, auto-generates
 // their insight, and pushes a notification if anything new was featured.
-// Call this from a scheduler (Vercel Cron / GitHub Actions) in production, or
-// hit it manually. src/instrumentation.ts also calls refreshFeed() on a timer
-// for self-hosted/long-running deployments.
-async function handleRefresh(req: Request) {
-  if (!isAuthorizedCronRequest(req)) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
-
+// src/instrumentation.ts also calls refreshFeed() on a timer for
+// self-hosted/long-running deployments.
+async function handleRefresh() {
   try {
     const result = await refreshFeed();
     return NextResponse.json(result);
@@ -23,12 +18,20 @@ async function handleRefresh(req: Request) {
   }
 }
 
-// POST: manual trigger / GitHub Actions (x-cron-secret header).
-export async function POST(req: Request) {
-  return handleRefresh(req);
+// POST: intentionally unauthenticated - this is also what the in-app "今すぐ更新"
+// button hits directly from the browser (see FeedList.tsx), so it can't require a
+// server-only secret. GitHub Actions calls this too (its x-cron-secret header is
+// simply ignored here). Safe to leave open: refreshFeed() is idempotent (upserts
+// by urlHash) and bounds its own Gemini spend to a handful of featured picks per run.
+export async function POST() {
+  return handleRefresh();
 }
 
-// GET: Vercel Cron, which sends a GET with "Authorization: Bearer $CRON_SECRET".
+// GET: Vercel Cron only (nothing in the UI calls GET on this route), which sends
+// "Authorization: Bearer $CRON_SECRET" automatically - keep this one authenticated.
 export async function GET(req: Request) {
-  return handleRefresh(req);
+  if (!isAuthorizedCronRequest(req)) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+  return handleRefresh();
 }

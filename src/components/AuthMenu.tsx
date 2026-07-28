@@ -58,7 +58,7 @@ export function AuthMenu() {
           <span className="max-w-[8rem] truncate">{user.email}</span>
         </button>
         {open && (
-          <div className="absolute right-0 mt-2 w-56 rounded-xl border border-gray-200 bg-white p-3 shadow-xl shadow-indigo-900/10 z-20">
+          <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:left-auto sm:mt-2 sm:w-56 rounded-xl border border-gray-200 bg-white p-3 shadow-xl shadow-indigo-900/10 z-20">
             <p className="px-1 text-xs text-gray-500 truncate">{user.email}</p>
             <button
               type="button"
@@ -86,7 +86,7 @@ export function AuthMenu() {
         ログイン
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-72 rounded-xl border border-gray-200 bg-white p-4 shadow-xl shadow-indigo-900/10 z-20">
+        <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:left-auto sm:mt-2 sm:w-72 rounded-xl border border-gray-200 bg-white p-4 shadow-xl shadow-indigo-900/10 z-20">
           <div className="flex gap-1 mb-3 rounded-lg bg-gray-100 p-1 text-xs font-semibold">
             <button
               type="button"
