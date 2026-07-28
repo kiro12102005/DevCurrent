@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { Newspaper, Search, Bot, User, type LucideIcon } from "lucide-react";
 import { UrlSummarizer } from "./UrlSummarizer";
@@ -26,46 +26,13 @@ const TAB_META: Record<Tab, { icon: LucideIcon; label: string }> = {
   mypage: { icon: User, label: "マイページ" },
 };
 
-// Swipe must be a clearly-horizontal, deliberate gesture to count as a tab
-// change. All three conditions matter: a fast vertical flick to scroll a long
-// feed can easily drift 60-70px sideways too, which used to be enough to
-// register as an accidental tab swipe. Requiring dy to stay small (not just
-// smaller than dx) and a steep dx:dy ratio rules that out.
-const SWIPE_MIN_DX_PX = 80;
-const SWIPE_MAX_DY_PX = 50;
-const SWIPE_MIN_RATIO = 2.5;
-
 export function AppShell() {
   const [tab, setTab] = useState<Tab>("feed");
   const [externalRequest, setExternalRequest] = useState<{ url: string; token: number } | undefined>();
-  const touchStart = useRef<{ x: number; y: number } | null>(null);
 
   function handleSelectArticle(url: string) {
     setExternalRequest({ url, token: Date.now() });
     setTab("summarize");
-  }
-
-  function handleTouchStart(e: React.TouchEvent) {
-    const t = e.touches[0];
-    touchStart.current = { x: t.clientX, y: t.clientY };
-  }
-
-  function handleTouchEnd(e: React.TouchEvent) {
-    const start = touchStart.current;
-    touchStart.current = null;
-    if (!start) return;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - start.x;
-    const dy = t.clientY - start.y;
-    const absDx = Math.abs(dx);
-    const absDy = Math.abs(dy);
-    if (absDx < SWIPE_MIN_DX_PX || absDy > SWIPE_MAX_DY_PX || absDx < absDy * SWIPE_MIN_RATIO) return;
-
-    const currentIndex = TAB_ORDER.indexOf(tab);
-    const nextIndex = dx < 0 ? currentIndex + 1 : currentIndex - 1;
-    if (nextIndex >= 0 && nextIndex < TAB_ORDER.length) {
-      setTab(TAB_ORDER[nextIndex]);
-    }
   }
 
   return (
@@ -106,7 +73,7 @@ export function AppShell() {
         </div>
       </header>
 
-      <main className="flex-1" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+      <main className="flex-1">
         {tab === "feed" && <FeedList onSelectArticle={handleSelectArticle} />}
         {tab === "summarize" && <UrlSummarizer externalRequest={externalRequest} />}
         {tab === "tools" && <AiToolPicks />}
