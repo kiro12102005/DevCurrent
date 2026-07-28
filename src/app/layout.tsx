@@ -33,6 +33,11 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   themeColor: "#6d5bf5",
+  // Required for iOS Safari to report real env(safe-area-inset-*) values -
+  // without this, the bottom nav's safe-area padding silently resolves to 0
+  // and the nav sits partially under the home indicator.
+  viewportFit: "cover",
+  colorScheme: "light",
 };
 
 export default function RootLayout({

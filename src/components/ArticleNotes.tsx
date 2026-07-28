@@ -7,6 +7,7 @@ import type { UserNoteDto } from "@/types/notes";
 export function ArticleNotes({ articleId }: { articleId: string }) {
   const { user, loading: authLoading } = useAuth();
   const [notes, setNotes] = useState<UserNoteDto[]>([]);
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [draft, setDraft] = useState("");
   const [saving, setSaving] = useState(false);
@@ -14,9 +15,14 @@ export function ArticleNotes({ articleId }: { articleId: string }) {
 
   function loadNotes() {
     setLoading(true);
-    return fetch(`/api/notes?articleId=${encodeURIComponent(articleId)}`)
-      .then((res) => res.json())
-      .then((data) => setNotes(data.notes ?? []))
+    return Promise.all([
+      fetch(`/api/notes?articleId=${encodeURIComponent(articleId)}`).then((res) => res.json()),
+      fetch(`/api/article-states?articleIds=${encodeURIComponent(articleId)}`).then((res) => res.json()),
+    ])
+      .then(([notesData, statesData]) => {
+        setNotes(notesData.notes ?? []);
+        setIsBookmarked(Boolean(statesData.states?.[articleId]?.isBookmarked));
+      })
       .catch(() => setNotes([]))
       .finally(() => setLoading(false));
   }
@@ -30,6 +36,20 @@ export function ArticleNotes({ articleId }: { articleId: string }) {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [articleId, user]);
+
+  async function handleToggleBookmark() {
+    const next = !isBookmarked;
+    setIsBookmarked(next);
+    try {
+      await fetch(`/api/article-states/${articleId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isBookmarked: next }),
+      });
+    } catch {
+      setIsBookmarked(!next);
+    }
+  }
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -45,6 +65,7 @@ export function ArticleNotes({ articleId }: { articleId: string }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "保存に失敗しました");
       setNotes((prev) => [data.note, ...prev]);
+      setIsBookmarked(true); // adding a note always bookmarks server-side too
       setDraft("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "保存に失敗しました");
@@ -62,11 +83,24 @@ export function ArticleNotes({ articleId }: { articleId: string }) {
 
   return (
     <section className="rounded-xl bg-white shadow-sm border border-gray-200 p-5">
-      <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-1.5">📝 マイメモ</h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-bold text-gray-800 flex items-center gap-1.5">📝 メモ・保存</h3>
+        {user && (
+          <button
+            type="button"
+            onClick={handleToggleBookmark}
+            className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+              isBookmarked ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+            }`}
+          >
+            🔖 {isBookmarked ? "保存済み" : "保存"}
+          </button>
+        )}
+      </div>
 
       {!user ? (
         <p className="text-sm text-gray-500">
-          ログインすると、この記事に自分用のメモ（面接対策の一言・気づきなど）を保存できます。
+          ログインすると、この記事を保存したりメモ（面接対策の一言・気づきなど）を残せます。
         </p>
       ) : (
         <>

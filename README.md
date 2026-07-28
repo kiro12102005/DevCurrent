@@ -10,13 +10,13 @@
 - **プッシュ通知**: 新しい注目記事が見つかると、購読しているブラウザ/スマホにWeb Push通知が届く。
 - **URL入力での要約**: 好きな記事URLを貼る → DBキャッシュ確認 → (未キャッシュなら) スクレイピング → Gemini 2.5 Flash で「要約・メリット・懸念点・今後の展望・用語解説」をボリューム多めに生成。同じURLへの2回目以降のリクエストはキャッシュから即返却。
 - **BYOK（Bring Your Own Key）**: 各ユーザーが画面右上の「APIキー設定」から自分のGemini APIキーを登録して使う設計。キーはブラウザの`localStorage`にのみ保存され、リクエストごとに`x-gemini-api-key`ヘッダーでサーバーへ渡すだけでDBには一切保存しない。他人にアプリを公開しても、ユーザーが持ち込んだURLの要約コストは各利用者自身のGemini無料枠に紐づく。
-- **ログイン・マイメモ**: 右上からメール+パスワードで登録・ログイン（外部サービス不要の自前実装）。ログインすると記事ごとに自分用メモを保存でき、「マイメモ」タブで一覧・編集・削除できる。未ログインでもフィード閲覧・URL要約・AIツール一覧は利用可能。
-- **AIツールピックアップ**: 「AIツール」タブで、Geminiが選定した今話題のAIサービス・iOSアプリ・開発支援ツールなどをカテゴリ別に閲覧できる。
+- **ログイン**: 右上からメール+パスワードで登録・ログイン（外部サービス不要の自前実装）。未ログインでもフィード閲覧・URL要約・AIツール一覧は利用可能。
+- **AIツールピックアップ**: 「AIツール」タブで、Geminiが選定した今話題のAIサービス・iOSアプリ・開発支援ツールなどをカテゴリ別に閲覧できる（無限スクロールで追加読み込み）。
 - **オフライン対応**: 直近に開いたページはキャッシュから表示可能。未キャッシュのページに完全オフラインでアクセスした場合も専用のオフライン画面を表示（エラー画面にならない）。
 - PWA設定済み（`manifest.json` / apple-touch-icon / next-pwa による service worker、iOSの「ホーム画面に追加」に対応）
-- 4タブ構成（フィード / URLで要約 / AIツール / マイメモ）で、モバイルでは左右スワイプでもタブ切り替え可能
+- 4タブ構成（フィード / URLで要約 / AIツール / 保存済み）。モバイルは下部ナビのみ（上部タブは表示しない）、左右スワイプでのタブ切り替えにも対応（縦スクロールと誤反応しないよう判定を厳しめに調整済み）
 - **記事検索**: フィード画面上部の検索ボックスで、期間に関係なく全記事のタイトルを横断検索できる（Postgresの`ILIKE`検索）。
-- **既読管理・ブックマーク**: ログイン中は記事カードから既読/ブックマークを切り替え可能。「未読のみ」「ブックマークのみ」で絞り込み表示もできる。
+- **既読管理・ブックマーク・保存済み**: ログイン中は記事カード・AIツールカードから既読/ブックマークを切り替え可能（タップしやすい大きめのボタン）。「未読のみ」「ブックマークのみ」で絞り込み表示もできる。ブックマークとメモ機能は「保存済み」タブに統合済み（メモを書くと自動的にブックマークもされる）。
 - **興味タグ・パーソナライズ通知**: アカウントメニューから興味のあるタグ（AI・機械学習、フロントエンドなど）を選ぶと、注目ピックアップのプッシュ通知がそのタグに関連する記事だけに絞られる（記事のタグは`src/lib/tags.ts`のキーワード一致で無料判定・タグ未選択なら従来通り全件通知）。
 - **週次ダイジェストメール**: アカウントメニューでオプトインすると、その週の注目記事まとめがResend経由でメール配信される（要`RESEND_API_KEY`、下記参照）。
 
@@ -84,29 +84,37 @@ src/
       push/subscribe/route.ts    # POST: Push購読を保存
       push/unsubscribe/route.ts  # POST: Push購読を解除
       auth/{signup,login,logout,me}/route.ts  # 自前認証（bcryptjs + jose JWTセッションCookie、外部サービス不要）
-      notes/route.ts, notes/[id]/route.ts      # ユーザーメモCRUD
-      tools/route.ts, tools/refresh/route.ts   # AIツールピックアップ一覧・Geminiキュレーションバッチ
+      notes/route.ts, notes/[id]/route.ts      # ユーザーメモCRUD（作成時に自動でブックマークも付与）
+      tools/route.ts, tools/refresh/route.ts, tools/[toolId]/bookmark/route.ts  # AIツールピックアップ一覧（ページネーション）・Geminiキュレーションバッチ・ブックマーク
+      article-states/route.ts, article-states/[articleId]/route.ts  # 記事の既読/ブックマーク状態
+      saved/route.ts               # GET: 「保存済み」タブ用（ブックマーク記事＋メモを統合）
+      search/route.ts              # GET: 全期間横断のタイトル検索
+      user/preferences/route.ts    # GET/PUT: 興味タグ・週次ダイジェストのオプトイン
+      digest/send/route.ts         # GET: 週次ダイジェストメール送信トリガー（CRON_SECRET必須）
   components/
-    AppShell.tsx                 # ヘッダー・4タブ切り替えを統括するクライアントコンポーネント
-    FeedList.tsx                  # 自動収集フィード表示（注目ピックアップ＋最新記事一覧）
+    AppShell.tsx                 # ヘッダー・4タブ切り替えを統括するクライアントコンポーネント（モバイルは下部ナビのみ）
+    FeedList.tsx                  # 自動収集フィード表示（注目ピックアップ＋最新記事一覧＋検索＋既読/ブックマークフィルター）
     UrlSummarizer.tsx              # URL手動入力フォーム＋結果カード（フィードからの選択も受け付ける）
     GlossaryTerm.tsx                # タップ/ホバーで用語解説を表示
     ApiKeySettings.tsx               # BYOK: 自分のGemini APIキー登録パネル
     NotificationSubscribe.tsx         # Push通知の購読/解除ボタン
-    AuthMenu.tsx                      # ログイン/新規登録パネル・アカウントメニュー
-    ArticleNotes.tsx                   # 記事詳細内のメモ追加・一覧
-    NotesList.tsx                       # 「マイメモ」タブ
-    AiToolPicks.tsx                      # 「AIツール」タブ
+    AuthMenu.tsx                      # ログイン/新規登録パネル・アカウントメニュー（興味タグ・ダイジェストオプトイン含む）
+    ArticleNotes.tsx                   # 記事詳細内のメモ追加・ブックマーク切り替え
+    SavedList.tsx                       # 「保存済み」タブ（ブックマーク記事＋メモの統合ビュー）
+    AiToolPicks.tsx                      # 「AIツール」タブ（ページネーション・ブックマーク対応）
   lib/
     prisma.ts                    # PrismaClientシングルトン
     gemini.ts                    # Gemini 2.5 Flash 呼び出し（BYOK対応・構造化JSON出力）
     summarize.ts                  # スクレイピング+生成+DB保存の共有ロジック（手動要約とフィード自動要約の両方が使う）
     scrape.ts                     # cheerioによる記事本文抽出
     hash.ts                       # URL正規化 & sha256（キャッシュキー生成）
-    push.ts                       # web-pushでの通知送信
+    push.ts                       # web-pushでの通知送信（sendPersonalizedPushで興味タグによる絞り込み）
     pushClient.ts                  # ブラウザ側のPush購読ヘルパー
     apiKeyStorage.ts                # localStorageでのBYOKキー管理（useSyncExternalStore）
     cronAuth.ts                      # スケジューラ認証共通ロジック（x-cron-secret / Vercel CronのBearerヘッダー両対応）
+    tags.ts                          # 固定タグ一覧＋タイトルからのキーワード判定（無料・Gemini不使用）
+    email.ts                         # Resend経由の週次ダイジェスト送信
+    articleSelect.ts                 # /api/feedと/api/searchで共有するArticleのPrisma select/整形
     auth/{session,password,AuthContext}.ts,tsx  # セッション発行/検証・パスワードハッシュ・クライアント側認証状態
     curation/aiToolPicks.ts       # Gemini駆動のAIツールピックアップ生成バッチ
     crawlers/

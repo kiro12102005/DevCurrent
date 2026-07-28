@@ -46,12 +46,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "記事が見つかりません" }, { status: 404 });
   }
 
-  const note = await prisma.userNote.create({
-    data: { userId: user.id, articleId: parsed.data.articleId, body: parsed.data.body },
-    include: {
-      article: { select: { id: true, url: true, title: true, sourceType: true, sourcePublishedAt: true } },
-    },
-  });
+  const [note] = await prisma.$transaction([
+    prisma.userNote.create({
+      data: { userId: user.id, articleId: parsed.data.articleId, body: parsed.data.body },
+      include: {
+        article: { select: { id: true, url: true, title: true, sourceType: true, sourcePublishedAt: true } },
+      },
+    }),
+    // writing a note is a strong enough signal of interest that it should
+    // count as "saved" too - this is what unifies notes and bookmarks into
+    // one "保存済み" list instead of two overlapping, easy-to-confuse features.
+    prisma.userArticleState.upsert({
+      where: { userId_articleId: { userId: user.id, articleId: parsed.data.articleId } },
+      create: { userId: user.id, articleId: parsed.data.articleId, isBookmarked: true },
+      update: { isBookmarked: true },
+    }),
+  ]);
 
   return NextResponse.json({ note });
 }

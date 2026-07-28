@@ -14,13 +14,15 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* This app has no dark-mode styling anywhere (every component hardcodes
+   light-theme Tailwind classes), so intentionally NOT flipping --background
+   for prefers-color-scheme: dark. That mismatch used to make body background
+   near-black while all actual content stayed light - on iOS, combined with
+   the missing viewport-fit=cover (see layout.tsx), any area outside the
+   safe-area-covered content rendered as this near-black body color instead
+   of the app's actual background. */
 
+html,
 body {
   background: var(--background);
   color: var(--foreground);

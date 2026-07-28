@@ -85,6 +85,7 @@ model User {
   notes             UserNote[]
   pushSubscriptions PushSubscription[]
   articleStates     UserArticleState[]
+  toolBookmarks     UserToolBookmark[]
 }
 
 // Per-user read/bookmark state for an article. One row per (user, article) pair -
@@ -153,5 +154,22 @@ model AiToolPick {
   publishedAt    DateTime?
   createdAt      DateTime  @default(now())
 
+  bookmarks      UserToolBookmark[]
+
   @@index([category])
+}
+
+// Per-user bookmark on an AI tool pick - curation re-runs upsert by name
+// (see aiToolPicks.ts), so without this a tool a user liked could feel like
+// it "disappeared" once a later refresh cycle didn't happen to resurface it.
+model UserToolBookmark {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toolId    String
+  tool      AiToolPick @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+
+  @@unique([userId, toolId])
+  @@index([userId])
 }

@@ -5,24 +5,29 @@ import Image from "next/image";
 import { UrlSummarizer } from "./UrlSummarizer";
 import { FeedList } from "./FeedList";
 import { AiToolPicks } from "./AiToolPicks";
-import { NotesList } from "./NotesList";
+import { SavedList } from "./SavedList";
 import { ApiKeySettings } from "./ApiKeySettings";
 import { NotificationSubscribe } from "./NotificationSubscribe";
 import { AuthMenu } from "./AuthMenu";
 
-const TAB_ORDER = ["feed", "summarize", "tools", "notes"] as const;
+const TAB_ORDER = ["feed", "summarize", "tools", "saved"] as const;
 type Tab = (typeof TAB_ORDER)[number];
 
 const TAB_META: Record<Tab, { icon: string; label: string }> = {
   feed: { icon: "📰", label: "フィード" },
   summarize: { icon: "🔍", label: "URLで要約" },
   tools: { icon: "🤖", label: "AIツール" },
-  notes: { icon: "📝", label: "マイメモ" },
+  saved: { icon: "🔖", label: "保存済み" },
 };
 
-// swipe must be mostly horizontal and clear this distance to count as a tab
-// change - keeps vertical scrolling from being misread as a swipe.
-const SWIPE_THRESHOLD_PX = 60;
+// Swipe must be a clearly-horizontal, deliberate gesture to count as a tab
+// change. All three conditions matter: a fast vertical flick to scroll a long
+// feed can easily drift 60-70px sideways too, which used to be enough to
+// register as an accidental tab swipe. Requiring dy to stay small (not just
+// smaller than dx) and a steep dx:dy ratio rules that out.
+const SWIPE_MIN_DX_PX = 80;
+const SWIPE_MAX_DY_PX = 50;
+const SWIPE_MIN_RATIO = 2.5;
 
 export function AppShell() {
   const [tab, setTab] = useState<Tab>("feed");
@@ -46,7 +51,9 @@ export function AppShell() {
     const t = e.changedTouches[0];
     const dx = t.clientX - start.x;
     const dy = t.clientY - start.y;
-    if (Math.abs(dx) < SWIPE_THRESHOLD_PX || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+    if (absDx < SWIPE_MIN_DX_PX || absDy > SWIPE_MAX_DY_PX || absDx < absDy * SWIPE_MIN_RATIO) return;
 
     const currentIndex = TAB_ORDER.indexOf(tab);
     const nextIndex = dx < 0 ? currentIndex + 1 : currentIndex - 1;
@@ -78,7 +85,9 @@ export function AppShell() {
             <AuthMenu />
           </div>
         </div>
-        <div className="max-w-5xl mx-auto px-4 flex gap-1 border-t border-gray-100 overflow-x-auto">
+        {/* desktop-only: mobile already has the bottom nav for tab switching,
+            showing both was redundant and ate vertical space on iOS */}
+        <div className="hidden md:flex max-w-5xl mx-auto px-4 gap-1 border-t border-gray-100 overflow-x-auto">
           {TAB_ORDER.map((t) => (
             <TabButton key={t} active={tab === t} onClick={() => setTab(t)}>
               {TAB_META[t].icon} {TAB_META[t].label}
@@ -91,7 +100,7 @@ export function AppShell() {
         {tab === "feed" && <FeedList onSelectArticle={handleSelectArticle} />}
         {tab === "summarize" && <UrlSummarizer externalRequest={externalRequest} />}
         {tab === "tools" && <AiToolPicks />}
-        {tab === "notes" && <NotesList onSelectArticle={handleSelectArticle} />}
+        {tab === "saved" && <SavedList onSelectArticle={handleSelectArticle} />}
       </main>
 
       {/* mobile bottom nav mirrors the header tabs */}

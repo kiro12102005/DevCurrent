@@ -375,40 +375,44 @@ function FeedCard({
         {article.hasInsight && (
           <span className="rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5 font-semibold">要約済み</span>
         )}
-        {onToggleState && (
-          <span className="ml-auto flex items-center gap-1">
-            <button
-              type="button"
-              title={state?.isBookmarked ? "ブックマーク解除" : "ブックマーク"}
-              onClick={() => onToggleState(article.id, "isBookmarked")}
-              className={state?.isBookmarked ? "text-amber-500" : "text-gray-300 hover:text-gray-400"}
-            >
-              {state?.isBookmarked ? "🔖" : "🏷️"}
-            </button>
-            <button
-              type="button"
-              title={state?.isRead ? "未読にする" : "既読にする"}
-              onClick={() => onToggleState(article.id, "isRead")}
-              className={state?.isRead ? "text-indigo-500" : "text-gray-300 hover:text-gray-400"}
-            >
-              {state?.isRead ? "✅" : "⬜"}
-            </button>
-          </span>
-        )}
       </div>
       <button type="button" onClick={() => onSelect(article.url)} className="block w-full text-left">
         <p className="font-semibold text-gray-800 leading-snug group-hover:text-indigo-600 transition-colors">
           {article.title ?? article.url}
         </p>
       </button>
-      <a
-        href={article.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-1.5 inline-block text-xs text-indigo-600 hover:underline"
-      >
-        元記事を読む ↗
-      </a>
+      <div className="mt-2 flex items-center justify-between gap-2 flex-wrap">
+        <a
+          href={article.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-indigo-600 hover:underline"
+        >
+          元記事を読む ↗
+        </a>
+        {onToggleState && (
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => onToggleState(article.id, "isBookmarked")}
+              className={`flex items-center gap-1 rounded-full px-3 py-2 text-xs font-semibold transition-colors ${
+                state?.isBookmarked ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              }`}
+            >
+              🔖 {state?.isBookmarked ? "保存済み" : "保存"}
+            </button>
+            <button
+              type="button"
+              onClick={() => onToggleState(article.id, "isRead")}
+              className={`flex items-center gap-1 rounded-full px-3 py-2 text-xs font-semibold transition-colors ${
+                state?.isRead ? "bg-indigo-100 text-indigo-700" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              }`}
+            >
+              {state?.isRead ? "✅ 既読" : "⬜ 未読"}
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
