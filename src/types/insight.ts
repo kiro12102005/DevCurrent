@@ -7,6 +7,7 @@ export interface Insight {
   githubRepo: string | null;
   isBreakingChange: boolean;
   breakingChangeSummary: string | null;
+  debateMatrix: { pro: string[]; con: string[] } | null;
 }
 
 export type SourceType = "QIITA" | "ZENN" | "HACKER_NEWS" | "ARXIV" | "AI_TOOL_PICK" | "USER_SUBMITTED";

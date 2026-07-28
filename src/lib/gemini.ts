@@ -456,6 +456,102 @@ ${context}
   return parsed.lines;
 }
 
+const EDITOR_CONFIG_SCHEMA = {
+  type: "object",
+  properties: {
+    files: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          tool: { type: "string", enum: ["claude_code", "cursor", "generic"] },
+          label: { type: "string", description: "UIに表示する短いラベル（例: 'Claude Code用 CLAUDE.md'）" },
+          filename: { type: "string", description: "実際のファイル名（例: 'CLAUDE.md', '.cursor/rules/tech.mdc', 'system-prompt.txt'）" },
+          content: { type: "string" },
+        },
+        required: ["tool", "label", "filename", "content"],
+      },
+      description: "claude_code / cursor / generic の3つを必ず1つずつ、合計3件生成する",
+    },
+  },
+  required: ["files"],
+} as const;
+
+export interface EditorConfigFile {
+  tool: "claude_code" | "cursor" | "generic";
+  label: string;
+  filename: string;
+  content: string;
+}
+
+// User-triggered, personal generation (BYOK) - same cost-attribution rule as
+// the hands-on generator above. Targets the exact audience this app already
+// serves (people using Claude Code / Cursor day to day): turns "there's a new
+// library/breaking-change" into a ready-to-drop-in instructions file instead
+// of the user having to write one themselves.
+export async function generateEditorConfig(article: { title: string; summary?: string }, apiKey?: string): Promise<EditorConfigFile[]> {
+  const prompt = `あなたはAIコーディングアシスタントの設定に詳しいテックメンターです。以下の技術記事のテーマについて、
+AIコーディングツールに渡す「プロジェクト指示ファイル」を3種類生成してください。
+
+# 記事タイトル
+${article.title}
+${article.summary ? `\n# 記事の要約\n${article.summary.slice(0, 800)}` : ""}
+
+# 生成する3ファイル
+1. tool="claude_code": Claude Code用のCLAUDE.md形式（プロジェクトルートに置く指示ファイル）。この技術特有の注意点・最新の破壊的変更やAPIドリフトへの注意・ベストプラクティスを箇条書き中心で
+2. tool="cursor": Cursor用のルールファイル（.cursor/rules/配下のmdc形式を想定、frontmatterはシンプルでよい）。内容はclaude_code版と重複してよいが、Cursorのルールファイルらしい簡潔な指示形式にする
+3. tool="generic": ChatGPT/その他AIチャット全般にそのまま貼り付けて使える汎用システムプロンプト（「あなたは〇〇の専門家です」から始まる自己完結した文章形式）
+
+# 要件
+- 3つとも記事の内容に基づいた具体的な内容にする（記事に出てくる製品名・バージョン・注意点を反映）。一般論だけで済ませない
+- 記事が特定のライブラリ/フレームワークの破壊的変更やAPIドリフトを扱っている場合、それを最優先で指示ファイルに含める
+- 日本語で出力してください（コード例やコマンドは英語のままでよい）`;
+
+  const parsed = await generateJson<{ files: EditorConfigFile[] }>(prompt, EDITOR_CONFIG_SCHEMA, apiKey, 0.5);
+  return parsed.files;
+}
+
+const DEBATE_MATRIX_SCHEMA = {
+  type: "object",
+  properties: {
+    pro: {
+      type: "array",
+      items: { type: "string" },
+      description: "導入・採用に肯定的な意見を3〜5個、技術的な理由を含めた具体的な論点として（単なる感想ではない）。肯定的な意見が実質的に存在しなければ空配列",
+    },
+    con: {
+      type: "array",
+      items: { type: "string" },
+      description: "懸念・慎重な意見を3〜5個、同様に技術的な理由を含めて。懸念が実質的に存在しなければ空配列",
+    },
+  },
+  required: ["pro", "con"],
+} as const;
+
+export interface DebateMatrix {
+  pro: string[];
+  con: string[];
+}
+
+// Shared/operator-funded content (like the podcast/AiToolPick curation) -
+// only ever called from the crawl-time featured-picks pipeline for Hacker
+// News articles (see refresh.ts), never on-demand/BYOK, since it depends on
+// a source-specific comment fetch (lib/hnComments.ts) that doesn't exist for
+// most articles anyway.
+export async function generateDebateMatrix(title: string, comments: string[]): Promise<DebateMatrix> {
+  const prompt = `以下はHacker Newsの記事「${title}」に対するコメント一覧です。
+エンジニアたちの意見を「導入・採用に肯定的な意見」と「懸念・慎重な意見」に分類し、それぞれ具体的な技術的論点として抽出してください
+（例: 「速度向上」ではなく「ベンチマークでXXという具体的な数値の改善が報告されている」のように、コメントの内容に即した具体性を持たせる）。
+単なる相槌や無関係な雑談は無視してください。どちらかの立場がコメント内に実質的に存在しない場合は、無理に対比を作らずそちらを空配列にしてください。
+
+# コメント一覧
+${comments.map((c, i) => `${i + 1}. ${c}`).join("\n")}
+
+日本語で出力してください。`;
+
+  return generateJson<DebateMatrix>(prompt, DEBATE_MATRIX_SCHEMA, undefined, 0.4);
+}
+
 const TTS_MODEL_CANDIDATES = ["gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts", "gemini-3.1-flash-tts-preview"];
 
 export interface PodcastAudio {

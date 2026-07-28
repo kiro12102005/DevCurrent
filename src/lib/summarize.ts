@@ -2,14 +2,14 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma";
 import { sha256 } from "@/lib/hash";
 import { scrapeArticle } from "@/lib/scrape";
-import { generateInsight, type GeneratedInsight } from "@/lib/gemini";
+import { generateInsight, type GeneratedInsight, type DebateMatrix } from "@/lib/gemini";
 import type { AIGeneration } from "@/generated/prisma";
 import type { Insight } from "@/types/insight";
 
 type GenerationRow = Pick<AIGeneration, "summary" | "prosAndCons" | "glossary">;
 
 export function parseGeneration(generation: GenerationRow): Insight {
-  const { pros, cons, outlook, githubRepo, isBreakingChange, breakingChangeSummary } = JSON.parse(
+  const { pros, cons, outlook, githubRepo, isBreakingChange, breakingChangeSummary, debateMatrix } = JSON.parse(
     generation.prosAndCons
   ) as {
     pros: string[];
@@ -18,6 +18,7 @@ export function parseGeneration(generation: GenerationRow): Insight {
     githubRepo?: string | null;
     isBreakingChange?: boolean;
     breakingChangeSummary?: string | null;
+    debateMatrix?: DebateMatrix | null;
   };
   return {
     summary: generation.summary,
@@ -27,8 +28,25 @@ export function parseGeneration(generation: GenerationRow): Insight {
     githubRepo: githubRepo ?? null,
     isBreakingChange: isBreakingChange ?? false,
     breakingChangeSummary: breakingChangeSummary ?? null,
+    debateMatrix: debateMatrix ?? null,
     glossary: JSON.parse(generation.glossary) as Insight["glossary"],
   };
+}
+
+// Applied after the fact (unlike the other insight fields, which are all
+// generated together in one Gemini call) - the debate matrix depends on a
+// Hacker News comment fetch that only runs for a subset of featured articles
+// (see refresh.ts), so it's merged into the existing prosAndCons blob rather
+// than threaded through generateInsight's single request/response shape.
+export async function persistDebateMatrix(articleId: string, matrix: DebateMatrix): Promise<void> {
+  const generation = await prisma.aIGeneration.findUnique({ where: { articleId }, select: { prosAndCons: true } });
+  if (!generation) return;
+
+  const parsed = JSON.parse(generation.prosAndCons) as Record<string, unknown>;
+  await prisma.aIGeneration.update({
+    where: { articleId },
+    data: { prosAndCons: JSON.stringify({ ...parsed, debateMatrix: matrix }) },
+  });
 }
 
 // Shared DB-write step used by both the on-demand /api/summarize route and the
@@ -90,5 +108,8 @@ export async function generateInsightForArticle(
   const scraped = await scrapeArticle(article.url);
   const insight = await generateInsight({ title: scraped.title, text: scraped.text, apiKey });
   await persistInsight(article.id, scraped, insight);
-  return insight;
+  // debateMatrix isn't part of generateInsight's single call - it's added
+  // afterward for a subset of articles (see refresh.ts) - so it's never
+  // populated yet at this specific return point.
+  return { ...insight, debateMatrix: null };
 }

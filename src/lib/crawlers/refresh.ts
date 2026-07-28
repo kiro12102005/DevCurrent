@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { normalizeUrl, sha256 } from "@/lib/hash";
-import { generateInsightForArticle } from "@/lib/summarize";
+import { generateInsightForArticle, persistDebateMatrix } from "@/lib/summarize";
 import { sendPersonalizedPush } from "@/lib/push";
-import { translateTitles } from "@/lib/gemini";
+import { translateTitles, generateDebateMatrix } from "@/lib/gemini";
+import { fetchHnComments } from "@/lib/hnComments";
 import { looksJapanese } from "@/lib/lang";
 import { deriveTags, type Tag } from "@/lib/tags";
 import { Prisma, SourceType } from "@/generated/prisma";
@@ -244,6 +245,25 @@ export async function refreshFeed(): Promise<RefreshResult> {
       });
     } catch (err) {
       errors.push(`insight generation failed for ${article.url}: ${err instanceof Error ? err.message : String(err)}`);
+      continue;
+    }
+
+    // Debate matrix: only meaningful for Hacker News picks (the only source
+    // with a public comment thread to draw from), and non-fatal - a failure
+    // here shouldn't affect the article's regular insight, which already
+    // succeeded above.
+    if (article.sourceType === SourceType.HACKER_NEWS) {
+      try {
+        const comments = await fetchHnComments(article.url);
+        if (comments) {
+          const matrix = await generateDebateMatrix(article.title ?? article.url, comments);
+          if (matrix.pro.length > 0 || matrix.con.length > 0) {
+            await persistDebateMatrix(article.id, matrix);
+          }
+        }
+      } catch (err) {
+        errors.push(`debate matrix failed for ${article.url}: ${err instanceof Error ? err.message : String(err)}`);
+      }
     }
   }
 

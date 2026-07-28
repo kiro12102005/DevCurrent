@@ -6,6 +6,7 @@ import { GlossaryTerm } from "./GlossaryTerm";
 import { ArticleNotes } from "./ArticleNotes";
 import { GithubRepoCard } from "./GithubRepoCard";
 import { HandsOnGenerator } from "./HandsOnGenerator";
+import { EditorConfigGenerator } from "./EditorConfigGenerator";
 import { useStoredApiKey } from "@/lib/apiKeyStorage";
 import { SOURCE_BADGE_CLASS, SOURCE_LABEL } from "@/lib/sourceLabels";
 import { formatArticleDate } from "@/lib/formatDate";
@@ -174,7 +175,34 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
 
           {result.insight.githubRepo && <GithubRepoCard repo={result.insight.githubRepo} />}
 
+          {result.insight.debateMatrix && (result.insight.debateMatrix.pro.length > 0 || result.insight.debateMatrix.con.length > 0) && (
+            <section className="rounded-xl bg-white shadow-sm border border-gray-200 p-5">
+              <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-1.5">🥊 技術論争サマライザー</h3>
+              <p className="text-[11px] text-gray-400 mb-3">Hacker Newsのコメント欄をもとにAIが分類</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs font-bold text-green-700 mb-2">👍 導入推奨派</p>
+                  <ul className="list-disc list-inside space-y-1.5 text-gray-700 text-sm leading-relaxed">
+                    {result.insight.debateMatrix.pro.map((p, i) => (
+                      <li key={i}>{p}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-amber-700 mb-2">🤔 懸念派</p>
+                  <ul className="list-disc list-inside space-y-1.5 text-gray-700 text-sm leading-relaxed">
+                    {result.insight.debateMatrix.con.map((c, i) => (
+                      <li key={i}>{c}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </section>
+          )}
+
           <HandsOnGenerator articleId={result.article.id} articleTitle={result.article.title ?? result.article.url} />
+
+          <EditorConfigGenerator articleId={result.article.id} />
 
           <section className="rounded-xl bg-white shadow-sm border border-gray-200 border-l-4 border-l-indigo-500 p-5">
             <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-1.5">📝 要約</h3>

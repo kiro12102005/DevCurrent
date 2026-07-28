@@ -5,11 +5,13 @@ import { SavedList } from "./SavedList";
 import { LearningMap } from "./LearningMap";
 import { InterviewPractice } from "./InterviewPractice";
 import { SharePageSettings } from "./SharePageSettings";
+import { RepoBreakingChangeCheck } from "./RepoBreakingChangeCheck";
 
 const SECTIONS = [
   { key: "saved", icon: "🔖", label: "保存済み" },
   { key: "map", icon: "📊", label: "学習マップ" },
   { key: "interview", icon: "🎓", label: "模擬面接" },
+  { key: "repo", icon: "🔍", label: "リポジトリチェック" },
   { key: "share", icon: "🔗", label: "共有ページ" },
 ] as const;
 type SectionKey = (typeof SECTIONS)[number]["key"];
@@ -41,6 +43,7 @@ export function MyPage({ onSelectArticle }: { onSelectArticle: (url: string) => 
       {section === "saved" && <SavedList onSelectArticle={onSelectArticle} />}
       {section === "map" && <LearningMap />}
       {section === "interview" && <InterviewPractice />}
+      {section === "repo" && <RepoBreakingChangeCheck />}
       {section === "share" && <SharePageSettings />}
     </div>
   );
