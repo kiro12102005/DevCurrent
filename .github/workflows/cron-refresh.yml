@@ -12,6 +12,8 @@ on:
     # AI tool pick curation - weekly (Vercel Cron also covers this if deployed
     # there - see vercel.json; harmless to run from both, upserts are idempotent)
     - cron: "0 0 * * 1"
+    # daily podcast episode - 21:00 UTC = 6:00 JST, ready before the morning commute
+    - cron: "0 21 * * *"
 
 jobs:
   refresh:
@@ -37,6 +39,14 @@ jobs:
         if: github.event.schedule == '0 0 * * 1' || github.event_name == 'workflow_dispatch'
         run: |
           curl -sf "$APP_URL/api/digest/send" -H "x-cron-secret: $CRON_SECRET"
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+
+      - name: Generate daily podcast episode
+        if: github.event.schedule == '0 21 * * *' || github.event_name == 'workflow_dispatch'
+        run: |
+          curl -sf "$APP_URL/api/podcast/generate" -H "x-cron-secret: $CRON_SECRET"
         env:
           APP_URL: ${{ secrets.APP_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}

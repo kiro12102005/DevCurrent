@@ -177,3 +177,18 @@ model UserToolBookmark {
   @@unique([userId, toolId])
   @@index([userId])
 }
+
+// --- Podcast digest (Gemini multi-speaker TTS) ----------------------------
+
+// One row per day's generated episode - shared/operator-funded content (like
+// AiToolPick), not per-user. Audio itself lives in Vercel Blob; this just
+// tracks the URL + the script Gemini generated so it doesn't need
+// regenerating if requested again the same day.
+model PodcastEpisode {
+  id         String   @id @default(cuid())
+  date       String   @unique // YYYY-MM-DD (JST) - one episode per day
+  audioUrl   String
+  script     String // the full dialogue text, also shown as a transcript
+  durationSec Int?
+  createdAt  DateTime @default(now())
+}

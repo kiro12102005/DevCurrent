@@ -8,6 +8,7 @@ import { formatArticleDate } from "@/lib/formatDate";
 import { formatShortDateWithWeekday, jstDateStringDaysAgo, jstTodayString } from "@/lib/dateRange";
 import { countryFlag } from "@/lib/countryLabels";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { PodcastPlayer } from "./PodcastPlayer";
 
 const DAY_CHIPS = Array.from({ length: 7 }, (_, i) => jstDateStringDaysAgo(i)); // today, then back 6 more days
 const SEARCH_DEBOUNCE_MS = 400;
@@ -195,6 +196,8 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
           {refreshing ? "更新中..." : "今すぐ更新"}
         </button>
       </div>
+
+      <PodcastPlayer />
 
       <input
         type="search"

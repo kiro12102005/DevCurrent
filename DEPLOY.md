@@ -77,6 +77,7 @@ npx vercel --prod # 本番デプロイ
 | `CRON_SECRET` | 任意。Vercel Cron（GET）だけを保護する（下記参照）。設定しなくても動作する |
 | `ENABLE_AUTO_FEED_CRON` | `"false"`にする（Vercelはサーバーレスなので`instrumentation.ts`のインプロセスタイマーは使えない。下記のスケジューラで代替） |
 | `RESEND_API_KEY` / `RESEND_FROM` | 任意。週次ダイジェストメール用（[resend.com](https://resend.com)で取得）。未設定でも他機能に影響なし |
+| `BLOB_READ_WRITE_TOKEN` | 音声ポッドキャストを使うなら必須。`vercel blob create-store <name> --access public --yes`で作成すると自動的にVercelプロジェクトの環境変数へ注入される（`.env.local`にも自動反映）。未設定でも他機能に影響なし（ポッドキャスト生成だけスキップ） |
 
 ## 5. 定期実行（自動クロール・自動キュレーション・週次ダイジェスト）
 
@@ -85,10 +86,12 @@ npx vercel --prod # 本番デプロイ
 - **`vercel.json`**（このリポジトリに含み済み）: `/api/tools/refresh`と`/api/digest/send`を毎週月曜0時に実行するVercel Cronを設定済み（`/api/digest/send`は`CRON_SECRET`未設定だと誰でも叩けてしまうため、本番では`CRON_SECRET`の設定を強く推奨）。
   Vercelは`CRON_SECRET`という名前の環境変数が設定されていれば、Cron実行時に自動で`Authorization: Bearer $CRON_SECRET`ヘッダーを付けてくれます。
   **Vercel Hobbyプランはcronの実行頻度が1日1回までの制限があるため**、3時間おきが必要な`/api/feed/refresh`はここに含めていません。
-- **`.github/workflows/cron-refresh.yml`**（このリポジトリに含み済み）: `/api/feed/refresh`を3時間おき、`/api/tools/refresh`を毎週実行するGitHub Actionsワークフロー。
+- **`.github/workflows/cron-refresh.yml`**（このリポジトリに含み済み）: `/api/feed/refresh`を3時間おき、`/api/tools/refresh`と週次ダイジェストを毎週月曜、**`/api/podcast/generate`を毎日6時JST（21:00 UTC）**に実行するGitHub Actionsワークフロー。
   GitHubリポジトリの `Settings > Secrets and variables > Actions` で以下を設定してください:
   - `APP_URL`: デプロイ先のURL（例: `https://your-app.vercel.app`）
   - `CRON_SECRET`: 設定するならVercelと同じ値（未設定でも動く。下記参照）
+
+  ポッドキャスト生成だけは`GET`かつ`isAuthorizedCronRequest`で保護されているため、`APP_URL`/`CRON_SECRET`の両方が正しく設定されていないと実際には生成されません（アプリ内に手動トリガーボタンはない）。
 
 両方設定しても問題ありません（`/api/tools/refresh`はupsert、`/api/feed/refresh`はurlHashのunique制約で冪等なので、重複実行しても壊れません）。
 

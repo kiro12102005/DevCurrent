@@ -1,32 +1,10 @@
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
-import { SourceType } from "@/generated/prisma";
-import { jstWeekRange, jstTodayString } from "@/lib/dateRange";
+import { getWeeklyPicks, type WeeklyPick } from "@/lib/weeklyPicks";
 
-const FEATURED_SOURCES = [SourceType.QIITA, SourceType.ZENN, SourceType.HACKER_NEWS] as const;
 const PICKS_PER_SOURCE = 3;
 
-interface DigestArticle {
-  title: string;
-  url: string;
-}
-
-async function getWeeklyPicks(): Promise<DigestArticle[]> {
-  const [rangeStart, rangeEnd] = jstWeekRange(jstTodayString());
-  const bySource = await Promise.all(
-    FEATURED_SOURCES.map((sourceType) =>
-      prisma.article.findMany({
-        where: { sourceType, sourcePublishedAt: { gte: rangeStart, lt: rangeEnd } },
-        orderBy: { engagementScore: "desc" },
-        take: PICKS_PER_SOURCE,
-        select: { title: true, url: true },
-      })
-    )
-  );
-  return bySource.flat().filter((a): a is DigestArticle => Boolean(a.title));
-}
-
-function renderDigestHtml(picks: DigestArticle[]): string {
+function renderDigestHtml(picks: WeeklyPick[]): string {
   const items = picks
     .map(
       (a) =>
@@ -59,7 +37,7 @@ export async function sendWeeklyDigest(): Promise<{ sent: number; skipped: strin
     return { sent: 0, skipped: "RESEND_API_KEY未設定のため週次ダイジェストはスキップされました" };
   }
 
-  const picks = await getWeeklyPicks();
+  const picks = await getWeeklyPicks(PICKS_PER_SOURCE);
   if (picks.length === 0) {
     return { sent: 0, skipped: "今週のピックアップ記事がありませんでした" };
   }

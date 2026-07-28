@@ -1,4 +1,4 @@
-import { GoogleGenAI, type GenerateContentConfig } from "@google/genai";
+import { GoogleGenAI, Modality, type GenerateContentConfig } from "@google/genai";
 
 // Google rotates which models are available to new API keys surprisingly
 // fast (gemini-1.5-flash, then gemini-2.5-flash, both stopped working for
@@ -407,4 +407,98 @@ ${article.summary ? `\n# 記事の要約\n${article.summary.slice(0, 800)}` : ""
 - 日本語で説明してください`;
 
   return generateJson<HandsOnCode>(prompt, HANDS_ON_SCHEMA, apiKey, 0.5);
+}
+
+const PODCAST_SCRIPT_SCHEMA = {
+  type: "object",
+  properties: {
+    lines: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          speaker: { type: "string", enum: ["Speaker1", "Speaker2"] },
+          text: { type: "string" },
+        },
+        required: ["speaker", "text"],
+      },
+      description: "2人のパーソナリティの掛け合い形式の台本。Speaker1とSpeaker2が交互に発言する自然な会話にする",
+    },
+  },
+  required: ["lines"],
+} as const;
+
+export interface PodcastLine {
+  speaker: "Speaker1" | "Speaker2";
+  text: string;
+}
+
+// Shared/operator-funded content (like AiToolPick curation), not BYOK - this
+// generates one episode a day for every listener, not per-user.
+export async function generatePodcastScript(articles: { title: string; summary?: string }[]): Promise<PodcastLine[]> {
+  const context = articles
+    .map((a, i) => `${i + 1}. ${a.title}${a.summary ? `\n   要約: ${a.summary.slice(0, 300)}` : ""}`)
+    .join("\n");
+
+  const prompt = `あなたはテック系ポッドキャストの構成作家です。以下の今週の注目技術記事について、
+2人のパーソナリティ（Speaker1・Speaker2）が対話形式でカジュアルに解説する、5分程度（1200〜1600文字程度）の台本を作成してください。
+
+# 今週の注目記事
+${context}
+
+# 要件
+- Speaker1が進行役、Speaker2が解説役のような自然な掛け合いにする（相槌・質問・驚きのリアクションを含める）
+- 各記事について「何が新しいのか」「なぜ重要か」を初心者にも分かるように話す
+- 冒頭で簡単な挨拶、最後に軽い締めの一言を入れる
+- 日本語で出力してください`;
+
+  const parsed = await generateJson<{ lines: PodcastLine[] }>(prompt, PODCAST_SCRIPT_SCHEMA, undefined, 0.7);
+  return parsed.lines;
+}
+
+const TTS_MODEL_CANDIDATES = ["gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts", "gemini-3.1-flash-tts-preview"];
+
+export interface PodcastAudio {
+  data: string; // base64-encoded raw PCM - caller wraps it (see lib/wav.ts)
+  mimeType: string;
+}
+
+// Verified live against the real API before writing this (see commit
+// message): response comes back as raw PCM in candidates[0].content.parts[0]
+// .inlineData, mimeType like "audio/L16;codec=pcm;rate=24000" - not a
+// playable file on its own.
+export async function generatePodcastAudio(lines: PodcastLine[]): Promise<PodcastAudio> {
+  const apiKey = resolveApiKey(undefined);
+  const client = new GoogleGenAI({ apiKey });
+  const script = lines.map((l) => `${l.speaker}: ${l.text}`).join("\n");
+
+  const config: GenerateContentConfig = {
+    responseModalities: [Modality.AUDIO],
+    speechConfig: {
+      multiSpeakerVoiceConfig: {
+        speakerVoiceConfigs: [
+          { speaker: "Speaker1", voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } },
+          { speaker: "Speaker2", voiceConfig: { prebuiltVoiceConfig: { voiceName: "Puck" } } },
+        ],
+      },
+    },
+  };
+
+  let lastError: unknown;
+  for (const model of TTS_MODEL_CANDIDATES) {
+    try {
+      const response = await client.models.generateContent({
+        model,
+        contents: [{ role: "user", parts: [{ text: `TTS the following conversation:\n${script}` }] }],
+        config,
+      });
+      const part = response.candidates?.[0]?.content?.parts?.[0];
+      if (!part?.inlineData?.data) throw new Error("Geminiから音声データが返りませんでした");
+      return { data: part.inlineData.data, mimeType: part.inlineData.mimeType ?? "audio/L16;codec=pcm;rate=24000" };
+    } catch (err) {
+      lastError = err;
+      if (!isModelUnavailableError(err)) throw err;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error("音声生成に利用できるモデルがありませんでした");
 }

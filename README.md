@@ -25,6 +25,7 @@
 - **共有可能な学習実績ページ**: マイページ＞共有ページでオプトインすると、`/u/[ランダムなスラッグ]`に公開プロフィール（学習マップ・活動統計、メールアドレス等は非表示）が作成される。就活サイトや履歴書に貼れるリンクとして利用可能。
 - **GitHubの一次情報表示**: URL要約結果が特定のGitHubリポジトリを扱っている場合、GitHub公開APIから実際のスター数・最終コミット日・最新リリースを取得して表示（記事の煽り文句ではなく実データで確認できる。要リポジトリ検出、`GITHUB_TOKEN`設定でレート制限緩和・任意）。
 - **3分ハンズオン**: URL要約結果から、Geminiがその技術を試せる最小構成コードを生成（BYOK）。ブラウザだけで完結する内容ならCodeSandboxの「define API」で自動的にオンラインエディタを作成し、その場で実行可能。ローカル環境が必要な場合はコードと実行手順を表示。
+- **音声ポッドキャスト（通勤・通学モード）**: フィード上部に1日1本、その週の注目記事をGeminiのマルチスピーカーTTSが2人の掛け合い形式で読み上げる音声プレイヤーを表示。手や目を離せない移動中でもキャッチアップできる。運営者キーで1日1回だけ生成・Vercel Blobに保存する共有コンテンツ（`AiToolPick`と同じコスト方針）で、同じ日に複数回リクエストされても再生成しない。台本は文字起こしとしても閲覧可能。
 
 ## セットアップ
 
@@ -46,6 +47,7 @@ pnpm dev        # http://localhost:3000
 | `ENABLE_AUTO_FEED_CRON` / `FEED_REFRESH_INTERVAL_HOURS` | 任意 | サーバー内蔵の自動更新タイマー（下記参照）のON/OFFと間隔（時間）。デフォルトON・3時間おき。 |
 | `RESEND_API_KEY` / `RESEND_FROM` | 任意 | 週次ダイジェストメール送信用（[resend.com](https://resend.com)で取得、`re_`から始まる）。未設定でも他の機能はすべて動作し、ダイジェスト送信だけスキップされる。`RESEND_FROM`は検証済みドメインのアドレス、テスト用途なら`onboarding@resend.dev`のままでも送信可（到達率は低い）。 |
 | `GITHUB_TOKEN` | 任意 | GitHub一次情報表示のレート制限緩和用（読み取り専用PATで可）。未設定でも動作するが、GitHub公開APIの無認証レート制限（60回/時/IP）にかかりやすくなる。 |
+| `BLOB_READ_WRITE_TOKEN` | ポッドキャストを使うなら✅ | Vercel Blobへの音声アップロード用トークン。`vercel blob create-store <name> --access public`で作成すると自動的に環境変数へ注入される。未設定でも他機能に影響なし（ポッドキャスト生成だけスキップ）。 |
 
 > Next.js 16 はデフォルトで Turbopack ですが、`next-pwa` が webpack プラグインのため
 > `dev` / `build` は `--webpack` フラグ付きで実行しています（`package.json` 参照）。
@@ -101,6 +103,8 @@ src/
       digest/send/route.ts         # GET: 週次ダイジェストメール送信トリガー（CRON_SECRET必須）
       interview/generate/route.ts  # POST: 保存済み記事から模擬面接の質問生成（BYOK）
       learning-map/route.ts        # GET: 分野別キャッチアップ状況の集計
+      podcast/generate/route.ts    # GET: 当日分のポッドキャスト生成トリガー（CRON_SECRET必須）
+      podcast/latest/route.ts      # GET: 最新エピソード取得（認証不要）
     u/[slug]/page.tsx             # 公開共有ページ（認証不要、shareSlugでUserを引く）
   components/
     AppShell.tsx                 # ヘッダー・4タブ切り替えを統括するクライアントコンポーネント（モバイルは下部ナビのみ）
@@ -117,6 +121,7 @@ src/
     InterviewPractice.tsx                 # 模擬面接AI（フラッシュカード形式）
     SharePageSettings.tsx                  # 学習実績ページの公開設定
     AiToolPicks.tsx                      # 「AIツール」タブ（ページネーション・ブックマーク対応）
+    PodcastPlayer.tsx                     # 「今日のポッドキャスト」プレイヤー（フィード上部・台本表示切替）
   lib/
     prisma.ts                    # PrismaClientシングルトン
     gemini.ts                    # Gemini 2.5 Flash 呼び出し（BYOK対応・構造化JSON出力、模擬面接質問生成も含む）
@@ -132,6 +137,9 @@ src/
     cronAuth.ts                      # スケジューラ認証共通ロジック（x-cron-secret / Vercel CronのBearerヘッダー両対応）
     tags.ts                          # 固定タグ一覧＋タイトルからのキーワード判定（無料・Gemini不使用）
     email.ts                         # Resend経由の週次ダイジェスト送信
+    weeklyPicks.ts                    # 週次注目ピックアップの取得（週次ダイジェストとポッドキャスト台本生成が共有）
+    podcast.ts                        # ポッドキャスト生成オーケストレーション（台本生成→TTS→WAV変換→Blobアップロード→DB保存、当日分は再生成しない）
+    wav.ts                            # Gemini TTSが返す生PCMをWAVファイル形式に変換
     articleSelect.ts                 # /api/feedと/api/searchで共有するArticleのPrisma select/整形
     auth/{session,password,AuthContext}.ts,tsx  # セッション発行/検証・パスワードハッシュ・クライアント側認証状態
     curation/aiToolPicks.ts       # Gemini駆動のAIツールピックアップ生成バッチ
@@ -161,6 +169,7 @@ public/
 - **UserNote**: ユーザーが記事に残す自由記述メモ（面接対策の一言・気づきなど）。ログインユーザーのみ作成・編集・削除可能。
 - **PushSubscription**: Web Push購読情報（endpoint / p256dh / auth）。ログイン中に購読するとそのデバイスに`userId`が紐づく（未ログインでも匿名購読は引き続き可能・全員へブロードキャストの挙動自体は変わらない）。
 - **AiToolPick**: 「最新AIツール・便利アプリ」ピックアップのキュレーションデータ。`name`をユニークキーにして、`POST /api/tools/refresh`（Gemini駆動、運営者の`GEMINI_API_KEY`を使用）を再実行しても重複せずupsertされる。
+- **PodcastEpisode**: 1日1本のポッドキャストエピソード。`date`（JST・YYYY-MM-DD）をユニークキーにして、同日に何度リクエストされても再生成しない（Gemini TTSは相対的にコストが高いため）。音声本体はVercel Blobに保存し、`audioUrl`のみDBに持つ。
 
 ローカルMVPはSQLiteで開発し、本番はPostgreSQL（Supabase想定）に切り替える設計。切り替え手順は[DEPLOY.md](./DEPLOY.md)を参照（オフラインで生成済みの初期マイグレーションSQLを`prisma/postgresql-migrations/`に同梱済み）。
 
@@ -170,7 +179,7 @@ Supabase Authなどの外部サービスは使わず、bcryptjsによるパス�
 
 ## 定期実行（本番）
 
-`instrumentation.ts`のインプロセスタイマーはVercelのようなサーバーレス環境では動かないため、本番では`vercel.json`（週次のAIツールピックアップ更新）と`.github/workflows/cron-refresh.yml`（3時間おきのフィード更新＋週次のAIツールピックアップ更新）を使う。詳細は[DEPLOY.md](./DEPLOY.md)を参照。
+`instrumentation.ts`のインプロセスタイマーはVercelのようなサーバーレス環境では動かないため、本番では`vercel.json`（週次のAIツールピックアップ更新・週次ダイジェスト送信）と`.github/workflows/cron-refresh.yml`（3時間おきのフィード更新・週次のAIツールピックアップ更新・毎日6時JSTのポッドキャスト生成）を使う。詳細は[DEPLOY.md](./DEPLOY.md)を参照。
 
 ## 開発状況
 
