@@ -15,6 +15,25 @@ const FEATURED_PER_SOURCE = 2; // diversity across sources beats a single global
 const FEATURED_MAX_TOTAL = 6; // caps Gemini calls + push notifications per refresh cycle
 const TITLE_BACKFILL_BATCH = 20; // caps the one-time-per-cycle catch-up translation call
 const RETENTION_DAYS = 180; // unsummarized, non-featured backlog older than this gets pruned
+const DB_WRITE_CONCURRENCY = 3; // a crawl can create 100+ rows in one cycle - against a
+// pooled Postgres connection (Supabase's pgbouncer), firing all of them via a single
+// Promise.all exhausts the connection pool and every write past the limit times out.
+// SQLite had no such ceiling, which is why this only surfaced after the Postgres migration.
+
+// Runs `fn` over `items` with at most `limit` in flight at once, instead of firing
+// every call simultaneously (see DB_WRITE_CONCURRENCY above for why that matters here).
+async function mapWithConcurrency<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let cursor = 0;
+  async function worker() {
+    while (cursor < items.length) {
+      const i = cursor++;
+      results[i] = await fn(items[i]);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
+}
 
 // Storage policy: featured picks and anything that got a Gemini summary
 // (isFeatured or hasInsight - either one is "was judged valuable, or someone
@@ -71,16 +90,17 @@ async function backfillJapaneseTitles(errors: string[]): Promise<void> {
 
   try {
     const tagged = await translateTitles(needsWork.map((a) => a.title));
-    await Promise.all(
-      needsWork.map((a, i) =>
+    await mapWithConcurrency(
+      needsWork.map((a, i) => ({ a, tag: tagged[i] })),
+      DB_WRITE_CONCURRENCY,
+      ({ a, tag }) =>
         prisma.article.update({
           where: { id: a.id },
           data: {
-            title: tagged[i]?.japaneseTitle ?? a.title,
-            country: a.country ?? tagged[i]?.country ?? null,
+            title: tag?.japaneseTitle ?? a.title,
+            country: a.country ?? tag?.country ?? null,
           },
         })
-      )
     );
   } catch (err) {
     errors.push(`title backfill failed: ${err instanceof Error ? err.message : String(err)}`);
@@ -184,28 +204,26 @@ export async function refreshFeed(): Promise<RefreshResult> {
   // while a manual "今すぐ更新" is also in flight) inserted the same URL
   // first. That's not an error - just skip it, the other call already has it.
   const createdArticles = (
-    await Promise.all(
-      freshItems.map(async (item) => {
-        try {
-          return await prisma.article.create({
-            data: {
-              url: item.normalizedUrl,
-              urlHash: item.urlHash,
-              title: item.title,
-              sourceType: item.sourceType,
-              sourcePublishedAt: item.publishedAt,
-              country: item.country ?? null,
-              engagementScore: item.engagement,
-              isFeatured: cappedFeaturedHashes.has(item.urlHash),
-            },
-          });
-        } catch (err) {
-          const isDuplicate = err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002";
-          if (!isDuplicate) throw err;
-          return null;
-        }
-      })
-    )
+    await mapWithConcurrency(freshItems, DB_WRITE_CONCURRENCY, async (item) => {
+      try {
+        return await prisma.article.create({
+          data: {
+            url: item.normalizedUrl,
+            urlHash: item.urlHash,
+            title: item.title,
+            sourceType: item.sourceType,
+            sourcePublishedAt: item.publishedAt,
+            country: item.country ?? null,
+            engagementScore: item.engagement,
+            isFeatured: cappedFeaturedHashes.has(item.urlHash),
+          },
+        });
+      } catch (err) {
+        const isDuplicate = err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002";
+        if (!isDuplicate) throw err;
+        return null;
+      }
+    })
   ).filter((a): a is NonNullable<typeof a> => a !== null);
 
   // auto-generate full insight for featured picks only (bounded volume, server's own key -
