@@ -1,0 +1,129 @@
+// Tech Trend Catchup - DB schema (SQLite for local MVP, swap provider to "postgresql" for Supabase later)
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// --- Content ingestion -------------------------------------------------
+
+// One row per source URL (Qiita/Zenn/Hacker News/ArXiv article, or user-submitted URL).
+// This is the cache key that prevents duplicate Gemini calls for the same content.
+model Article {
+  id          String   @id @default(cuid())
+  url         String   @unique
+  urlHash     String   @unique // sha256(normalized url) - fast indexed lookup / cache key
+  title       String?
+  sourceType  SourceType @default(USER_SUBMITTED)
+  rawText     String?    // scraped article body, trimmed
+  contentHash String?    // sha256(rawText) - detects if source content changed since last fetch
+  language    String?    // "ja" | "en" | "zh"
+  sourcePublishedAt DateTime? // publish date reported by the source (Qiita/Zenn/HN/ArXiv), for feed sorting
+  country           String?   // best-guess origin country (Qiita/Zenn: always Japan; others: Gemini-inferred from title/content)
+  engagementScore   Int?      // normalized popularity signal from the source (likes/points/stocks) at crawl time
+  isFeatured        Boolean   @default(false) // top picks from a refresh cycle - these get auto-summarized + push notified
+  fetchedAt   DateTime   @default(now())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  generation  AIGeneration?
+  userNotes   UserNote[]
+
+  @@index([sourceType])
+  @@index([sourcePublishedAt])
+  @@index([isFeatured])
+}
+
+enum SourceType {
+  QIITA
+  ZENN
+  HACKER_NEWS
+  ARXIV
+  AI_TOOL_PICK
+  USER_SUBMITTED
+}
+
+// Cached Gemini output for an Article. 1:1 with Article - this IS the cache layer:
+// once generated for a given contentHash, we never regenerate for the same article.
+model AIGeneration {
+  id               String   @id @default(cuid())
+  articleId        String   @unique
+  article          Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  summary          String   // in-depth plain-language summary
+  prosAndCons      String   // JSON string: { pros: string[], cons: string[], outlook: string }
+  glossary         String   // JSON string: { term: string, explanation: string }[]
+
+  modelUsed        String   @default("gemini-2.5-flash")
+  promptTokens     Int?
+  outputTokens     Int?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+// --- User space ----------------------------------------------------------
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  notes             UserNote[]
+  pushSubscriptions PushSubscription[]
+}
+
+// Freeform memo / interview-prep note a user attaches to an article.
+model UserNote {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([articleId])
+}
+
+// --- Push notifications ----------------------------------------------------
+
+// One row per subscribed browser (Web Push). Devices can still self-register
+// anonymously (userId null); logging in on a device attaches it to the
+// account so notifications and unsubscribe-everywhere work per-user.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// --- Curated picks (populated by src/lib/curation/aiToolPicks.ts) --------
+
+model AiToolPick {
+  id             String    @id @default(cuid())
+  name           String    @unique // e.g. "Gemini Gem", "Claude Fable" - unique so re-running curation upserts instead of duplicating
+  category       String    // "AIサービス" | "iOSアプリ" | "PC機能" | "開発支援ツール" | "ブラウザ拡張"
+  summary        String
+  recommendedFor String    // "who should use this"
+  useCaseExample String
+  sourceUrl      String?
+  publishedAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([category])
+}

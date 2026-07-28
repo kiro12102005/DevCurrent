@@ -1,0 +1,24 @@
+{
+  "name": "技術トレンド キャッチアップ",
+  "short_name": "TrendCatchup",
+  "description": "最新技術ニュースを自動収集し、深掘り要約・メリット懸念点・用語解説に変換する学習アプリ",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f9fc",
+  "theme_color": "#6d5bf5",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

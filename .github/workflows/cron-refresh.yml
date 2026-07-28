@@ -1,0 +1,34 @@
+name: Scheduled feed/tools refresh
+
+# Serverless-friendly alternative to instrumentation.ts's in-process timer
+# (which only works on a long-running server, not Vercel). Requires two repo
+# secrets: APP_URL (e.g. https://your-app.vercel.app) and CRON_SECRET
+# (must match the CRON_SECRET env var configured on the deployed app).
+on:
+  workflow_dispatch: {}
+  schedule:
+    # feed crawl - every 3 hours, matches FEED_REFRESH_INTERVAL_HOURS default
+    - cron: "0 */3 * * *"
+    # AI tool pick curation - weekly (Vercel Cron also covers this if deployed
+    # there - see vercel.json; harmless to run from both, upserts are idempotent)
+    - cron: "0 0 * * 1"
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refresh feed
+        if: github.event.schedule == '0 */3 * * *' || github.event_name == 'workflow_dispatch'
+        run: |
+          curl -sf -X POST "$APP_URL/api/feed/refresh" -H "x-cron-secret: $CRON_SECRET"
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+
+      - name: Refresh AI tool picks
+        if: github.event.schedule == '0 0 * * 1' || github.event_name == 'workflow_dispatch'
+        run: |
+          curl -sf -X POST "$APP_URL/api/tools/refresh" -H "x-cron-secret: $CRON_SECRET"
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}

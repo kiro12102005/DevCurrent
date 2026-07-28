@@ -1,0 +1,33 @@
+{
+  "name": "TypeScript Next.js Dev Environment",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-20-bullseye",
+
+  // VS Code拡張機能の自動インストール設定
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      },
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "formulahendry.auto-close-tag",
+        "formulahendry.auto-rename-tag"
+      ]
+    }
+  },
+
+  // ローカルポートの転送設定（Next.jsデフォルト: 3000）
+  "forwardPorts": [3000],
+
+  // コンテナ作成後にパッケージを最新化
+  "postCreateCommand": "npm install -g pnpm && node -v",
+
+  // コンテナ作成後に Claude Code をグローバルインストール
+  "postCreateCommand": "npm install -g pnpm @anthropic-ai/claude-code && node -v",
+
+  // root以外の一般ユーザーで作業（セキュリティ・パーミッション問題回避）
+  "remoteUser": "node"
+}
