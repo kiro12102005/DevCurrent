@@ -229,5 +229,8 @@ Supabase Authなどの外部サービスは使わず、bcryptjsによるパス�
 
 - Week 1: コア生成パイプライン ✅
 - Week 2: 自動リサーチ＆通知 ✅
-- Week 3: ユーザー機能・認証・メモ ✅（自前認証・メモ機能・AIツールピックアップ・用語解説強化・ボトムナビ拡張＋スワイプ）
+- Week 3: ユーザー機能・認証・メモ ✅（自前認証・メモ機能・AIツールピックアップ・用語解説強化・ボトムナビ拡張）
 - Week 4: 仕上げ・品質固め — コード面（Postgres移行ファイル・Vercel Cron/GitHub Actions設定・オフラインキャッシュ）は準備済み。実際のSupabase/Vercelアカウント作成・本番デプロイはユーザー自身の作業（[DEPLOY.md](./DEPLOY.md)参照）
+
+技術的な意思決定の理由（コスト設計・本番障害の顛末・Next.js 16の破壊的変更への対応など）は
+[docs/DESIGN_DECISIONS.md](./docs/DESIGN_DECISIONS.md)にまとめている。

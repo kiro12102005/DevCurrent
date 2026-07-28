@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "load-test": "node load-tests/feed-load-test.mjs",
     "db:push": "prisma db push",
     "db:studio": "prisma studio"
   },
@@ -37,6 +38,7 @@
     "@types/react-dom": "^19",
     "@types/web-push": "^3.6.4",
     "@vitest/coverage-v8": "^4.1.10",
+    "autocannon": "^8.0.0",
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
