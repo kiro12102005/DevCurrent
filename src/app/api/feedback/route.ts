@@ -1,0 +1,48 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth/session";
+import { notifyFeedbackSubmission } from "@/lib/email";
+
+const FEEDBACK_TYPES = ["bug", "rating", "suggestion", "other"] as const;
+
+const bodySchema = z.object({
+  type: z.enum(FEEDBACK_TYPES),
+  message: z.string().trim().min(1).max(2000),
+  rating: z.number().int().min(1).max(5).optional(),
+  email: z.string().trim().email().max(200).optional(),
+  pageContext: z.string().max(100).optional(),
+});
+
+// Deliberately usable while logged out - a bug report or rating shouldn't
+// require an account. If the submitter is logged in, their account email
+// is used automatically (not the freeform `email` field, which is only for
+// anonymous submitters who want a reply).
+export async function POST(req: Request) {
+  const body = await req.json().catch(() => null);
+  const parsed = bodySchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "不正なリクエストです" }, { status: 400 });
+  }
+  const { type, message, rating, email, pageContext } = parsed.data;
+
+  const user = await getCurrentUser();
+  const contactEmail = user?.email ?? email ?? null;
+
+  const feedback = await prisma.feedback.create({
+    data: {
+      type,
+      message,
+      rating: type === "rating" ? (rating ?? null) : null,
+      email: contactEmail,
+      userId: user?.id,
+      pageContext,
+    },
+  });
+
+  // Best-effort - the DB row above is already saved regardless of whether
+  // this succeeds, so a failure here shouldn't fail the whole request.
+  await notifyFeedbackSubmission({ type, message, rating: feedback.rating, email: contactEmail }).catch(() => {});
+
+  return NextResponse.json({ ok: true });
+}

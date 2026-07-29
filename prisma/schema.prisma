@@ -96,6 +96,7 @@ model User {
   pushSubscriptions PushSubscription[]
   articleStates     UserArticleState[]
   toolBookmarks     UserToolBookmark[]
+  feedbacks         Feedback[]
 }
 
 // Per-user read/bookmark state for an article. One row per (user, article) pair -
@@ -198,4 +199,24 @@ model PodcastEpisode {
   durationSec Int?
   sourceArticles String @default("[]") // JSON: {title, url, sourceType, summary}[] - which articles this episode covers, shown in the UI so listeners can see the source/gist without needing to catch every word in the audio
   createdAt  DateTime @default(now())
+}
+
+// --- Feedback (bug reports / ratings / suggestions) ------------------------
+
+// Lightweight in-app feedback form - no external service (Typeform etc.),
+// just a DB row plus a best-effort operator notification email (see
+// lib/email.ts's notifyFeedbackSubmission). Usable while logged out (a bug
+// report shouldn't require an account), so userId/email are both optional.
+model Feedback {
+  id          String   @id @default(cuid())
+  type        String // "bug" | "rating" | "suggestion" | "other" - see FEEDBACK_TYPES in the API route
+  message     String
+  rating      Int? // 1-5, only meaningful when type = "rating"
+  email       String? // optional follow-up contact - auto-filled from the account when logged in, freeform when not
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  pageContext String? // which tab the user was on when they submitted, for triage context
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
 }

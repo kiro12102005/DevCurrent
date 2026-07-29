@@ -4,6 +4,19 @@ import { getWeeklyPicks, type WeeklyPick } from "@/lib/weeklyPicks";
 
 const PICKS_PER_SOURCE = 3;
 
+// User-supplied text (feedback messages) gets interpolated into HTML email
+// bodies below - must be escaped, unlike the rest of this file's templates
+// which only ever embed our own generated article titles/URLs. Exported for
+// unit testing (see email.test.ts).
+export function escapeHtml(input: string): string {
+  return input
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function renderDigestHtml(picks: WeeklyPick[]): string {
   const items = picks
     .map(
@@ -66,4 +79,49 @@ export async function sendWeeklyDigest(): Promise<{ sent: number; skipped: strin
 
   const sent = results.filter((r) => r.status === "fulfilled").length;
   return { sent, skipped: "" };
+}
+
+const FEEDBACK_TYPE_LABELS: Record<string, string> = {
+  bug: "🐛 バグ報告",
+  rating: "⭐ 評価",
+  suggestion: "💡 改善提案",
+  other: "💬 その他",
+};
+
+// Best-effort notification to the operator when someone submits the in-app
+// feedback form - the Feedback DB row is the source of truth regardless
+// (see POST /api/feedback), this is just so the operator doesn't have to
+// remember to go check the table. Silently no-ops if RESEND_API_KEY or
+// FEEDBACK_NOTIFY_EMAIL isn't configured, same degrade-gracefully pattern
+// as sendWeeklyDigest above.
+export async function notifyFeedbackSubmission(feedback: {
+  type: string;
+  message: string;
+  rating: number | null;
+  email: string | null;
+}): Promise<void> {
+  const client = resendClient();
+  const notifyTo = process.env.FEEDBACK_NOTIFY_EMAIL;
+  if (!client || !notifyTo) return;
+
+  const typeLabel = FEEDBACK_TYPE_LABELS[feedback.type] ?? feedback.type;
+  const ratingLine = feedback.rating
+    ? `<p><strong>評価:</strong> ${"★".repeat(feedback.rating)}${"☆".repeat(5 - feedback.rating)}</p>`
+    : "";
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
+      <h1 style="font-size:16px;">新しいフィードバック: ${typeLabel}</h1>
+      ${ratingLine}
+      <p><strong>連絡先:</strong> ${feedback.email ? escapeHtml(feedback.email) : "未記入"}</p>
+      <p><strong>内容:</strong></p>
+      <p style="white-space:pre-wrap;border-left:3px solid #6d5bf5;padding-left:12px;">${escapeHtml(feedback.message)}</p>
+    </div>
+  `;
+
+  const from = process.env.RESEND_FROM || "onboarding@resend.dev";
+  try {
+    await client.emails.send({ from, to: notifyTo, subject: `[フィードバック] ${typeLabel}`, html });
+  } catch (err) {
+    console.error("[feedback] operator notification email failed:", err);
+  }
 }

@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Bookmark, BarChart3, GraduationCap, Search, Share2 } from "lucide-react";
+import { Bookmark, BarChart3, GraduationCap, Search, Share2, MessageSquareText } from "lucide-react";
 import { SavedList } from "./SavedList";
 import { LearningMap } from "./LearningMap";
 import { InterviewPractice } from "./InterviewPractice";
 import { SharePageSettings } from "./SharePageSettings";
 import { RepoBreakingChangeCheck } from "./RepoBreakingChangeCheck";
+import { FeedbackForm } from "./FeedbackForm";
 
 const SECTIONS = [
   { key: "saved", icon: Bookmark, label: "保存済み" },
@@ -14,6 +15,7 @@ const SECTIONS = [
   { key: "interview", icon: GraduationCap, label: "模擬面接" },
   { key: "repo", icon: Search, label: "リポジトリチェック" },
   { key: "share", icon: Share2, label: "共有ページ" },
+  { key: "feedback", icon: MessageSquareText, label: "フィードバック" },
 ] as const;
 type SectionKey = (typeof SECTIONS)[number]["key"];
 
@@ -46,6 +48,7 @@ export function MyPage({ onSelectArticle }: { onSelectArticle: (url: string) => 
       {section === "interview" && <InterviewPractice />}
       {section === "repo" && <RepoBreakingChangeCheck />}
       {section === "share" && <SharePageSettings />}
+      {section === "feedback" && <FeedbackForm />}
     </div>
   );
 }
