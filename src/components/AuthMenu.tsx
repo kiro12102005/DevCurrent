@@ -244,7 +244,7 @@ function PreferencesPanel() {
         </label>
         <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
           <input type="checkbox" checked={wantsBreakingChangePush} onChange={toggleBreakingChangePush} className="rounded" />
-          🚨 破壊的変更アラート（興味タグ・技術スタックの設定に関わらず届きます）
+          🚨 動かなくなる変更の通知（興味タグ・技術スタックの設定に関わらず届きます）
         </label>
       </div>
 

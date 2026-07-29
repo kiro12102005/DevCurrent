@@ -170,7 +170,7 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
           {result.insight.isBreakingChange && (
             <div className="rounded-xl bg-red-50 border border-red-200 p-4">
               <p className="font-bold text-red-700 flex items-center gap-1.5 mb-1">
-                <TriangleAlert className="w-4 h-4" strokeWidth={2.25} /> 破壊的変更の可能性
+                <TriangleAlert className="w-4 h-4" strokeWidth={2.25} /> 既存コードが動かなくなるかも
               </p>
               <p className="text-sm text-red-700 leading-relaxed">{result.insight.breakingChangeSummary}</p>
             </div>

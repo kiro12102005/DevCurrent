@@ -74,10 +74,10 @@ function composePayload(articles: { title: string; url: string }[]): PushPayload
 // Exported for unit testing (see push.test.ts).
 export function composeBreakingChangePayload(breakingArticles: { title: string; url: string }[]): PushPayload {
   if (breakingArticles.length === 1) {
-    return { title: "🚨 破壊的変更の可能性", body: breakingArticles[0].title, url: breakingArticles[0].url };
+    return { title: "🚨 既存コードが動かなくなるかも", body: breakingArticles[0].title, url: breakingArticles[0].url };
   }
   return {
-    title: `🚨 破壊的変更の可能性がある記事を${breakingArticles.length}件検知`,
+    title: `🚨 動作に影響しそうな記事を${breakingArticles.length}件検知`,
     body: breakingArticles.map((a) => a.title).join(" / "),
     url: "/",
   };
@@ -93,7 +93,7 @@ function composePersonalizedPayload(relevant: PersonalizableArticle[], matchedKe
   if (matchedKeyword) {
     const breaking = relevant.find((a) => a.isBreakingChange);
     if (breaking) {
-      return { title: `🚨 ${matchedKeyword}に破壊的変更の可能性`, body: breaking.title, url: breaking.url };
+      return { title: `🚨 ${matchedKeyword}が動かなくなるかも`, body: breaking.title, url: breaking.url };
     }
   }
   return composePayload(relevant);

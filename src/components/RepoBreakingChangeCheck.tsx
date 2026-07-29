@@ -43,7 +43,7 @@ export function RepoBreakingChangeCheck() {
           <Search className="w-4 h-4" strokeWidth={2.25} /> リポジトリチェック
         </h3>
         <p className="text-xs text-gray-500 leading-relaxed mb-3">
-          公開GitHubリポジトリのpackage.jsonを読み込み、実際に使っているライブラリに関係する破壊的変更ニュースだけをピンポイントで表示します（現在npmプロジェクトのみ対応）。
+          公開GitHubリポジトリのpackage.jsonを読み込み、実際に使っているライブラリが動かなくなりそうなニュースだけをピンポイントで表示します（現在npmプロジェクトのみ対応）。
         </p>
         <form onSubmit={handleCheck} className="flex gap-2">
           <input
@@ -72,7 +72,7 @@ export function RepoBreakingChangeCheck() {
           {result.matches.length === 0 ? (
             <div className="rounded-xl bg-green-50 border border-green-200 p-4">
               <p className="flex items-center gap-1.5 text-sm text-green-700">
-                <CircleCheckBig className="w-4 h-4" strokeWidth={2.25} /> 現在検知されている破壊的変更との一致はありませんでした
+                <CircleCheckBig className="w-4 h-4" strokeWidth={2.25} /> 今のところ、動かなくなりそうな変更は見つかりませんでした
               </p>
             </div>
           ) : (
