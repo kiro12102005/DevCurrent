@@ -19,6 +19,11 @@ function formatDuration(sec: number | null): string {
 export function PodcastPlayer() {
   const [episode, setEpisode] = useState<PodcastEpisodeDto | null | undefined>(undefined); // undefined = loading
   const [showScript, setShowScript] = useState(false);
+  // Collapsed by default: the source-article list (up to 6 entries) was the
+  // main contributor to the player pushing the entire rest of the feed
+  // off-screen on first load, found via an actual mobile-viewport screenshot
+  // - the player itself (title/controls) stays compact and visible either way.
+  const [showSources, setShowSources] = useState(false);
   // Once you've listened to today's episode you won't need it again until
   // tomorrow's - collapsible to a compact bar instead of taking up feed
   // space all day. Keyed by episode.date (not just a boolean) so a new
@@ -158,7 +163,17 @@ export function PodcastPlayer() {
       </audio>
 
       {episode.sourceArticles.length > 0 && (
-        <ul className="mt-3 flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={() => setShowSources((v) => !v)}
+          className="mt-2 text-xs text-indigo-600 hover:underline"
+        >
+          {showSources ? "取り上げた記事を隠す" : `取り上げた記事を見る（${episode.sourceArticles.length}件）`}
+        </button>
+      )}
+
+      {showSources && episode.sourceArticles.length > 0 && (
+        <ul className="mt-2 flex flex-col gap-2">
           {episode.sourceArticles.map((a, i) => (
             <li key={i}>
               <a

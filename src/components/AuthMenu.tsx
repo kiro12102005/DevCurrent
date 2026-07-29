@@ -56,7 +56,7 @@ export function AuthMenu() {
           <span className="w-5 h-5 rounded-full brand-gradient text-white flex items-center justify-center text-[10px] font-bold">
             {user.email[0]?.toUpperCase()}
           </span>
-          <span className="max-w-[8rem] truncate">{user.email}</span>
+          <span className="max-w-[4.5rem] sm:max-w-[8rem] truncate">{user.email}</span>
         </button>
         {open && (
           <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:left-auto sm:mt-2 sm:w-80 rounded-xl border border-gray-200 bg-white p-3 shadow-xl shadow-indigo-900/10 z-20 max-h-[80vh] overflow-y-auto">

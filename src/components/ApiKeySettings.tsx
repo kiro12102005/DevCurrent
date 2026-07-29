@@ -26,9 +26,10 @@ export function ApiKeySettings() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 rounded-full border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:border-indigo-300 transition-colors"
+        aria-label="APIキー設定"
+        className="flex items-center gap-1 rounded-full border border-gray-300 px-2 sm:px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:border-indigo-300 transition-colors"
       >
-        <Settings className="w-3.5 h-3.5" strokeWidth={2.25} /> APIキー設定
+        <Settings className="w-3.5 h-3.5" strokeWidth={2.25} /> <span className="hidden sm:inline">APIキー設定</span>
         {savedKey && <span className="w-1.5 h-1.5 rounded-full bg-green-500" />}
       </button>
 

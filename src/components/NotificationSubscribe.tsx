@@ -49,17 +49,18 @@ export function NotificationSubscribe() {
         onClick={toggle}
         disabled={busy}
         title={subscribed ? "注目記事のプッシュ通知: ON" : "注目記事のプッシュ通知を受け取る"}
-        className={`flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${
+        aria-label={subscribed ? "通知ON" : "通知OFF"}
+        className={`flex items-center gap-1 rounded-full border px-2 sm:px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${
           subscribed ? "border-indigo-300 bg-indigo-50 text-indigo-700" : "border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-indigo-300"
         }`}
       >
         {subscribed ? (
           <>
-            <Bell className="w-3.5 h-3.5" strokeWidth={2.25} /> 通知ON
+            <Bell className="w-3.5 h-3.5" strokeWidth={2.25} /> <span className="hidden sm:inline">通知ON</span>
           </>
         ) : (
           <>
-            <BellOff className="w-3.5 h-3.5" strokeWidth={2.25} /> 通知OFF
+            <BellOff className="w-3.5 h-3.5" strokeWidth={2.25} /> <span className="hidden sm:inline">通知OFF</span>
           </>
         )}
       </button>

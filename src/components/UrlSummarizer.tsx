@@ -85,7 +85,7 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
         <input
           type="url"
           required
-          placeholder="記事のURLを貼り付け (Qiita, Zenn, Hacker News など)"
+          placeholder="記事のURLを貼り付け"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           className="flex-1 rounded-lg border border-gray-300 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500"

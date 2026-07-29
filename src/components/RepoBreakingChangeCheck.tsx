@@ -50,7 +50,7 @@ export function RepoBreakingChangeCheck() {
             type="text"
             value={repo}
             onChange={(e) => setRepo(e.target.value)}
-            placeholder="owner/repo（例: vercel/next.js）"
+            placeholder="owner/repo"
             className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
           />
           <button
