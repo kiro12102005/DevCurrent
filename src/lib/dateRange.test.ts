@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { jstDayRange, jstWeekRange, formatShortDateWithWeekday } from "./dateRange";
+import { jstDayRange, jstWeekRange, jstMonthRange, formatShortDateWithWeekday } from "./dateRange";
 
 describe("jstDayRange", () => {
   it("returns a [start, end) pair exactly 24h apart, anchored to JST midnight", () => {
@@ -16,6 +16,15 @@ describe("jstWeekRange", () => {
     const [, dayEnd] = jstDayRange("2024-06-15");
     expect(weekEnd.getTime()).toBe(dayEnd.getTime());
     expect(weekEnd.getTime() - weekStart.getTime()).toBe(7 * 24 * 60 * 60 * 1000);
+  });
+});
+
+describe("jstMonthRange", () => {
+  it("spans exactly 30 days and ends where the day range for that date ends", () => {
+    const [monthStart, monthEnd] = jstMonthRange("2024-06-15");
+    const [, dayEnd] = jstDayRange("2024-06-15");
+    expect(monthEnd.getTime()).toBe(dayEnd.getTime());
+    expect(monthEnd.getTime() - monthStart.getTime()).toBe(30 * 24 * 60 * 60 * 1000);
   });
 });
 

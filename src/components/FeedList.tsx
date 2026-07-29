@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { RefreshCw, Search, Calendar, Bookmark, Star, Sprout, CircleCheckBig, Square } from "lucide-react";
+import { RefreshCw, Search, Calendar, Bookmark, Star, Sprout, CircleCheckBig, Square, Trophy } from "lucide-react";
 import type { FeedArticle, FeedPeriod, FeedResponse } from "@/types/feed";
 import type { SearchResponse } from "@/types/search";
 import { SOURCE_BADGE_CLASS, SOURCE_LABEL } from "@/lib/sourceLabels";
@@ -11,6 +11,7 @@ import { countryFlag } from "@/lib/countryLabels";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { PodcastPlayer } from "./PodcastPlayer";
 import { ShareButton } from "./ShareButton";
+import { MonthlyRanking } from "./MonthlyRanking";
 
 const DAY_CHIPS = Array.from({ length: 7 }, (_, i) => jstDateStringDaysAgo(i)); // today, then back 6 more days
 const SEARCH_DEBOUNCE_MS = 400;
@@ -28,6 +29,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
   const [bookmarkedOnly, setBookmarkedOnly] = useState(false);
   const [country, setCountry] = useState<string | null>(null); // null = すべて
   const [availableCountries, setAvailableCountries] = useState<string[]>([]);
+  const [showRanking, setShowRanking] = useState(false);
   const [featured, setFeatured] = useState<FeedArticle[]>([]);
   const [regular, setRegular] = useState<FeedArticle[]>([]);
   const [states, setStates] = useState<Record<string, ArticleState>>({});
@@ -227,8 +229,9 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
       {!isSearching && (
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
           <PeriodChip
-            active={period === "week"}
+            active={!showRanking && period === "week"}
             onClick={() => {
+              setShowRanking(false);
               setPeriod("week");
               setDate(jstTodayString());
             }}
@@ -238,8 +241,9 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
           {DAY_CHIPS.map((d, i) => (
             <PeriodChip
               key={d}
-              active={period === "day" && date === d}
+              active={!showRanking && period === "day" && date === d}
               onClick={() => {
+                setShowRanking(false);
                 setPeriod("day");
                 setDate(d);
               }}
@@ -247,10 +251,13 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
               {i === 0 ? "今日" : formatShortDateWithWeekday(d)}
             </PeriodChip>
           ))}
+          <PeriodChip active={showRanking} onClick={() => setShowRanking(true)}>
+            <Trophy className="w-3.5 h-3.5" strokeWidth={2.25} /> 月間ランキング
+          </PeriodChip>
         </div>
       )}
 
-      {!isSearching && availableCountries.length > 1 && (
+      {!isSearching && !showRanking && availableCountries.length > 1 && (
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
           <PeriodChip active={country === null} onClick={() => setCountry(null)}>
             すべての国
@@ -263,7 +270,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
         </div>
       )}
 
-      {user && (
+      {!showRanking && user && (
         <div className="flex gap-2">
           <PeriodChip active={unreadOnly} onClick={() => setUnreadOnly((v) => !v)}>
             未読のみ
@@ -278,7 +285,9 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
         <p className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-red-700 text-sm">{error}</p>
       )}
 
-      {loading ? (
+      {showRanking ? (
+        <MonthlyRanking onSelectArticle={onSelectArticle} />
+      ) : loading ? (
         <FeedSkeleton />
       ) : isEmpty ? (
         <div className="text-center py-16">

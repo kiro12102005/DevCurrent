@@ -29,17 +29,21 @@ export function MyPage({ onSelectArticle }: { onSelectArticle: (url: string) => 
 
   return (
     <div className="w-full max-w-3xl mx-auto flex flex-col gap-4 px-4 pb-24 pt-6 md:pb-6">
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 print:hidden">
+      {/* Grid instead of a horizontally-scrolling chip row - on a narrow iOS
+          screen, 6 chips in one scrollable row only show 3-4 at a time with
+          no visual hint that more exist off-screen. A 2-column grid shows
+          every section at a glance with no scrolling required. */}
+      <div className="grid grid-cols-2 gap-2 print:hidden">
         {SECTIONS.map((s) => (
           <button
             key={s.key}
             type="button"
             onClick={() => setSection(s.key)}
-            className={`inline-flex items-center gap-1.5 shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
               section === s.key ? "brand-gradient text-white shadow-sm shadow-indigo-900/20" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
-            <s.icon className="w-3.5 h-3.5" strokeWidth={2.25} /> {s.label}
+            <s.icon className="w-3.5 h-3.5 shrink-0" strokeWidth={2.25} /> {s.label}
           </button>
         ))}
       </div>

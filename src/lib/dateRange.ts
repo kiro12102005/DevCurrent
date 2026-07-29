@@ -28,6 +28,15 @@ export function jstWeekRange(dateStr: string): [Date, Date] {
   return [start, dayEnd];
 }
 
+// [start, end) for the trailing 30 JST calendar days ending on and including
+// `dateStr` - same "trailing N days from today", not calendar-month-aligned,
+// convention as jstWeekRange above.
+export function jstMonthRange(dateStr: string): [Date, Date] {
+  const [, dayEnd] = jstDayRange(dateStr);
+  const start = new Date(dayEnd.getTime() - 30 * 24 * 60 * 60 * 1000);
+  return [start, dayEnd];
+}
+
 const WEEKDAY_LABELS_JA = ["日", "月", "火", "水", "木", "金", "土"];
 
 // e.g. "7/27(日)" - for JST date strings

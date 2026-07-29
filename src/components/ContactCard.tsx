@@ -10,10 +10,10 @@ export function ContactCard() {
   return (
     <div className="rounded-xl bg-white shadow-sm border border-gray-200 p-5">
       <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-1.5">
-        <Briefcase className="w-4 h-4" strokeWidth={2.25} /> お仕事のご依頼
+        <Briefcase className="w-4 h-4" strokeWidth={2.25} /> 開発者への連絡はこちらから
       </h3>
       <p className="text-xs text-gray-500 leading-relaxed mb-3">
-        このアプリの開発に関するお仕事のご相談・ご依頼は、下記メールアドレスまでお気軽にご連絡ください。
+        このアプリに限らず、開発のご相談・お仕事のご依頼はお気軽に下記メールアドレスへご連絡ください。
       </p>
       <a
         href={`mailto:${CONTACT_EMAIL}`}
