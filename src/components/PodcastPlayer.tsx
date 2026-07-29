@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Mic } from "lucide-react";
+import { Mic, ChevronDown, ChevronUp } from "lucide-react";
 import type { PodcastEpisodeDto } from "@/types/podcast";
 import { SOURCE_LABEL, SOURCE_BADGE_CLASS } from "@/lib/sourceLabels";
+
+const COLLAPSE_STORAGE_KEY = "podcast_collapsed_date";
 
 function formatDuration(sec: number | null): string {
   if (!sec) return "";
@@ -17,6 +19,11 @@ function formatDuration(sec: number | null): string {
 export function PodcastPlayer() {
   const [episode, setEpisode] = useState<PodcastEpisodeDto | null | undefined>(undefined); // undefined = loading
   const [showScript, setShowScript] = useState(false);
+  // Once you've listened to today's episode you won't need it again until
+  // tomorrow's - collapsible to a compact bar instead of taking up feed
+  // space all day. Keyed by episode.date (not just a boolean) so a new
+  // day's episode automatically starts expanded again.
+  const [collapsed, setCollapsed] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -27,6 +34,26 @@ export function PodcastPlayer() {
         .catch(() => setEpisode(null));
     });
   }, []);
+
+  useEffect(() => {
+    if (!episode) return;
+    // deferred to a microtask so this effect doesn't set state synchronously
+    // during its own commit phase (see react-hooks/set-state-in-effect)
+    queueMicrotask(() => {
+      setCollapsed(window.localStorage.getItem(COLLAPSE_STORAGE_KEY) === episode.date);
+    });
+  }, [episode]);
+
+  function handleCollapse() {
+    if (!episode) return;
+    window.localStorage.setItem(COLLAPSE_STORAGE_KEY, episode.date);
+    setCollapsed(true);
+  }
+
+  function handleExpand() {
+    window.localStorage.removeItem(COLLAPSE_STORAGE_KEY);
+    setCollapsed(false);
+  }
 
   // Lock-screen / control-center playback controls via the standard
   // MediaSession API - works in an installed iOS PWA with no native
@@ -86,6 +113,22 @@ export function PodcastPlayer() {
 
   if (!episode) return null; // no episode yet / still loading - don't clutter the feed with an empty player
 
+  if (collapsed) {
+    return (
+      <button
+        type="button"
+        onClick={handleExpand}
+        className="w-full flex items-center justify-between gap-2 rounded-xl bg-white shadow-sm border border-gray-200 px-4 py-2.5 print:hidden text-left"
+      >
+        <span className="font-semibold text-gray-500 text-sm flex items-center gap-1.5">
+          <Mic className="w-3.5 h-3.5" strokeWidth={2.25} /> 今日のポッドキャスト
+          <span className="text-[11px] font-normal text-gray-400">{episode.date}</span>
+        </span>
+        <ChevronDown className="w-4 h-4 text-gray-400" strokeWidth={2.25} />
+      </button>
+    );
+  }
+
   return (
     <div className="rounded-xl bg-white shadow-sm border border-gray-200 p-4 print:hidden">
       <div className="flex items-center justify-between gap-2 mb-2">
@@ -95,9 +138,20 @@ export function PodcastPlayer() {
             {episode.date}{episode.durationSec ? ` ・ ${formatDuration(episode.durationSec)}` : ""}
           </span>
         </p>
-        <button type="button" onClick={() => setShowScript((v) => !v)} className="text-xs text-indigo-600 hover:underline shrink-0">
-          {showScript ? "台本を隠す" : "台本を見る"}
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button type="button" onClick={() => setShowScript((v) => !v)} className="text-xs text-indigo-600 hover:underline">
+            {showScript ? "台本を隠す" : "台本を見る"}
+          </button>
+          <button
+            type="button"
+            onClick={handleCollapse}
+            aria-label="しまう"
+            title="しまう（明日また表示されます）"
+            className="text-gray-400 hover:text-gray-600 p-0.5"
+          >
+            <ChevronUp className="w-4 h-4" strokeWidth={2.25} />
+          </button>
+        </div>
       </div>
       <audio ref={audioRef} controls preload="none" src={episode.audioUrl} className="w-full h-10">
         お使いのブラウザは音声再生に対応していません。
