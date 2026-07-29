@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Bookmark, BarChart3, GraduationCap, Search, Share2, MessageSquareText, Info } from "lucide-react";
+import { Bookmark, BarChart3, GraduationCap, Search, Share2, MessageSquareText, Info, Lock } from "lucide-react";
 import { SavedList } from "./SavedList";
 import { LearningMap } from "./LearningMap";
 import { InterviewPractice } from "./InterviewPractice";
@@ -52,15 +52,20 @@ export function MyPage({ onSelectArticle }: { onSelectArticle: (url: string) => 
             <s.icon className="w-3.5 h-3.5 shrink-0" strokeWidth={2.25} /> {s.label}
           </button>
         ))}
-        {/* Navigates away (a real page, not an in-tab section) - kept in the
-            same grid for visual consistency, but a Link rather than a
-            setSection button. Odd item count is fine in a 2-col grid (this
-            one just sits alone in the last row). */}
+        {/* These two navigate away (real pages, not in-tab sections) - kept in
+            the same grid for visual consistency, but Links rather than
+            setSection buttons. */}
         <Link
           href="/about"
           className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
         >
           <Info className="w-3.5 h-3.5 shrink-0" strokeWidth={2.25} /> 技術スタックについて
+        </Link>
+        <Link
+          href="/privacy"
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+        >
+          <Lock className="w-3.5 h-3.5 shrink-0" strokeWidth={2.25} /> プライバシーポリシー
         </Link>
       </div>
 

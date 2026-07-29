@@ -38,6 +38,8 @@
 - **この技術スタックについて**: マイページから`/about`へ遷移すると、設計判断・本番障害・コスト設計・品質保証などの取り組みを開発者向けにまとめたページを閲覧できる（`docs/DESIGN_DECISIONS.md`のアプリ内公開版、就活・ポートフォリオ用途で直接リンクを共有可能）。
 - **月間サマリー画像**: マイページ＞学習マップから、直近30日間の既読・保存・活動日数・よく見た分野を1枚のカード画像として生成（`next/og`の`ImageResponse`）。ダウンロードのほか、対応ブラウザではWeb Share APIでファイルごと共有できる（ログイン必須）。
 - **ハプティックフィードバック**: 記事の既読/保存トグル・フィードバック送信・テーマ切り替えなどの操作時に、対応端末（主にAndroid）でVibration APIによる短い振動フィードバックを付与。未対応環境では何も起きない（機能検出のみ、フォールバックなし）。
+- **プライバシーポリシー**: マイページから`/privacy`へ遷移すると、収集する情報・利用している外部サービス（Supabase / Vercel / Resend / Google Gemini API等）・データの削除方法を開発者向けではなく利用者向けにまとめたページを閲覧できる。
+- **SEO対応**: `robots.ts`（`/api/`配下をcrawl対象外に）・`sitemap.ts`（トップ/about/privacyのみ、`/u/[slug]`はユーザーの共有オプトインと検索エンジンへの掲載オプトインは別物と考え意図的に除外）・ルート直下の`opengraph-image.tsx`（X/LINE/Slack/Qiita等でリンクを共有した際のカード画像）を実装。
 
 ## セットアップ
 
@@ -175,6 +177,10 @@ src/
       share/monthly-summary/route.tsx  # GET: 月間サマリー画像生成（next/og ImageResponse・要ログイン）
       [transport]/route.ts         # GET/POST: MCPサーバー（Claude向け、mcp-handler使用）
     about/page.tsx                # 「この技術スタックについて」ページ（設計判断まとめのアプリ内公開版）
+    privacy/page.tsx              # プライバシーポリシー（収集情報・外部サービス・削除方法）
+    robots.ts                     # robots.txt生成（/api/配下をdisallow）
+    sitemap.ts                    # sitemap.xml生成（トップ/about/privacyのみ、共有ページは意図的に除外）
+    opengraph-image.tsx           # ルート直下のリンク共有カード画像（next/og ImageResponse）
     u/[slug]/page.tsx             # 公開共有ページ（認証不要、shareSlugでUserを引く）
   components/
     AppShell.tsx                 # ヘッダー・4タブ切り替えを統括するクライアントコンポーネント（モバイルは下部ナビのみ）

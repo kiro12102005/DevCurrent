@@ -104,3 +104,16 @@ npx vercel --prod # 本番デプロイ
 - 新規登録・ログインができるか（`AUTH_SECRET`未設定だとエラーになります）
 - `POST /api/feed/refresh`を手動で一度叩いて記事が入るか確認（`x-cron-secret`ヘッダー必須）
 - プッシュ通知の購読・受信ができるか
+
+## 7. Vercel Firewallでのレート制限（任意・要手動publish）
+
+`/api/auth/login`・`/api/auth/signup`・`/api/feed/refresh`・`/api/tools/refresh`・`/api/feedback`・`/api/summarize`・`/api/mcp`に対して、IPごと300秒あたり15リクエストの制限ルールを`vercel firewall`コマンドでステージング済み（`fixed_window`・IPキー・現状は`log`のみでブロックはしない設定）。
+
+CLIでのルール変更は下書き（staged）扱いで、実際に反映するには**ダッシュボードでトラフィックを確認した上で自分で**以下を実行する必要があります（エージェントからの自動publishは行いません）:
+
+```bash
+vercel firewall diff          # ステージング中の変更を確認
+vercel firewall publish --yes # 本番反映
+```
+
+無料のHobbyプランでもDDoS自動緩和は標準搭載されていますが、このカスタムルールはログイン試行やAPIエンドポイントへの連打を個別に抑えるための追加レイヤーです。

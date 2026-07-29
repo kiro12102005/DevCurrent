@@ -14,9 +14,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const TITLE = "技術トレンド キャッチアップ";
+const DESCRIPTION = "最新技術ニュースを自動収集し、深掘り要約・メリット懸念点・用語解説に変換する学習アプリ";
+
 export const metadata: Metadata = {
-  title: "技術トレンド キャッチアップ",
-  description: "最新技術ニュースを自動収集し、深掘り要約・メリット懸念点・用語解説に変換する学習アプリ",
+  metadataBase: new URL("https://dev-current.vercel.app"),
+  title: TITLE,
+  description: DESCRIPTION,
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -26,6 +30,23 @@ export const metadata: Metadata = {
   icons: {
     icon: "/icon-192.png",
     apple: "/apple-touch-icon.png",
+  },
+  // opengraph-image.tsx / twitter-image (falls back to the same file) at the
+  // app root supply the actual image - these just set the surrounding text
+  // so links shared on X/LINE/Slack/Qiita etc. unfurl with a real card
+  // instead of a bare URL.
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "/",
+    siteName: TITLE,
+    locale: "ja_JP",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
   },
 };
 
