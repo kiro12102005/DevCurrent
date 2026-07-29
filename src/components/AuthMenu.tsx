@@ -155,6 +155,8 @@ function PreferencesPanel() {
   const [stackKeywords, setStackKeywords] = useState<string[]>([]);
   const [keywordDraft, setKeywordDraft] = useState("");
   const [wantsWeeklyDigest, setWantsWeeklyDigest] = useState(false);
+  const [wantsFeaturedPush, setWantsFeaturedPush] = useState(true);
+  const [wantsBreakingChangePush, setWantsBreakingChangePush] = useState(true);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -165,13 +167,21 @@ function PreferencesPanel() {
           setInterestTags(data.preferences?.interestTags ?? []);
           setStackKeywords(data.preferences?.stackKeywords ?? []);
           setWantsWeeklyDigest(data.preferences?.wantsWeeklyDigest ?? false);
+          setWantsFeaturedPush(data.preferences?.wantsFeaturedPush ?? true);
+          setWantsBreakingChangePush(data.preferences?.wantsBreakingChangePush ?? true);
         })
         .catch(() => {})
         .finally(() => setLoaded(true));
     });
   }, []);
 
-  function savePreferences(next: { interestTags?: Tag[]; stackKeywords?: string[]; wantsWeeklyDigest?: boolean }) {
+  function savePreferences(next: {
+    interestTags?: Tag[];
+    stackKeywords?: string[];
+    wantsWeeklyDigest?: boolean;
+    wantsFeaturedPush?: boolean;
+    wantsBreakingChangePush?: boolean;
+  }) {
     fetch("/api/user/preferences", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -207,10 +217,37 @@ function PreferencesPanel() {
     savePreferences({ wantsWeeklyDigest: next });
   }
 
+  function toggleFeaturedPush() {
+    const next = !wantsFeaturedPush;
+    setWantsFeaturedPush(next);
+    savePreferences({ wantsFeaturedPush: next });
+  }
+
+  function toggleBreakingChangePush() {
+    const next = !wantsBreakingChangePush;
+    setWantsBreakingChangePush(next);
+    savePreferences({ wantsBreakingChangePush: next });
+  }
+
   if (!loaded) return <div className="skeleton h-16 w-full rounded-lg mt-3" />;
 
   return (
     <div className="mt-3 pt-3 border-t border-gray-100">
+      <p className="text-xs font-semibold text-gray-700 mb-1.5">通知の種類</p>
+      <p className="text-[11px] text-gray-400 mb-2 leading-relaxed">
+        プッシュ通知を種類ごとに個別にON/OFFできます（🔔通知ボタン自体をONにしている場合のみ届きます）。
+      </p>
+      <div className="flex flex-col gap-1.5 mb-3">
+        <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
+          <input type="checkbox" checked={wantsFeaturedPush} onChange={toggleFeaturedPush} className="rounded" />
+          注目ピックアップ通知
+        </label>
+        <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
+          <input type="checkbox" checked={wantsBreakingChangePush} onChange={toggleBreakingChangePush} className="rounded" />
+          🚨 破壊的変更アラート（興味タグ・技術スタックの設定に関わらず届きます）
+        </label>
+      </div>
+
       <p className="text-xs font-semibold text-gray-700 mb-1.5">興味のあるタグ</p>
       <p className="text-[11px] text-gray-400 mb-2 leading-relaxed">
         選ぶと、注目ピックアップのプッシュ通知がこのタグに関連する記事だけになります（未選択なら全件通知）。

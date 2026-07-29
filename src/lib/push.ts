@@ -68,6 +68,21 @@ function composePayload(articles: { title: string; url: string }[]): PushPayload
   };
 }
 
+// The breaking-change channel (see wantsBreakingChangePush) is independent
+// of interestTags/stackKeywords - it doesn't need a matched keyword to
+// justify the 🚨 framing, unlike composePersonalizedPayload below.
+// Exported for unit testing (see push.test.ts).
+export function composeBreakingChangePayload(breakingArticles: { title: string; url: string }[]): PushPayload {
+  if (breakingArticles.length === 1) {
+    return { title: "🚨 破壊的変更の可能性", body: breakingArticles[0].title, url: breakingArticles[0].url };
+  }
+  return {
+    title: `🚨 破壊的変更の可能性がある記事を${breakingArticles.length}件検知`,
+    body: breakingArticles.map((a) => a.title).join(" / "),
+    url: "/",
+  };
+}
+
 type PersonalizableArticle = { title: string; url: string; tags: Tag[]; isBreakingChange: boolean };
 
 // A stack-keyword match on a breaking-change article is the highest-signal
@@ -92,6 +107,14 @@ function composePersonalizedPayload(relevant: PersonalizableArticle[], matchedKe
 // (skipped entirely if none match). Anonymous subscriptions, and logged-in
 // users with no interests/keywords set at all, keep the original
 // "wants everything" broadcast behavior - personalization is opt-in.
+//
+// wantsFeaturedPush / wantsBreakingChangePush (both default true) are
+// separate ON/OFF channels, not content filters like interestTags/
+// stackKeywords above - a user can turn off general featured-pick
+// notifications entirely while keeping breaking-change alerts on, or vice
+// versa. Breaking-change articles are pulled into their own channel first
+// (at most one notification per subscriber per batch, never both) so a
+// subscriber never gets double-notified about the same article.
 export async function sendPersonalizedPush(
   articles: PersonalizableArticle[]
 ): Promise<{ sent: number; removed: number }> {
@@ -100,11 +123,27 @@ export async function sendPersonalizedPush(
   }
 
   const subscriptions = await prisma.pushSubscription.findMany({
-    include: { user: { select: { interestTags: true, stackKeywords: true } } },
+    include: {
+      user: {
+        select: { interestTags: true, stackKeywords: true, wantsFeaturedPush: true, wantsBreakingChangePush: true },
+      },
+    },
   });
+
+  const breakingArticles = articles.filter((a) => a.isBreakingChange);
 
   const results = await Promise.all(
     subscriptions.map((sub) => {
+      // Anonymous (unlinked) subscriptions have no per-channel preference to
+      // read - keep the original "wants everything" broadcast behavior.
+      const wantsFeatured = sub.user?.wantsFeaturedPush ?? true;
+      const wantsBreaking = sub.user?.wantsBreakingChangePush ?? true;
+
+      if (wantsBreaking && breakingArticles.length > 0) {
+        return deliver(sub, composeBreakingChangePayload(breakingArticles));
+      }
+      if (!wantsFeatured) return Promise.resolve("skipped" as const);
+
       const interests = sub.user?.interestTags ?? [];
       const keywords = sub.user?.stackKeywords ?? [];
       if (interests.length === 0 && keywords.length === 0) {

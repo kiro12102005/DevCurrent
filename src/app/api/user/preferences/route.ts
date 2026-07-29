@@ -14,7 +14,13 @@ export async function GET() {
 
   const full = await prisma.user.findUnique({
     where: { id: user.id },
-    select: { interestTags: true, stackKeywords: true, wantsWeeklyDigest: true },
+    select: {
+      interestTags: true,
+      stackKeywords: true,
+      wantsWeeklyDigest: true,
+      wantsFeaturedPush: true,
+      wantsBreakingChangePush: true,
+    },
   });
 
   return NextResponse.json({ preferences: full });
@@ -24,6 +30,8 @@ const updateSchema = z.object({
   interestTags: z.array(z.enum(TAG_OPTIONS)).optional(),
   stackKeywords: z.array(z.string().trim().min(1).max(40)).max(MAX_STACK_KEYWORDS).optional(),
   wantsWeeklyDigest: z.boolean().optional(),
+  wantsFeaturedPush: z.boolean().optional(),
+  wantsBreakingChangePush: z.boolean().optional(),
 });
 
 export async function PUT(req: Request) {
@@ -41,7 +49,13 @@ export async function PUT(req: Request) {
   const updated = await prisma.user.update({
     where: { id: user.id },
     data: parsed.data,
-    select: { interestTags: true, stackKeywords: true, wantsWeeklyDigest: true },
+    select: {
+      interestTags: true,
+      stackKeywords: true,
+      wantsWeeklyDigest: true,
+      wantsFeaturedPush: true,
+      wantsBreakingChangePush: true,
+    },
   });
 
   return NextResponse.json({ preferences: updated });

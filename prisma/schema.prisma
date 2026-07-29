@@ -83,6 +83,12 @@ model User {
   stackKeywords    String[] @default([]) // freeform specific technologies (e.g. "React", "PyTorch") - matched by title substring, same personalized-push path as interestTags but not limited to the fixed category list
   wantsWeeklyDigest Boolean @default(false) // opt-in - Resend digest email is off by default
 
+  // Independently toggleable push notification channels (both default on -
+  // interestTags/stackKeywords above only ever narrow WHICH articles trigger
+  // the featured-pick channel, they don't turn a whole channel off).
+  wantsFeaturedPush       Boolean @default(true) // general "found new featured picks" notifications
+  wantsBreakingChangePush Boolean @default(true) // breaking-change alerts - independent of interestTags/stackKeywords, since "something you use might break" is high-signal regardless of topic interest
+
   shareSlug      String?  @unique // random public identifier for the opt-in shareable achievement page (/u/[shareSlug]) - null until the user opts in, deliberately NOT the user id
   publicNickname String?  // shown on the public share page instead of email; null = shown as "ユーザー"
 
