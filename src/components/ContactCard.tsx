@@ -1,6 +1,6 @@
 import { Briefcase, Mail } from "lucide-react";
 
-const CONTACT_EMAIL = "soma.kida1210@gmail.com";
+const CONTACT_EMAIL = "contact.somakida@gmail.com";
 
 // Static, public-facing contact info (not a secret/config value like
 // FEEDBACK_NOTIFY_EMAIL, so it's fine to hardcode rather than env-configure)
