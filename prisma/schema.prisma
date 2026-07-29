@@ -196,5 +196,6 @@ model PodcastEpisode {
   audioUrl   String
   script     String // the full dialogue text, also shown as a transcript
   durationSec Int?
+  sourceArticles String @default("[]") // JSON: {title, url, sourceType, summary}[] - which articles this episode covers, shown in the UI so listeners can see the source/gist without needing to catch every word in the audio
   createdAt  DateTime @default(now())
 }

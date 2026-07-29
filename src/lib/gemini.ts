@@ -435,20 +435,26 @@ export interface PodcastLine {
 
 // Shared/operator-funded content (like AiToolPick curation), not BYOK - this
 // generates one episode a day for every listener, not per-user.
-export async function generatePodcastScript(articles: { title: string; summary?: string }[]): Promise<PodcastLine[]> {
+export async function generatePodcastScript(
+  articles: { title: string; summary?: string; sourceLabel: string }[]
+): Promise<PodcastLine[]> {
   const context = articles
-    .map((a, i) => `${i + 1}. ${a.title}${a.summary ? `\n   要約: ${a.summary.slice(0, 300)}` : ""}`)
+    .map((a, i) => `${i + 1}. 【${a.sourceLabel}】${a.title}${a.summary ? `\n   要約: ${a.summary.slice(0, 300)}` : ""}`)
     .join("\n");
 
   const prompt = `あなたはテック系ポッドキャストの構成作家です。以下の今週の注目技術記事について、
-2人のパーソナリティ（Speaker1・Speaker2）が対話形式でカジュアルに解説する、5分程度（1200〜1600文字程度）の台本を作成してください。
+2人のパーソナリティ（Speaker1・Speaker2）が対話形式で分かりやすく解説する、6〜7分程度（1800〜2200文字程度）の台本を作成してください。
+聞き手は通勤・通学中に「ながら聞き」する想定なので、早口で情報を詰め込まず、聞き流しても内容が頭に入るテンポを最優先してください。
 
 # 今週の注目記事
 ${context}
 
-# 要件
-- Speaker1が進行役、Speaker2が解説役のような自然な掛け合いにする（相槌・質問・驚きのリアクションを含める）
-- 各記事について「何が新しいのか」「なぜ重要か」を初心者にも分かるように話す
+# 要件（最重要: ゆっくり・分かりやすく。詰め込みすぎない）
+- Speaker1が進行役、Speaker2が解説役
+- 各記事に入る前に必ず「◯つ目は、【出典】の『タイトル』という記事です」のように、出典とタイトルをはっきりアナウンスしてから内容に入る（聞き手がどの記事の話か常に分かるように）
+- 1記事につき「何の技術か」「なぜ重要か」の2点に絞り、詰め込みすぎない。1文を短く区切り、間延びしない程度にゆっくり丁寧に説明する
+- 記事と記事の間に「なるほど、では次いきましょうか」のような一呼吸置く自然な区切りの相槌を入れる
+- 専門用語を使う場合は一言だけ平易な補足を入れる
 - 冒頭で簡単な挨拶、最後に軽い締めの一言を入れる
 - 日本語で出力してください`;
 
@@ -573,19 +579,33 @@ export async function generatePodcastAudio(lines: PodcastLine[]): Promise<Podcas
     speechConfig: {
       multiSpeakerVoiceConfig: {
         speakerVoiceConfigs: [
-          { speaker: "Speaker1", voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } },
-          { speaker: "Speaker2", voiceConfig: { prebuiltVoiceConfig: { voiceName: "Puck" } } },
+          // Kore/Puck (previous choice) are documented as "Firm"/"Upbeat" -
+          // Upbeat in particular reads as fast/energetic, which was part of
+          // why the podcast was hard to absorb while half-listening. Achird
+          // ("Friendly") and Charon ("Informative") per Gemini's own voice
+          // characteristic docs are a better fit for a calm, clear explainer.
+          { speaker: "Speaker1", voiceConfig: { prebuiltVoiceConfig: { voiceName: "Achird" } } },
+          { speaker: "Speaker2", voiceConfig: { prebuiltVoiceConfig: { voiceName: "Charon" } } },
         ],
       },
     },
   };
+
+  // Gemini TTS supports style/pace control via natural-language instructions
+  // in the prompt itself (no separate "speed" API parameter) - explicitly
+  // ask for a slower, clearer delivery since this is meant to be absorbed
+  // while commuting, not read at normal conversational speed.
+  const styleInstruction =
+    "Read the following podcast dialogue aloud in Japanese. Speak clearly at a measured, " +
+    "slightly slower pace than typical conversation, with a brief natural pause between " +
+    "sentences and especially between topics, so a commuting listener can easily follow along:";
 
   let lastError: unknown;
   for (const model of TTS_MODEL_CANDIDATES) {
     try {
       const response = await client.models.generateContent({
         model,
-        contents: [{ role: "user", parts: [{ text: `TTS the following conversation:\n${script}` }] }],
+        contents: [{ role: "user", parts: [{ text: `${styleInstruction}\n${script}` }] }],
         config,
       });
       const part = response.candidates?.[0]?.content?.parts?.[0];

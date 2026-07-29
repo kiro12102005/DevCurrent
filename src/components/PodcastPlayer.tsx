@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Mic } from "lucide-react";
 import type { PodcastEpisodeDto } from "@/types/podcast";
+import { SOURCE_LABEL, SOURCE_BADGE_CLASS } from "@/lib/sourceLabels";
 
 function formatDuration(sec: number | null): string {
   if (!sec) return "";
@@ -44,6 +45,30 @@ export function PodcastPlayer() {
       <audio controls preload="none" src={episode.audioUrl} className="w-full h-10">
         お使いのブラウザは音声再生に対応していません。
       </audio>
+
+      {episode.sourceArticles.length > 0 && (
+        <ul className="mt-3 flex flex-col gap-2">
+          {episode.sourceArticles.map((a, i) => (
+            <li key={i}>
+              <a
+                href={a.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block rounded-lg bg-gray-50 hover:bg-gray-100 px-3 py-2 transition-colors"
+              >
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${SOURCE_BADGE_CLASS[a.sourceType]}`}>
+                    {SOURCE_LABEL[a.sourceType]}
+                  </span>
+                  <span className="text-xs font-semibold text-gray-800 truncate">{a.title}</span>
+                </div>
+                {a.summary && <p className="text-[11px] text-gray-500 leading-relaxed">{a.summary}</p>}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+
       {showScript && (
         <p className="mt-3 text-sm text-gray-700 whitespace-pre-line leading-relaxed max-h-48 overflow-y-auto">
           {episode.script}

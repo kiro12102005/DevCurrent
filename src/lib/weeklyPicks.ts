@@ -8,6 +8,7 @@ const FEATURED_SOURCES = [SourceType.QIITA, SourceType.ZENN, SourceType.HACKER_N
 export interface WeeklyPick {
   title: string;
   url: string;
+  sourceType: SourceType;
   summary?: string;
 }
 
@@ -21,7 +22,7 @@ export async function getWeeklyPicks(picksPerSource: number): Promise<WeeklyPick
         where: { sourceType, sourcePublishedAt: { gte: rangeStart, lt: rangeEnd } },
         orderBy: { engagementScore: "desc" },
         take: picksPerSource,
-        select: { title: true, url: true, generation: true },
+        select: { title: true, url: true, sourceType: true, generation: true },
       })
     )
   );
@@ -31,6 +32,7 @@ export async function getWeeklyPicks(picksPerSource: number): Promise<WeeklyPick
     .map((a) => ({
       title: a.title,
       url: a.url,
+      sourceType: a.sourceType,
       summary: a.generation ? parseGeneration(a.generation).summary : undefined,
     }));
 }
