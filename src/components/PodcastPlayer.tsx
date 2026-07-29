@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Mic, ChevronDown, ChevronUp } from "lucide-react";
 import type { PodcastEpisodeDto } from "@/types/podcast";
 import { SOURCE_LABEL, SOURCE_BADGE_CLASS } from "@/lib/sourceLabels";
+import { hapticTap } from "@/lib/haptics";
 
 const COLLAPSE_STORAGE_KEY = "podcast_collapsed_date";
 
@@ -51,11 +52,13 @@ export function PodcastPlayer() {
 
   function handleCollapse() {
     if (!episode) return;
+    hapticTap();
     window.localStorage.setItem(COLLAPSE_STORAGE_KEY, episode.date);
     setCollapsed(true);
   }
 
   function handleExpand() {
+    hapticTap();
     window.localStorage.removeItem(COLLAPSE_STORAGE_KEY);
     setCollapsed(false);
   }
@@ -123,28 +126,28 @@ export function PodcastPlayer() {
       <button
         type="button"
         onClick={handleExpand}
-        className="w-full flex items-center justify-between gap-2 rounded-xl bg-white shadow-sm border border-gray-200 px-4 py-2.5 print:hidden text-left"
+        className="w-full flex items-center justify-between gap-2 rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 px-4 py-2.5 print:hidden text-left"
       >
-        <span className="font-semibold text-gray-500 text-sm flex items-center gap-1.5">
+        <span className="font-semibold text-gray-500 dark:text-gray-400 text-sm flex items-center gap-1.5">
           <Mic className="w-3.5 h-3.5" strokeWidth={2.25} /> 今日のポッドキャスト
-          <span className="text-[11px] font-normal text-gray-400">{episode.date}</span>
+          <span className="text-[11px] font-normal text-gray-400 dark:text-gray-500">{episode.date}</span>
         </span>
-        <ChevronDown className="w-4 h-4 text-gray-400" strokeWidth={2.25} />
+        <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" strokeWidth={2.25} />
       </button>
     );
   }
 
   return (
-    <div className="rounded-xl bg-white shadow-sm border border-gray-200 p-4 print:hidden">
+    <div className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-4 print:hidden">
       <div className="flex items-center justify-between gap-2 mb-2">
-        <p className="font-bold text-gray-800 flex items-center gap-1.5">
+        <p className="font-bold text-gray-800 dark:text-gray-100 flex items-center gap-1.5">
           <Mic className="w-4 h-4" strokeWidth={2.25} /> 今日のポッドキャスト
-          <span className="text-[11px] font-normal text-gray-400">
+          <span className="text-[11px] font-normal text-gray-400 dark:text-gray-500">
             {episode.date}{episode.durationSec ? ` ・ ${formatDuration(episode.durationSec)}` : ""}
           </span>
         </p>
         <div className="flex items-center gap-2 shrink-0">
-          <button type="button" onClick={() => setShowScript((v) => !v)} className="text-xs text-indigo-600 hover:underline">
+          <button type="button" onClick={() => setShowScript((v) => !v)} className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">
             {showScript ? "台本を隠す" : "台本を見る"}
           </button>
           <button
@@ -152,7 +155,7 @@ export function PodcastPlayer() {
             onClick={handleCollapse}
             aria-label="しまう"
             title="しまう（明日また表示されます）"
-            className="text-gray-400 hover:text-gray-600 p-0.5"
+            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 p-0.5"
           >
             <ChevronUp className="w-4 h-4" strokeWidth={2.25} />
           </button>
@@ -166,7 +169,7 @@ export function PodcastPlayer() {
         <button
           type="button"
           onClick={() => setShowSources((v) => !v)}
-          className="mt-2 text-xs text-indigo-600 hover:underline"
+          className="mt-2 text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
         >
           {showSources ? "取り上げた記事を隠す" : `取り上げた記事を見る（${episode.sourceArticles.length}件）`}
         </button>
@@ -180,15 +183,15 @@ export function PodcastPlayer() {
                 href={a.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block rounded-lg bg-gray-50 hover:bg-gray-100 px-3 py-2 transition-colors"
+                className="block rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 transition-colors"
               >
                 <div className="flex items-center gap-2 mb-0.5">
                   <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${SOURCE_BADGE_CLASS[a.sourceType]}`}>
                     {SOURCE_LABEL[a.sourceType]}
                   </span>
-                  <span className="text-xs font-semibold text-gray-800 truncate">{a.title}</span>
+                  <span className="text-xs font-semibold text-gray-800 dark:text-gray-100 truncate">{a.title}</span>
                 </div>
-                {a.summary && <p className="text-[11px] text-gray-500 leading-relaxed">{a.summary}</p>}
+                {a.summary && <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">{a.summary}</p>}
               </a>
             </li>
           ))}
@@ -196,7 +199,7 @@ export function PodcastPlayer() {
       )}
 
       {showScript && (
-        <p className="mt-3 text-sm text-gray-700 whitespace-pre-line leading-relaxed max-h-48 overflow-y-auto">
+        <p className="mt-3 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed max-h-48 overflow-y-auto">
           {episode.script}
         </p>
       )}

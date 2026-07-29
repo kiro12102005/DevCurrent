@@ -9,6 +9,7 @@ import { formatArticleDate } from "@/lib/formatDate";
 import { formatShortDateWithWeekday, jstDateStringDaysAgo, jstTodayString } from "@/lib/dateRange";
 import { countryFlag } from "@/lib/countryLabels";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { hapticTap } from "@/lib/haptics";
 import { PodcastPlayer } from "./PodcastPlayer";
 import { ShareButton } from "./ShareButton";
 import { MonthlyRanking } from "./MonthlyRanking";
@@ -152,6 +153,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
   }
 
   async function handleToggleState(articleId: string, key: "isRead" | "isBookmarked") {
+    hapticTap();
     const current = states[articleId] ?? { isRead: false, isBookmarked: false };
     const next = { ...current, [key]: !current[key] };
     setStates((prev) => ({ ...prev, [articleId]: next }));
@@ -199,7 +201,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col gap-4 px-4 pb-24 pt-6 md:pb-6">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
           Qiita / Zenn / Hacker News / ArXiv から自動収集（3時間ごとに自動更新・過去1週間分）
         </p>
         <button
@@ -216,13 +218,13 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
       <PodcastPlayer />
 
       <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" strokeWidth={2} />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" strokeWidth={2} />
         <input
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="記事タイトルを検索（全期間対象）"
-          className="w-full rounded-lg border border-gray-300 pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
         />
       </div>
 
@@ -282,7 +284,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
       )}
 
       {error && (
-        <p className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-red-700 text-sm">{error}</p>
+        <p className="rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 px-4 py-3 text-red-700 dark:text-red-400 text-sm">{error}</p>
       )}
 
       {showRanking ? (
@@ -292,11 +294,11 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
       ) : isEmpty ? (
         <div className="text-center py-16">
           {isSearching ? (
-            <Search className="w-10 h-10 mx-auto mb-3 text-gray-300" strokeWidth={1.5} />
+            <Search className="w-10 h-10 mx-auto mb-3 text-gray-300 dark:text-gray-600" strokeWidth={1.5} />
           ) : (
-            <Sprout className="w-10 h-10 mx-auto mb-3 text-gray-300" strokeWidth={1.5} />
+            <Sprout className="w-10 h-10 mx-auto mb-3 text-gray-300 dark:text-gray-600" strokeWidth={1.5} />
           )}
-          <p className="text-gray-400 text-sm">
+          <p className="text-gray-400 dark:text-gray-500 text-sm">
             {isSearching
               ? `「${debouncedQuery}」に一致する記事が見つかりませんでした。`
               : period === "day"
@@ -308,7 +310,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
         <>
           {featured.length > 0 && (
             <section className="flex flex-col gap-3">
-              <h2 className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-700">
+              <h2 className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-700 dark:text-amber-400">
                 <Star className="w-4 h-4" strokeWidth={2.25} fill="currentColor" />
                 注目ピックアップ（{period === "day" ? formatShortDateWithWeekday(date) : "今週"}）
               </h2>
@@ -328,7 +330,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
           )}
 
           <section className="flex flex-col gap-3">
-            <h2 className="text-sm font-bold text-gray-700">
+            <h2 className="text-sm font-bold text-gray-700 dark:text-gray-300">
               {isSearching ? `検索結果「${debouncedQuery}」` : period === "day" ? "この日の記事" : "今週の記事"}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -344,7 +346,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
             </div>
             {hasMore && (
               <div ref={sentinelRef} className="flex justify-center py-4">
-                {loadingMore && <span className="text-sm text-gray-400">読み込み中...</span>}
+                {loadingMore && <span className="text-sm text-gray-400 dark:text-gray-500">読み込み中...</span>}
               </div>
             )}
           </section>
@@ -358,7 +360,7 @@ function FeedSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="rounded-xl border border-gray-200 bg-white p-4">
+        <div key={i} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
           <div className="skeleton h-4 w-20 rounded-full mb-3" />
           <div className="skeleton h-4 w-full rounded mb-2" />
           <div className="skeleton h-4 w-2/3 rounded" />
@@ -382,7 +384,7 @@ function PeriodChip({
       type="button"
       onClick={onClick}
       className={`inline-flex items-center gap-1 shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all ${
-        active ? "brand-gradient text-white shadow-sm shadow-indigo-900/20" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+        active ? "brand-gradient text-white shadow-sm shadow-indigo-900/20" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
       }`}
     >
       {children}
@@ -407,8 +409,8 @@ function FeedCard({
     <div
       className={`group rounded-xl border p-4 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 ${
         highlight
-          ? "border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50"
-          : "border-gray-200 bg-white hover:border-indigo-200"
+          ? "border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 dark:from-amber-950 to-orange-50 dark:to-orange-950"
+          : "border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-indigo-200 dark:hover:border-indigo-700"
       } ${state?.isRead ? "opacity-60" : ""}`}
     >
       <div className="flex items-center gap-2 text-xs mb-1.5">
@@ -418,13 +420,13 @@ function FeedCard({
         {countryFlag(article.country) && (
           <span title={article.country ?? undefined}>{countryFlag(article.country)}</span>
         )}
-        {article.publishedAt && <span className="text-gray-500">{formatArticleDate(article.publishedAt)}</span>}
+        {article.publishedAt && <span className="text-gray-500 dark:text-gray-400">{formatArticleDate(article.publishedAt)}</span>}
         {article.hasInsight && (
-          <span className="rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5 font-semibold">要約済み</span>
+          <span className="rounded-full bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 font-semibold">要約済み</span>
         )}
       </div>
       <button type="button" onClick={() => onSelect(article.url)} className="block w-full text-left">
-        <p className="font-semibold text-gray-800 leading-snug group-hover:text-indigo-600 transition-colors">
+        <p className="font-semibold text-gray-800 dark:text-gray-100 leading-snug group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
           {article.title ?? article.url}
         </p>
       </button>
@@ -434,11 +436,11 @@ function FeedCard({
             href={article.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-indigo-600 hover:underline"
+            className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
           >
             元記事を読む ↗
           </a>
-          <ShareButton title={article.title ?? article.url} url={article.url} className="p-1 text-gray-400 hover:text-indigo-600" />
+          <ShareButton title={article.title ?? article.url} url={article.url} className="p-1 text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400" />
         </div>
         {onToggleState && (
           <div className="flex items-center gap-1.5">
@@ -446,7 +448,7 @@ function FeedCard({
               type="button"
               onClick={() => onToggleState(article.id, "isBookmarked")}
               className={`flex items-center gap-1 rounded-full px-3 py-2 text-xs font-semibold transition-colors ${
-                state?.isBookmarked ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                state?.isBookmarked ? "bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400" : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
               }`}
             >
               <Bookmark className="w-3.5 h-3.5" strokeWidth={2.25} fill={state?.isBookmarked ? "currentColor" : "none"} />
@@ -456,7 +458,7 @@ function FeedCard({
               type="button"
               onClick={() => onToggleState(article.id, "isRead")}
               className={`flex items-center gap-1 rounded-full px-3 py-2 text-xs font-semibold transition-colors ${
-                state?.isRead ? "bg-indigo-100 text-indigo-700" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                state?.isRead ? "bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-400" : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
               }`}
             >
               {state?.isRead ? (

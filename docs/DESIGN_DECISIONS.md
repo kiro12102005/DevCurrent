@@ -75,9 +75,12 @@ Vercel Hobbyプランはcronの実行頻度が1日1回までに制限されて�
 ## iOS PWA対応で踏んだハマりどころ
 
 - **黒背景バグ**: `viewport`に`viewportFit: "cover"`を設定していなかったため、iOSの`env(safe-area-inset-*)`が
-  解決されず、かつ`prefers-color-scheme: dark`に応じて`--background`を暗転させるCSSがあったため、セーフエリア外が
-  ほぼ黒く表示される不具合があった。このアプリは全コンポーネントがライトテーマ固定でダークモード対応をしていない
-  ため、ダークモード時の背景色反転自体を削除して解決。
+  解決されず、かつ`prefers-color-scheme: dark`に応じて`--background`だけを暗転させるCSSがあった一方、各コンポーネントは
+  ライトテーマの色を直書きしていたため、セーフエリア外がほぼ黒く表示される不具合があった。当初はダークモード自体を
+  削除して解決したが、後日「`.dark`クラスがついている時だけ全コンポーネントが揃って切り替わる」設計
+  （`@custom-variant dark (&:where(.dark, .dark *));`・`src/lib/theme.ts`）に作り直し、`prefers-color-scheme`への
+  自動追従はやめて明示的なトグル（右上のボタン）に切り替えることで、背景だけ暗転してコンテンツはライトのまま、という
+  「半分だけ切り替わる」状態そのものを構造的に起こせないようにした。
 - **セッションCookieが本番で効かない**: `next start`は`NODE_ENV=production`を設定するため、Cookieの`Secure`
   フラグを`NODE_ENV`から判定するとHTTP環境で常にCookieが落ちる。実際のリクエストプロトコル
   （`x-forwarded-proto`ヘッダー）から判定するよう修正。

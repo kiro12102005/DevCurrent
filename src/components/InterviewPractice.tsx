@@ -50,23 +50,23 @@ export function InterviewPractice() {
   if (!user) {
     return (
       <div className="flex flex-col items-center gap-2 py-16 text-center">
-        <Lock className="w-10 h-10 mb-1 text-gray-300" strokeWidth={1.5} />
-        <p className="text-gray-500 text-sm">模擬面接AIを使うにはログインしてください。</p>
+        <Lock className="w-10 h-10 mb-1 text-gray-300 dark:text-gray-600" strokeWidth={1.5} />
+        <p className="text-gray-500 dark:text-gray-400 text-sm">模擬面接AIを使うにはログインしてください。</p>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-xl bg-white shadow-sm border border-gray-200 p-4">
-        <h3 className="font-bold text-gray-800 mb-1.5 flex items-center gap-1.5">
+      <div className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-4">
+        <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-1.5 flex items-center gap-1.5">
           <GraduationCap className="w-4 h-4" strokeWidth={2.25} /> 模擬面接AI
         </h3>
-        <p className="text-xs text-gray-500 leading-relaxed mb-3">
+        <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-3">
           「保存済み」に入れた記事をもとに、Geminiが技術面接で聞かれそうな質問を作成します。まず自分の言葉で考えてから、回答のポイントを確認しましょう。
         </p>
         {!apiKey && (
-          <p className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-amber-800 text-xs mb-3">
+          <p className="rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-3 py-2 text-amber-800 dark:text-amber-400 text-xs mb-3">
             右上の「APIキー設定」から自分のGemini APIキーを登録してください（未登録の場合は生成に失敗します）。
           </p>
         )}
@@ -78,25 +78,25 @@ export function InterviewPractice() {
         >
           {loading ? "生成中..." : questions.length > 0 ? "質問を作り直す" : "質問を生成する"}
         </button>
-        {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+        {error && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p>}
       </div>
 
       {questions.length > 0 && (
         <ul className="flex flex-col gap-3">
           {questions.map((q, i) => (
-            <li key={i} className="rounded-xl bg-white shadow-sm border border-gray-200 p-4">
-              <p className="text-[11px] text-gray-400 mb-1">元記事: {q.basedOn}</p>
-              <p className="font-semibold text-gray-800 mb-2">Q{i + 1}. {q.question}</p>
+            <li key={i} className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-4">
+              <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-1">元記事: {q.basedOn}</p>
+              <p className="font-semibold text-gray-800 dark:text-gray-100 mb-2">Q{i + 1}. {q.question}</p>
               {revealed.has(i) ? (
-                <div className="rounded-lg bg-indigo-50/60 border border-indigo-100 px-3 py-2 text-sm text-gray-700">
-                  <p className="font-semibold text-indigo-700 text-xs mb-1">回答のポイント</p>
+                <div className="rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-900 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">
+                  <p className="font-semibold text-indigo-700 dark:text-indigo-400 text-xs mb-1">回答のポイント</p>
                   <p className="whitespace-pre-line">{q.answerPoints}</p>
                 </div>
               ) : (
                 <button
                   type="button"
                   onClick={() => toggleReveal(i)}
-                  className="text-xs text-indigo-600 hover:underline"
+                  className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
                 >
                   回答のポイントを見る ▼
                 </button>

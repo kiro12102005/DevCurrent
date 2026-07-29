@@ -76,7 +76,7 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
   return (
     <div className="w-full max-w-3xl mx-auto flex flex-col gap-6 px-4 pb-24 pt-6 md:pb-6">
       {!apiKey && (
-        <p className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-amber-800 text-sm print:hidden">
+        <p className="rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-4 py-3 text-amber-800 dark:text-amber-400 text-sm print:hidden">
           右上の「APIキー設定」から自分のGemini APIキーを登録してください（未登録の場合は生成に失敗します）。
         </p>
       )}
@@ -88,7 +88,7 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
           placeholder="記事のURLを貼り付け"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          className="flex-1 rounded-lg border border-gray-300 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="flex-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
         />
         <button
           type="submit"
@@ -100,7 +100,7 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
       </form>
 
       {error && (
-        <p className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-red-700 text-sm">
+        <p className="rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 px-4 py-3 text-red-700 dark:text-red-400 text-sm">
           {error}
         </p>
       )}
@@ -108,7 +108,7 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
       {loading && !result && (
         <div className="flex flex-col gap-4">
           <div className="skeleton h-5 w-2/3 rounded" />
-          <div className="rounded-xl bg-white shadow-sm border border-gray-200 p-5 flex flex-col gap-2">
+          <div className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-5 flex flex-col gap-2">
             <div className="skeleton h-4 w-full rounded" />
             <div className="skeleton h-4 w-full rounded" />
             <div className="skeleton h-4 w-3/4 rounded" />
@@ -127,7 +127,7 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
                   {SOURCE_LABEL[result.article.sourceType]}
                 </span>
                 {result.article.publishedAt && (
-                  <span className="text-xs text-gray-500">{formatArticleDate(result.article.publishedAt)}</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{formatArticleDate(result.article.publishedAt)}</span>
                 )}
                 {countryFlag(result.article.country) && (
                   <span className="text-sm" title={result.article.country ?? undefined}>
@@ -141,34 +141,34 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
                   href={result.article.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block text-xs text-indigo-600 hover:underline"
+                  className="inline-block text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
                 >
                   元記事を読む ↗
                 </a>
                 <ShareButton
                   title={result.article.title ?? result.article.url}
                   url={result.article.url}
-                  className="p-1 text-gray-400 hover:text-indigo-600"
+                  className="p-1 text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400"
                 />
               </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0 print:hidden">
               {result.cached && (
-                <span className="text-xs rounded-full bg-green-100 text-green-700 px-2 py-1">
+                <span className="text-xs rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-400 px-2 py-1">
                   キャッシュ済み（API節約）
                 </span>
               )}
               <button
                 type="button"
                 onClick={() => downloadTextFile(`${result.article.title ?? "article"}.md`, articleInsightToMarkdown(result))}
-                className="inline-flex items-center gap-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap"
+                className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap"
               >
                 <FileText className="w-3 h-3" strokeWidth={2.25} /> MD
               </button>
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="inline-flex items-center gap-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap"
+                className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap"
               >
                 <Printer className="w-3 h-3" strokeWidth={2.25} /> PDF
               </button>
@@ -176,38 +176,38 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
           </div>
 
           {result.insight.isBreakingChange && (
-            <div className="rounded-xl bg-red-50 border border-red-200 p-4">
-              <p className="font-bold text-red-700 flex items-center gap-1.5 mb-1">
+            <div className="rounded-xl bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 p-4">
+              <p className="font-bold text-red-700 dark:text-red-400 flex items-center gap-1.5 mb-1">
                 <TriangleAlert className="w-4 h-4" strokeWidth={2.25} /> 既存コードが動かなくなるかも
               </p>
-              <p className="text-sm text-red-700 leading-relaxed">{result.insight.breakingChangeSummary}</p>
+              <p className="text-sm text-red-700 dark:text-red-400 leading-relaxed">{result.insight.breakingChangeSummary}</p>
             </div>
           )}
 
           {result.insight.githubRepo && <GithubRepoCard repo={result.insight.githubRepo} />}
 
           {result.insight.debateMatrix && (result.insight.debateMatrix.pro.length > 0 || result.insight.debateMatrix.con.length > 0) && (
-            <section className="rounded-xl bg-white shadow-sm border border-gray-200 p-5">
-              <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-1.5">
+            <section className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-5">
+              <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-1 flex items-center gap-1.5">
                 <Swords className="w-4 h-4" strokeWidth={2.25} /> 技術論争サマライザー
               </h3>
-              <p className="text-[11px] text-gray-400 mb-3">Hacker Newsのコメント欄をもとにAIが分類</p>
+              <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-3">Hacker Newsのコメント欄をもとにAIが分類</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="inline-flex items-center gap-1.5 text-xs font-bold text-green-700 mb-2">
+                  <p className="inline-flex items-center gap-1.5 text-xs font-bold text-green-700 dark:text-green-400 mb-2">
                     <ThumbsUp className="w-3.5 h-3.5" strokeWidth={2.25} /> 導入推奨派
                   </p>
-                  <ul className="list-disc list-inside space-y-1.5 text-gray-700 text-sm leading-relaxed">
+                  <ul className="list-disc list-inside space-y-1.5 text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
                     {result.insight.debateMatrix.pro.map((p, i) => (
                       <li key={i}>{p}</li>
                     ))}
                   </ul>
                 </div>
                 <div>
-                  <p className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 mb-2">
+                  <p className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400 mb-2">
                     <ThumbsDown className="w-3.5 h-3.5" strokeWidth={2.25} /> 懸念派
                   </p>
-                  <ul className="list-disc list-inside space-y-1.5 text-gray-700 text-sm leading-relaxed">
+                  <ul className="list-disc list-inside space-y-1.5 text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
                     {result.insight.debateMatrix.con.map((c, i) => (
                       <li key={i}>{c}</li>
                     ))}
@@ -221,29 +221,29 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
 
           <EditorConfigGenerator articleId={result.article.id} />
 
-          <section className="rounded-xl bg-white shadow-sm border border-gray-200 border-l-4 border-l-indigo-500 p-5">
-            <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-1.5">
+          <section className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 border-l-4 border-l-indigo-500 p-5">
+            <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-1.5">
               <FileText className="w-4 h-4" strokeWidth={2.25} /> 要約
             </h3>
-            <p className="text-gray-700 leading-relaxed whitespace-pre-line">{result.insight.summary}</p>
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">{result.insight.summary}</p>
           </section>
 
           <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="rounded-xl bg-white shadow-sm border border-gray-200 border-l-4 border-l-green-500 p-5">
-              <h3 className="font-bold text-green-700 mb-2 flex items-center gap-1.5">
+            <div className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 border-l-4 border-l-green-500 p-5">
+              <h3 className="font-bold text-green-700 dark:text-green-400 mb-2 flex items-center gap-1.5">
                 <CircleCheckBig className="w-4 h-4" strokeWidth={2.25} /> メリット
               </h3>
-              <ul className="list-disc list-inside space-y-2 text-gray-700 text-sm leading-relaxed">
+              <ul className="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
                 {result.insight.pros.map((p, i) => (
                   <li key={i}>{p}</li>
                 ))}
               </ul>
             </div>
-            <div className="rounded-xl bg-white shadow-sm border border-gray-200 border-l-4 border-l-amber-500 p-5">
-              <h3 className="font-bold text-amber-700 mb-2 flex items-center gap-1.5">
+            <div className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 border-l-4 border-l-amber-500 p-5">
+              <h3 className="font-bold text-amber-700 dark:text-amber-400 mb-2 flex items-center gap-1.5">
                 <TriangleAlert className="w-4 h-4" strokeWidth={2.25} /> 懸念点
               </h3>
-              <ul className="list-disc list-inside space-y-2 text-gray-700 text-sm leading-relaxed">
+              <ul className="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
                 {result.insight.cons.map((c, i) => (
                   <li key={i}>{c}</li>
                 ))}
@@ -251,15 +251,15 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
             </div>
           </section>
 
-          <section className="rounded-xl bg-white shadow-sm border border-gray-200 border-l-4 border-l-indigo-500 p-5">
-            <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-1.5">
+          <section className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 border-l-4 border-l-indigo-500 p-5">
+            <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-1.5">
               <Telescope className="w-4 h-4" strokeWidth={2.25} /> 今後の展望
             </h3>
-            <p className="text-gray-700 leading-relaxed text-sm whitespace-pre-line">{result.insight.outlook}</p>
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm whitespace-pre-line">{result.insight.outlook}</p>
           </section>
 
-          <section className="rounded-xl bg-white shadow-sm border border-gray-200 p-5">
-            <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-1.5">
+          <section className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-5">
+            <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-1.5">
               <BookOpen className="w-4 h-4" strokeWidth={2.25} /> 用語解説（タップで表示）
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

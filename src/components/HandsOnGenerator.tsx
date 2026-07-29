@@ -38,11 +38,11 @@ export function HandsOnGenerator({ articleId, articleTitle }: { articleId: strin
   }
 
   return (
-    <section className="rounded-xl bg-white shadow-sm border border-gray-200 p-5 print:hidden">
-      <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-1.5">
+    <section className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-5 print:hidden">
+      <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-1.5">
         <FlaskConical className="w-4 h-4" strokeWidth={2.25} /> 3分ハンズオン
       </h3>
-      <p className="text-xs text-gray-500 leading-relaxed mb-3">
+      <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-3">
         この記事のテーマを、Geminiが生成する最小構成コードで実際に試せます。
       </p>
 
@@ -56,11 +56,11 @@ export function HandsOnGenerator({ articleId, articleTitle }: { articleId: strin
           {loading ? "生成中..." : "ハンズオンコードを生成する"}
         </button>
       )}
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p>}
 
       {result && (
         <div className="flex flex-col gap-3">
-          <p className="text-sm text-gray-700">{result.code.description}</p>
+          <p className="text-sm text-gray-700 dark:text-gray-300">{result.code.description}</p>
 
           {result.sandboxUrl ? (
             <a
@@ -72,7 +72,7 @@ export function HandsOnGenerator({ articleId, articleTitle }: { articleId: strin
               <PlayCircle className="w-4 h-4" strokeWidth={2.25} /> CodeSandboxで開く
             </a>
           ) : (
-            <p className="flex items-start gap-1.5 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600 leading-relaxed">
+            <p className="flex items-start gap-1.5 rounded-lg bg-gray-50 dark:bg-gray-800 px-3 py-2 text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
               <Monitor className="w-3.5 h-3.5 shrink-0 mt-0.5" strokeWidth={2.25} />
               ローカルでの実行方法: {result.code.runInstructions}
             </p>
@@ -80,18 +80,18 @@ export function HandsOnGenerator({ articleId, articleTitle }: { articleId: strin
 
           <div className="flex flex-col gap-2">
             {result.code.files.map((f) => (
-              <div key={f.path} className="rounded-lg border border-gray-200 overflow-hidden">
-                <div className="flex items-center justify-between bg-gray-50 px-3 py-1.5">
-                  <span className="text-xs font-mono text-gray-600">{f.path}</span>
+              <div key={f.path} className="rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
+                <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 px-3 py-1.5">
+                  <span className="text-xs font-mono text-gray-600 dark:text-gray-400">{f.path}</span>
                   <button
                     type="button"
                     onClick={() => navigator.clipboard?.writeText(f.content)}
-                    className="text-[11px] text-indigo-600 hover:underline"
+                    className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline"
                   >
                     コピー
                   </button>
                 </div>
-                <pre className="text-xs text-gray-700 p-3 overflow-x-auto bg-white whitespace-pre">{f.content}</pre>
+                <pre className="text-xs text-gray-700 dark:text-gray-300 p-3 overflow-x-auto bg-white dark:bg-gray-900 whitespace-pre">{f.content}</pre>
               </div>
             ))}
           </div>
@@ -107,7 +107,7 @@ export function HandsOnGenerator({ articleId, articleTitle }: { articleId: strin
                     .join("\n\n")}\n\n## ローカル実行方法\n${result.code.runInstructions}\n`
                 )
               }
-              className="inline-flex items-center gap-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold"
+              className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 px-3 py-1.5 text-[11px] font-semibold"
             >
               <FileText className="w-3 h-3" strokeWidth={2.25} /> MDでダウンロード
             </button>
@@ -115,7 +115,7 @@ export function HandsOnGenerator({ articleId, articleTitle }: { articleId: strin
               type="button"
               onClick={handleGenerate}
               disabled={loading}
-              className="rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold disabled:opacity-40"
+              className="rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 px-3 py-1.5 text-[11px] font-semibold disabled:opacity-40"
             >
               {loading ? "生成中..." : "作り直す"}
             </button>

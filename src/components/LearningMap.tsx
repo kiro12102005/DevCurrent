@@ -42,8 +42,8 @@ export function LearningMap() {
   if (!user) {
     return (
       <div className="flex flex-col items-center gap-2 py-16 text-center">
-        <Lock className="w-10 h-10 mb-1 text-gray-300" strokeWidth={1.5} />
-        <p className="text-gray-500 text-sm">学習マップを見るにはログインしてください。</p>
+        <Lock className="w-10 h-10 mb-1 text-gray-300 dark:text-gray-600" strokeWidth={1.5} />
+        <p className="text-gray-500 dark:text-gray-400 text-sm">学習マップを見るにはログインしてください。</p>
       </div>
     );
   }
@@ -67,7 +67,7 @@ export function LearningMap() {
           type="button"
           onClick={handleExport}
           disabled={exporting}
-          className="inline-flex items-center gap-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold disabled:opacity-40"
+          className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 px-3 py-1.5 text-[11px] font-semibold disabled:opacity-40"
         >
           <FileText className="w-3 h-3" strokeWidth={2.25} /> {exporting ? "生成中..." : "技術学習ログをMDで出力"}
         </button>
@@ -79,24 +79,24 @@ export function LearningMap() {
         <StatTile label="直近30日の活動日数" value={data.activeDaysLast30} icon={Flame} />
       </div>
 
-      <div className="rounded-xl bg-white shadow-sm border border-gray-200 p-4">
-        <h3 className="font-bold text-gray-800 mb-3">分野別キャッチアップ状況</h3>
+      <div className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-4">
+        <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-3">分野別キャッチアップ状況</h3>
         {!hasAnyData ? (
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400 dark:text-gray-500">
             まだデータがありません。フィードで記事を既読/保存すると、ここに分野別の内訳が表示されます。
           </p>
         ) : (
           <ul className="flex flex-col gap-2.5">
             {data.tags.map(({ tag, count }) => (
               <li key={tag} className="flex items-center gap-3">
-                <span className="w-28 shrink-0 text-xs text-gray-600 truncate">{tag}</span>
-                <div className="flex-1 h-3 rounded-full bg-gray-100 overflow-hidden">
+                <span className="w-28 shrink-0 text-xs text-gray-600 dark:text-gray-400 truncate">{tag}</span>
+                <div className="flex-1 h-3 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
                   <div
                     className="h-full rounded-full brand-gradient transition-all"
                     style={{ width: `${(count / maxCount) * 100}%` }}
                   />
                 </div>
-                <span className="w-6 shrink-0 text-right text-xs font-semibold text-gray-700">{count}</span>
+                <span className="w-6 shrink-0 text-right text-xs font-semibold text-gray-700 dark:text-gray-300">{count}</span>
               </li>
             ))}
           </ul>
@@ -108,10 +108,10 @@ export function LearningMap() {
 
 function StatTile({ label, value, icon: Icon }: { label: string; value: number; icon: LucideIcon }) {
   return (
-    <div className="rounded-xl bg-white shadow-sm border border-gray-200 p-3 flex flex-col items-center text-center">
-      <Icon className="w-5 h-5 text-indigo-500" strokeWidth={2.25} />
+    <div className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-3 flex flex-col items-center text-center">
+      <Icon className="w-5 h-5 text-indigo-500 dark:text-indigo-400" strokeWidth={2.25} />
       <span className="text-xl font-bold brand-gradient-text leading-tight">{value}</span>
-      <span className="text-[10px] text-gray-500 leading-tight">{label}</span>
+      <span className="text-[10px] text-gray-500 dark:text-gray-400 leading-tight">{label}</span>
     </div>
   );
 }

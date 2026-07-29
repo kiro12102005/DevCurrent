@@ -34,6 +34,10 @@
 - **リポジトリチェック**: マイページ＞リポジトリチェック。公開GitHubリポジトリ（npmプロジェクト）のURLを入力すると、`package.json`の依存関係を解析し、このアプリがすでに検知した破壊的変更ニュースの中から実際に使っているライブラリに関係するものだけをピンポイントで警告。Geminiを呼ばない決定的なキーワード照合のため何度でも無料で実行可能。
 - **技術論争サマライザー**: Hacker News発の注目記事について、コメント欄の意見をGeminiが「導入推奨派」「懸念派」に分類して要約表示（クロール時点で自動生成する共有コンテンツ、コメント数が少ない記事ではスキップ）。記事単体の要約だけでなく、コミュニティの実際の温度感まで一目で把握できる。
 - **フィードバック**: マイページ＞フィードバック。バグ報告・改善提案・その他を送信できる簡易フォーム（ログイン不要）。DBに保存されるほか、`FEEDBACK_NOTIFY_EMAIL`設定時は運営者に通知メールも届く（外部サービス不要、既存のResend連携を再利用）。App Store等の公開レーティングに結びつかない星評価は意味が薄いため実装していない。
+- **ダークモード**: 画面右上のボタンから自動（端末設定に追従）／ライト／ダークを切り替え可能。`prefers-color-scheme`への自動追従だけに頼ると背景だけ暗転してコンポーネントはライトのまま、という過去に実際踏んだ不具合を再発させるため、`.dark`クラスが付いている時だけ全コンポーネントが揃って切り替わるクラス駆動方式（`@custom-variant dark`）を採用。切り替えは`localStorage`に保存され、初回ペイントの前にインラインスクリプトで適用されるためフラッシュしない。
+- **この技術スタックについて**: マイページから`/about`へ遷移すると、設計判断・本番障害・コスト設計・品質保証などの取り組みを開発者向けにまとめたページを閲覧できる（`docs/DESIGN_DECISIONS.md`のアプリ内公開版、就活・ポートフォリオ用途で直接リンクを共有可能）。
+- **月間サマリー画像**: マイページ＞学習マップから、直近30日間の既読・保存・活動日数・よく見た分野を1枚のカード画像として生成（`next/og`の`ImageResponse`）。ダウンロードのほか、対応ブラウザではWeb Share APIでファイルごと共有できる（ログイン必須）。
+- **ハプティックフィードバック**: 記事の既読/保存トグル・フィードバック送信・テーマ切り替えなどの操作時に、対応端末（主にAndroid）でVibration APIによる短い振動フィードバックを付与。未対応環境では何も起きない（機能検出のみ、フォールバックなし）。
 
 ## セットアップ
 
@@ -167,7 +171,10 @@ src/
       repo-check/route.ts          # POST: 公開リポジトリの依存関係と破壊的変更ニュースの照合（Gemini不使用・無料）
       feedback/route.ts            # POST: フィードバック送信（ログイン不要・DB保存＋運営者通知メール）
       feed/countries/route.ts      # GET: フィードの国フィルター用に実在する国一覧を返す
+      feed/ranking/route.ts        # GET: 月間ランキング（直近30日・純エンゲージメント順）
+      share/monthly-summary/route.tsx  # GET: 月間サマリー画像生成（next/og ImageResponse・要ログイン）
       [transport]/route.ts         # GET/POST: MCPサーバー（Claude向け、mcp-handler使用）
+    about/page.tsx                # 「この技術スタックについて」ページ（設計判断まとめのアプリ内公開版）
     u/[slug]/page.tsx             # 公開共有ページ（認証不要、shareSlugでUserを引く）
   components/
     AppShell.tsx                 # ヘッダー・4タブ切り替えを統括するクライアントコンポーネント（モバイルは下部ナビのみ）
@@ -188,6 +195,10 @@ src/
     EditorConfigGenerator.tsx              # AIエディタ設定エクスポート（URL要約結果内）
     RepoBreakingChangeCheck.tsx             # リポジトリチェック（マイページ内）
     FeedbackForm.tsx                          # フィードバック送信フォーム（マイページ内）
+    ContactCard.tsx                            # 開発者への連絡カード（マイページ＞フィードバック内）
+    MonthlyRanking.tsx                          # 月間ランキング（フィード内、期間チップで切替）
+    MonthlySummaryShare.tsx                      # 月間サマリー画像の生成・保存・共有（マイページ＞学習マップ内）
+    ThemeToggle.tsx                               # ライト/ダーク/自動切り替えボタン（ヘッダー）
   lib/
     prisma.ts                    # PrismaClientシングルトン
     gemini.ts                    # Gemini 2.5 Flash 呼び出し（BYOK対応・構造化JSON出力、模擬面接質問生成も含む）
@@ -211,6 +222,10 @@ src/
     hnComments.ts                      # Hacker Newsのコメントスレッド取得（Algolia検索API、技術論争サマライザー用）
     articleSelect.ts                 # /api/feedと/api/searchで共有するArticleのPrisma select/整形
     feedQuery.ts                      # フィード取得ロジック本体（/api/feedとMCPサーバーのget_feedツールで共有）
+    monthlyRanking.ts                 # 月間ランキング取得（純エンゲージメント順、ソース均等化なし）
+    monthlySummaryStats.ts             # 月間サマリー画像用の直近30日集計（learningStats.tsとは別・当月分のみ）
+    theme.ts                            # ダークモードのuseTheme()フック・アンチフラッシュ用インラインスクリプト
+    haptics.ts                          # Vibration APIラッパー（機能検出・非対応環境ではno-op）
     auth/{session,password,AuthContext}.ts,tsx  # セッション発行/検証・パスワードハッシュ・クライアント側認証状態
     curation/aiToolPicks.ts       # Gemini駆動のAIツールピックアップ生成バッチ
     crawlers/

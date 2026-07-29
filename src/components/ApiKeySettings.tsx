@@ -27,29 +27,29 @@ export function ApiKeySettings() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label="APIキー設定"
-        className="flex items-center gap-1 rounded-full border border-gray-300 px-2 sm:px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:border-indigo-300 transition-colors"
+        className="flex items-center gap-1 rounded-full border border-gray-300 dark:border-gray-700 px-2 sm:px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors"
       >
         <Settings className="w-3.5 h-3.5" strokeWidth={2.25} /> <span className="hidden sm:inline">APIキー設定</span>
         {savedKey && <span className="w-1.5 h-1.5 rounded-full bg-green-500" />}
       </button>
 
       {open && (
-        <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:left-auto sm:mt-2 sm:w-80 rounded-xl border border-gray-200 bg-white p-4 shadow-xl shadow-indigo-900/10 z-20">
-          <p className="text-sm font-semibold text-gray-800">あなたのGemini APIキー</p>
-          <p className="mt-1 text-xs text-gray-500 leading-relaxed">
+        <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:left-auto sm:mt-2 sm:w-80 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-xl shadow-indigo-900/10 z-20">
+          <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">あなたのGemini APIキー</p>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
             このアプリはみんなで1つのAPIキーを共有せず、各自のキーで生成します。
             キーはこの端末のブラウザ内にのみ保存され、サーバーのデータベースには保存されません。
           </p>
 
           {savedKey ? (
-            <div className="mt-3 flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm">
-              <span className="font-mono text-gray-700">{maskApiKey(savedKey)}</span>
-              <button type="button" onClick={handleClear} className="text-xs text-red-600 hover:underline">
+            <div className="mt-3 flex items-center justify-between rounded-lg bg-gray-50 dark:bg-gray-800 px-3 py-2 text-sm">
+              <span className="font-mono text-gray-700 dark:text-gray-300">{maskApiKey(savedKey)}</span>
+              <button type="button" onClick={handleClear} className="text-xs text-red-600 dark:text-red-400 hover:underline">
                 削除
               </button>
             </div>
           ) : (
-            <p className="mt-3 text-xs text-amber-600">まだAPIキーが登録されていません</p>
+            <p className="mt-3 text-xs text-amber-600 dark:text-amber-400">まだAPIキーが登録されていません</p>
           )}
 
           <div className="mt-3 flex flex-col gap-2">
@@ -58,7 +58,7 @@ export function ApiKeySettings() {
               placeholder="AIza..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
             />
             <button
               type="button"
@@ -74,7 +74,7 @@ export function ApiKeySettings() {
             href="https://aistudio.google.com/apikey"
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-3 block text-center text-xs text-indigo-600 hover:underline"
+            className="mt-3 block text-center text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
           >
             無料でAPIキーを発行する（Google AI Studio）
           </a>

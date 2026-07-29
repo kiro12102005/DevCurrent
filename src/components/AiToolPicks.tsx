@@ -120,7 +120,7 @@ export function AiToolPicks() {
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col gap-4 px-4 pb-24 pt-6 md:pb-6">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs text-gray-500">Geminiが選ぶ、今知っておきたいAIツール・アプリのピックアップ</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">Geminiが選ぶ、今知っておきたいAIツール・アプリのピックアップ</p>
         <button
           type="button"
           onClick={handleRefresh}
@@ -132,7 +132,7 @@ export function AiToolPicks() {
         </button>
       </div>
 
-      {error && <p className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-red-700 text-sm">{error}</p>}
+      {error && <p className="rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 px-4 py-3 text-red-700 dark:text-red-400 text-sm">{error}</p>}
 
       {categories.length > 1 && (
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
@@ -142,7 +142,7 @@ export function AiToolPicks() {
               type="button"
               onClick={() => setCategory(c)}
               className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all ${
-                category === c ? "brand-gradient text-white shadow-sm shadow-indigo-900/20" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                category === c ? "brand-gradient text-white shadow-sm shadow-indigo-900/20" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
               }`}
             >
               {c}
@@ -156,7 +156,7 @@ export function AiToolPicks() {
           type="button"
           onClick={() => setBookmarkedOnly((v) => !v)}
           className={`inline-flex items-center gap-1.5 self-start shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all ${
-            bookmarkedOnly ? "brand-gradient text-white shadow-sm shadow-indigo-900/20" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            bookmarkedOnly ? "brand-gradient text-white shadow-sm shadow-indigo-900/20" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
           }`}
         >
           <Bookmark className="w-3.5 h-3.5" strokeWidth={2.25} fill={bookmarkedOnly ? "currentColor" : "none"} /> ブックマークのみ
@@ -166,7 +166,7 @@ export function AiToolPicks() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="rounded-xl border border-gray-200 bg-white p-4">
+            <div key={i} className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
               <div className="skeleton h-4 w-1/3 rounded-full mb-3" />
               <div className="skeleton h-4 w-full rounded mb-2" />
               <div className="skeleton h-4 w-2/3 rounded" />
@@ -175,8 +175,8 @@ export function AiToolPicks() {
         </div>
       ) : visible.length === 0 ? (
         <div className="text-center py-16">
-          <Bot className="w-10 h-10 mx-auto mb-3 text-gray-300" strokeWidth={1.5} />
-          <p className="text-gray-400 text-sm">
+          <Bot className="w-10 h-10 mx-auto mb-3 text-gray-300 dark:text-gray-600" strokeWidth={1.5} />
+          <p className="text-gray-400 dark:text-gray-500 text-sm">
             {bookmarkedOnly
               ? "ブックマークしたツールがまだありません。"
               : "まだピックアップがありません。「更新する」を押すとGeminiが最新のAIツールを選定します。"}
@@ -188,10 +188,10 @@ export function AiToolPicks() {
             {visible.map((pick) => (
               <div
                 key={pick.id}
-                className="group rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:border-indigo-200 transition-all duration-200"
+                className="group rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:border-indigo-200 dark:hover:border-indigo-700 transition-all duration-200"
               >
                 <div className="flex items-center justify-between gap-2 mb-1.5">
-                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold bg-violet-100 text-violet-700">
+                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-400">
                     {(() => {
                       const CategoryIcon = CATEGORY_ICON[pick.category] ?? Sparkles;
                       return <CategoryIcon className="w-3 h-3" strokeWidth={2.25} />;
@@ -203,7 +203,7 @@ export function AiToolPicks() {
                       type="button"
                       onClick={() => handleToggleBookmark(pick.id, !pick.isBookmarked)}
                       className={`flex items-center gap-1 rounded-full px-3 py-2 text-xs font-semibold transition-colors ${
-                        pick.isBookmarked ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                        pick.isBookmarked ? "bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400" : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                       }`}
                     >
                       <Bookmark className="w-3.5 h-3.5" strokeWidth={2.25} fill={pick.isBookmarked ? "currentColor" : "none"} />
@@ -211,14 +211,14 @@ export function AiToolPicks() {
                     </button>
                   )}
                 </div>
-                <p className="font-bold text-gray-800 mb-1.5 group-hover:text-indigo-600 transition-colors">{pick.name}</p>
-                <p className="text-sm text-gray-700 leading-relaxed mb-2">{pick.summary}</p>
-                <p className="text-xs text-gray-500 mb-1">
-                  <span className="font-semibold text-gray-600">おすすめの人: </span>
+                <p className="font-bold text-gray-800 dark:text-gray-100 mb-1.5 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{pick.name}</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-2">{pick.summary}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  <span className="font-semibold text-gray-600 dark:text-gray-400">おすすめの人: </span>
                   {pick.recommendedFor}
                 </p>
-                <p className="text-xs text-gray-500 mb-2">
-                  <span className="font-semibold text-gray-600">活用例: </span>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                  <span className="font-semibold text-gray-600 dark:text-gray-400">活用例: </span>
                   {pick.useCaseExample}
                 </p>
                 {pick.sourceUrl && (
@@ -226,7 +226,7 @@ export function AiToolPicks() {
                     href={pick.sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-indigo-600 hover:underline"
+                    className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
                   >
                     公式サイトを見る ↗
                   </a>
@@ -236,7 +236,7 @@ export function AiToolPicks() {
           </div>
           {hasMore && !bookmarkedOnly && category === "すべて" && (
             <div ref={sentinelRef} className="flex justify-center py-4">
-              {loadingMore && <span className="text-sm text-gray-400">読み込み中...</span>}
+              {loadingMore && <span className="text-sm text-gray-400 dark:text-gray-500">読み込み中...</span>}
             </div>
           )}
         </>

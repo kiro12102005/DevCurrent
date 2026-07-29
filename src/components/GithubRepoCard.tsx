@@ -37,17 +37,17 @@ export function GithubRepoCard({ repo }: { repo: string }) {
       href={stats.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="block rounded-xl bg-white shadow-sm border border-gray-200 p-4 hover:border-indigo-200 hover:shadow-md transition-all"
+      className="block rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-4 hover:border-indigo-200 dark:hover:border-indigo-700 hover:shadow-md transition-all"
     >
       <div className="flex items-center justify-between gap-2">
-        <p className="font-bold text-gray-800 flex items-center gap-1.5">
-          <GitFork className="w-4 h-4 text-gray-500" strokeWidth={2.25} /> {stats.fullName}
+        <p className="font-bold text-gray-800 dark:text-gray-100 flex items-center gap-1.5">
+          <GitFork className="w-4 h-4 text-gray-500 dark:text-gray-400" strokeWidth={2.25} /> {stats.fullName}
         </p>
-        <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+        <span className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
           <Star className="w-3.5 h-3.5" strokeWidth={2.25} fill="currentColor" /> {stats.stars.toLocaleString()}
         </span>
       </div>
-      <p className="text-[11px] text-gray-500 mt-1">
+      <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
         GitHub上の実データ（一次情報）
         {stats.lastCommitAt && ` ・最終コミット: ${timeAgo(stats.lastCommitAt)}`}
         {stats.latestReleaseTag && ` ・最新リリース: ${stats.latestReleaseTag}（${timeAgo(stats.latestReleaseAt!)}）`}

@@ -8,11 +8,11 @@ const CONTACT_EMAIL = "contact.somakida@gmail.com";
 // context - separate from the bug-report-oriented feedback form below it.
 export function ContactCard() {
   return (
-    <div className="rounded-xl bg-white shadow-sm border border-gray-200 p-5">
-      <h3 className="font-bold text-gray-800 mb-1 flex items-center gap-1.5">
+    <div className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-5">
+      <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-1 flex items-center gap-1.5">
         <Briefcase className="w-4 h-4" strokeWidth={2.25} /> 開発者への連絡はこちらから
       </h3>
-      <p className="text-xs text-gray-500 leading-relaxed mb-3">
+      <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-3">
         このアプリに限らず、開発のご相談・お仕事のご依頼はお気軽に下記メールアドレスへご連絡ください。
       </p>
       <a

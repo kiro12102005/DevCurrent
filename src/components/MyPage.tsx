@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Bookmark, BarChart3, GraduationCap, Search, Share2, MessageSquareText } from "lucide-react";
+import Link from "next/link";
+import { Bookmark, BarChart3, GraduationCap, Search, Share2, MessageSquareText, Info } from "lucide-react";
 import { SavedList } from "./SavedList";
 import { LearningMap } from "./LearningMap";
 import { InterviewPractice } from "./InterviewPractice";
@@ -9,6 +10,8 @@ import { SharePageSettings } from "./SharePageSettings";
 import { RepoBreakingChangeCheck } from "./RepoBreakingChangeCheck";
 import { FeedbackForm } from "./FeedbackForm";
 import { ContactCard } from "./ContactCard";
+import { MonthlySummaryShare } from "./MonthlySummaryShare";
+import { hapticTap } from "@/lib/haptics";
 
 const SECTIONS = [
   { key: "saved", icon: Bookmark, label: "保存済み" },
@@ -38,18 +41,36 @@ export function MyPage({ onSelectArticle }: { onSelectArticle: (url: string) => 
           <button
             key={s.key}
             type="button"
-            onClick={() => setSection(s.key)}
+            onClick={() => {
+              hapticTap();
+              setSection(s.key);
+            }}
             className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
-              section === s.key ? "brand-gradient text-white shadow-sm shadow-indigo-900/20" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              section === s.key ? "brand-gradient text-white shadow-sm shadow-indigo-900/20" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
             }`}
           >
             <s.icon className="w-3.5 h-3.5 shrink-0" strokeWidth={2.25} /> {s.label}
           </button>
         ))}
+        {/* Navigates away (a real page, not an in-tab section) - kept in the
+            same grid for visual consistency, but a Link rather than a
+            setSection button. Odd item count is fine in a 2-col grid (this
+            one just sits alone in the last row). */}
+        <Link
+          href="/about"
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+        >
+          <Info className="w-3.5 h-3.5 shrink-0" strokeWidth={2.25} /> 技術スタックについて
+        </Link>
       </div>
 
       {section === "saved" && <SavedList onSelectArticle={onSelectArticle} />}
-      {section === "map" && <LearningMap />}
+      {section === "map" && (
+        <div className="flex flex-col gap-4">
+          <LearningMap />
+          <MonthlySummaryShare />
+        </div>
+      )}
       {section === "interview" && <InterviewPractice />}
       {section === "repo" && <RepoBreakingChangeCheck />}
       {section === "share" && <SharePageSettings />}

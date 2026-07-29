@@ -45,11 +45,11 @@ export function EditorConfigGenerator({ articleId }: { articleId: string }) {
   }
 
   return (
-    <section className="rounded-xl bg-white shadow-sm border border-gray-200 p-5 print:hidden">
-      <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-1.5">
+    <section className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-5 print:hidden">
+      <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-1.5">
         <Settings className="w-4 h-4" strokeWidth={2.25} /> AIエディタ設定を生成
       </h3>
-      <p className="text-xs text-gray-500 leading-relaxed mb-3">
+      <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-3">
         この記事の内容をもとに、Claude Code / Cursor / 汎用チャット用の指示ファイルをそのまま貼り付けられる形式で生成します。
       </p>
 
@@ -63,37 +63,37 @@ export function EditorConfigGenerator({ articleId }: { articleId: string }) {
           {loading ? "生成中..." : "設定ファイルを生成する"}
         </button>
       )}
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p>}
 
       {files && (
         <div className="flex flex-col gap-3">
           {files.map((f) => {
             const ToolIcon = TOOL_ICON[f.tool];
             return (
-            <div key={f.tool} className="rounded-lg border border-gray-200 overflow-hidden">
-              <div className="flex items-center justify-between bg-gray-50 px-3 py-1.5">
-                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-700">
+            <div key={f.tool} className="rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
+              <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 px-3 py-1.5">
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300">
                   <ToolIcon className="w-3.5 h-3.5" strokeWidth={2.25} />
-                  {f.label} <span className="font-mono text-gray-400">({f.filename})</span>
+                  {f.label} <span className="font-mono text-gray-400 dark:text-gray-500">({f.filename})</span>
                 </span>
                 <div className="flex gap-2 shrink-0">
                   <button
                     type="button"
                     onClick={() => navigator.clipboard?.writeText(f.content)}
-                    className="text-[11px] text-indigo-600 hover:underline"
+                    className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline"
                   >
                     コピー
                   </button>
                   <button
                     type="button"
                     onClick={() => downloadTextFile(f.filename, f.content)}
-                    className="text-[11px] text-indigo-600 hover:underline"
+                    className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline"
                   >
                     保存
                   </button>
                 </div>
               </div>
-              <pre className="text-xs text-gray-700 p-3 overflow-x-auto bg-white whitespace-pre-wrap max-h-64 overflow-y-auto">{f.content}</pre>
+              <pre className="text-xs text-gray-700 dark:text-gray-300 p-3 overflow-x-auto bg-white dark:bg-gray-900 whitespace-pre-wrap max-h-64 overflow-y-auto">{f.content}</pre>
             </div>
             );
           })}
@@ -101,7 +101,7 @@ export function EditorConfigGenerator({ articleId }: { articleId: string }) {
             type="button"
             onClick={handleGenerate}
             disabled={loading}
-            className="self-start rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-[11px] font-semibold disabled:opacity-40"
+            className="self-start rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 px-3 py-1.5 text-[11px] font-semibold disabled:opacity-40"
           >
             {loading ? "生成中..." : "作り直す"}
           </button>

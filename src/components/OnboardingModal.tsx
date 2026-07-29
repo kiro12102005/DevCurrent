@@ -37,19 +37,19 @@ export function OnboardingModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 print:hidden">
-      <div className="w-full max-w-sm rounded-2xl bg-white shadow-xl p-5 max-h-[85vh] overflow-y-auto">
+      <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 shadow-xl p-5 max-h-[85vh] overflow-y-auto">
         <h2 className="text-lg font-bold brand-gradient-text mb-1">技術トレンド キャッチアップへようこそ</h2>
-        <p className="text-xs text-gray-500 mb-4">4つのタブでできることを簡単にご紹介します。</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">4つのタブでできることを簡単にご紹介します。</p>
 
         <ul className="flex flex-col gap-3 mb-5">
           {STEPS.map((s) => (
             <li key={s.title} className="flex items-start gap-3">
-              <span className="shrink-0 rounded-lg bg-indigo-50 text-indigo-600 p-2">
+              <span className="shrink-0 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 p-2">
                 <s.icon className="w-5 h-5" strokeWidth={2} />
               </span>
               <div>
-                <p className="text-sm font-semibold text-gray-800">{s.title}</p>
-                <p className="text-xs text-gray-500 leading-relaxed">{s.desc}</p>
+                <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{s.title}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{s.desc}</p>
               </div>
             </li>
           ))}

@@ -51,7 +51,7 @@ export function AuthMenu() {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="flex items-center gap-1.5 rounded-full border border-gray-300 pl-2.5 pr-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:border-indigo-300 transition-colors"
+          className="flex items-center gap-1.5 rounded-full border border-gray-300 dark:border-gray-700 pl-2.5 pr-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors"
         >
           <span className="w-5 h-5 rounded-full brand-gradient text-white flex items-center justify-center text-[10px] font-bold">
             {user.email[0]?.toUpperCase()}
@@ -59,8 +59,8 @@ export function AuthMenu() {
           <span className="max-w-[4.5rem] sm:max-w-[8rem] truncate">{user.email}</span>
         </button>
         {open && (
-          <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:left-auto sm:mt-2 sm:w-80 rounded-xl border border-gray-200 bg-white p-3 shadow-xl shadow-indigo-900/10 z-20 max-h-[80vh] overflow-y-auto">
-            <p className="px-1 text-xs text-gray-500 truncate">{user.email}</p>
+          <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:left-auto sm:mt-2 sm:w-80 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-3 shadow-xl shadow-indigo-900/10 z-20 max-h-[80vh] overflow-y-auto">
+            <p className="px-1 text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
 
             <PreferencesPanel />
 
@@ -70,7 +70,7 @@ export function AuthMenu() {
                 await logout();
                 setOpen(false);
               }}
-              className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="mt-3 w-full rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
             >
               ログアウト
             </button>
@@ -90,15 +90,15 @@ export function AuthMenu() {
         ログイン
       </button>
       {open && (
-        <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:left-auto sm:mt-2 sm:w-72 rounded-xl border border-gray-200 bg-white p-4 shadow-xl shadow-indigo-900/10 z-20">
-          <div className="flex gap-1 mb-3 rounded-lg bg-gray-100 p-1 text-xs font-semibold">
+        <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:left-auto sm:mt-2 sm:w-72 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-xl shadow-indigo-900/10 z-20">
+          <div className="flex gap-1 mb-3 rounded-lg bg-gray-100 dark:bg-gray-800 p-1 text-xs font-semibold">
             <button
               type="button"
               onClick={() => {
                 setMode("login");
                 setError(null);
               }}
-              className={`flex-1 rounded-md py-1.5 transition-colors ${mode === "login" ? "bg-white text-indigo-700 shadow-sm" : "text-gray-500"}`}
+              className={`flex-1 rounded-md py-1.5 transition-colors ${mode === "login" ? "bg-white dark:bg-gray-900 text-indigo-700 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400"}`}
             >
               ログイン
             </button>
@@ -108,7 +108,7 @@ export function AuthMenu() {
                 setMode("signup");
                 setError(null);
               }}
-              className={`flex-1 rounded-md py-1.5 transition-colors ${mode === "signup" ? "bg-white text-indigo-700 shadow-sm" : "text-gray-500"}`}
+              className={`flex-1 rounded-md py-1.5 transition-colors ${mode === "signup" ? "bg-white dark:bg-gray-900 text-indigo-700 dark:text-indigo-400 shadow-sm" : "text-gray-500 dark:text-gray-400"}`}
             >
               新規登録
             </button>
@@ -121,7 +121,7 @@ export function AuthMenu() {
               placeholder="メールアドレス"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
             />
             <input
               type="password"
@@ -130,9 +130,9 @@ export function AuthMenu() {
               placeholder={mode === "signup" ? "パスワード（8文字以上）" : "パスワード"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
             />
-            {error && <p className="text-xs text-red-600">{error}</p>}
+            {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
             <button
               type="submit"
               disabled={busy}
@@ -141,7 +141,7 @@ export function AuthMenu() {
               {busy ? "処理中..." : mode === "login" ? "ログイン" : "登録する"}
             </button>
           </form>
-          <p className="mt-3 text-[11px] text-gray-400 leading-relaxed">
+          <p className="mt-3 text-[11px] text-gray-400 dark:text-gray-500 leading-relaxed">
             ログインすると記事へのメモ保存やアカウント単位でのプッシュ通知管理ができます（任意機能・未ログインでもフィード閲覧やURL要約は利用可能）。
           </p>
         </div>
@@ -232,24 +232,24 @@ function PreferencesPanel() {
   if (!loaded) return <div className="skeleton h-16 w-full rounded-lg mt-3" />;
 
   return (
-    <div className="mt-3 pt-3 border-t border-gray-100">
-      <p className="text-xs font-semibold text-gray-700 mb-1.5">通知の種類</p>
-      <p className="text-[11px] text-gray-400 mb-2 leading-relaxed">
+    <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+      <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">通知の種類</p>
+      <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-2 leading-relaxed">
         プッシュ通知を種類ごとに個別にON/OFFできます（🔔通知ボタン自体をONにしている場合のみ届きます）。
       </p>
       <div className="flex flex-col gap-1.5 mb-3">
-        <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
+        <label className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
           <input type="checkbox" checked={wantsFeaturedPush} onChange={toggleFeaturedPush} className="rounded" />
           注目ピックアップ通知
         </label>
-        <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
+        <label className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
           <input type="checkbox" checked={wantsBreakingChangePush} onChange={toggleBreakingChangePush} className="rounded" />
           🚨 動かなくなる変更の通知（興味タグ・技術スタックの設定に関わらず届きます）
         </label>
       </div>
 
-      <p className="text-xs font-semibold text-gray-700 mb-1.5">興味のあるタグ</p>
-      <p className="text-[11px] text-gray-400 mb-2 leading-relaxed">
+      <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">興味のあるタグ</p>
+      <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-2 leading-relaxed">
         選ぶと、注目ピックアップのプッシュ通知がこのタグに関連する記事だけになります（未選択なら全件通知）。
       </p>
       <div className="flex flex-wrap gap-1.5 mb-3">
@@ -259,7 +259,7 @@ function PreferencesPanel() {
             type="button"
             onClick={() => toggleTag(tag)}
             className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
-              interestTags.includes(tag) ? "brand-gradient text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              interestTags.includes(tag) ? "brand-gradient text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
             }`}
           >
             {tag}
@@ -267,16 +267,16 @@ function PreferencesPanel() {
         ))}
       </div>
 
-      <p className="text-xs font-semibold text-gray-700 mb-1.5">気になる技術スタック（自由入力）</p>
-      <p className="text-[11px] text-gray-400 mb-2 leading-relaxed">
+      <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">気になる技術スタック（自由入力）</p>
+      <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-2 leading-relaxed">
         例: React, PyTorch, Rust。記事タイトルにこの単語が含まれると通知対象になります（上のタグと合わせてOR条件）。
       </p>
       {stackKeywords.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-2">
           {stackKeywords.map((kw) => (
-            <span key={kw} className="flex items-center gap-1 rounded-full bg-indigo-50 text-indigo-700 px-2.5 py-1 text-[11px] font-semibold">
+            <span key={kw} className="flex items-center gap-1 rounded-full bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-400 px-2.5 py-1 text-[11px] font-semibold">
               {kw}
-              <button type="button" onClick={() => removeKeyword(kw)} className="text-indigo-400 hover:text-indigo-700">
+              <button type="button" onClick={() => removeKeyword(kw)} className="text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">
                 ×
               </button>
             </span>
@@ -290,14 +290,14 @@ function PreferencesPanel() {
           onChange={(e) => setKeywordDraft(e.target.value)}
           placeholder="技術名を追加"
           maxLength={40}
-          className="flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="flex-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
         />
-        <button type="submit" className="rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 text-xs font-semibold">
+        <button type="submit" className="rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 px-3 py-1.5 text-xs font-semibold">
           追加
         </button>
       </form>
 
-      <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
+      <label className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
         <input type="checkbox" checked={wantsWeeklyDigest} onChange={toggleDigest} className="rounded" />
         週次ダイジェストメールを受け取る
       </label>

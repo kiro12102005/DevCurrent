@@ -38,11 +38,11 @@ export function RepoBreakingChangeCheck() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-xl bg-white shadow-sm border border-gray-200 p-5">
-        <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-1.5">
+      <div className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-5">
+        <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-1.5">
           <Search className="w-4 h-4" strokeWidth={2.25} /> リポジトリチェック
         </h3>
-        <p className="text-xs text-gray-500 leading-relaxed mb-3">
+        <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-3">
           公開GitHubリポジトリのpackage.jsonを読み込み、実際に使っているライブラリが動かなくなりそうなニュースだけをピンポイントで表示します（現在npmプロジェクトのみ対応）。
         </p>
         <form onSubmit={handleCheck} className="flex gap-2">
@@ -51,7 +51,7 @@ export function RepoBreakingChangeCheck() {
             value={repo}
             onChange={(e) => setRepo(e.target.value)}
             placeholder="owner/repo"
-            className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            className="flex-1 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:focus:ring-indigo-600"
           />
           <button
             type="submit"
@@ -61,17 +61,17 @@ export function RepoBreakingChangeCheck() {
             {loading ? "確認中..." : "チェックする"}
           </button>
         </form>
-        {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+        {error && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p>}
       </div>
 
       {result && (
         <div className="flex flex-col gap-3">
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             {result.repo} の依存関係 {result.dependencyCount}件を確認しました
           </p>
           {result.matches.length === 0 ? (
-            <div className="rounded-xl bg-green-50 border border-green-200 p-4">
-              <p className="flex items-center gap-1.5 text-sm text-green-700">
+            <div className="rounded-xl bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 p-4">
+              <p className="flex items-center gap-1.5 text-sm text-green-700 dark:text-green-400">
                 <CircleCheckBig className="w-4 h-4" strokeWidth={2.25} /> 今のところ、動かなくなりそうな変更は見つかりませんでした
               </p>
             </div>
@@ -82,13 +82,13 @@ export function RepoBreakingChangeCheck() {
                 href={m.articleUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block rounded-xl bg-red-50 border border-red-200 p-4 hover:border-red-300 transition-colors"
+                className="block rounded-xl bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 p-4 hover:border-red-300 dark:hover:border-red-700 transition-colors"
               >
-                <p className="font-bold text-red-700 flex items-center gap-1.5 mb-1">
+                <p className="font-bold text-red-700 dark:text-red-400 flex items-center gap-1.5 mb-1">
                   <TriangleAlert className="w-4 h-4" strokeWidth={2.25} /> {m.keyword} に影響する可能性
                 </p>
-                <p className="text-xs text-red-600 mb-1">{m.articleTitle}</p>
-                <p className="text-sm text-red-700 leading-relaxed">{m.breakingChangeSummary}</p>
+                <p className="text-xs text-red-600 dark:text-red-400 mb-1">{m.articleTitle}</p>
+                <p className="text-sm text-red-700 dark:text-red-400 leading-relaxed">{m.breakingChangeSummary}</p>
               </a>
             ))
           )}

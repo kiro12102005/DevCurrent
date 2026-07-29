@@ -36,7 +36,7 @@ export function ShareButton({ title, url, className }: { title: string; url: str
       type="button"
       onClick={handleShare}
       aria-label="共有"
-      className={className ?? "shrink-0 rounded-full p-2 text-gray-400 hover:text-indigo-600 hover:bg-gray-100 transition-colors"}
+      className={className ?? "shrink-0 rounded-full p-2 text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"}
     >
       <Share className="w-4 h-4" strokeWidth={2.25} />
     </button>

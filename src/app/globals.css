@@ -1,10 +1,28 @@
 @import "tailwindcss";
 
+/* Class-driven dark mode (not automatic prefers-color-scheme). A previous
+   attempt flipped --background automatically via the media query while every
+   component kept hardcoded light Tailwind classes - the mismatch made the
+   body near-black while all real content stayed light, and on iOS (combined
+   with a since-fixed missing viewport-fit=cover) that near-black bled through
+   in the safe-area gutters. This time every component that ships bg-white,
+   text-gray-N, border-gray-N etc. also ships an explicit dark: counterpart,
+   and dark mode only activates when .dark is present on <html> (toggled by
+   ThemeToggle / lib/theme.ts), so light and dark are never a partial mix. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #f8f9fc;
   --foreground: #171717;
   --brand-start: #6d5bf5;
   --brand-end: #3730a3;
+  color-scheme: light;
+}
+
+.dark {
+  --background: #0b0e14;
+  --foreground: #e5e7eb;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -13,14 +31,6 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
-
-/* This app has no dark-mode styling anywhere (every component hardcodes
-   light-theme Tailwind classes), so intentionally NOT flipping --background
-   for prefers-color-scheme: dark. That mismatch used to make body background
-   near-black while all actual content stayed light - on iOS, combined with
-   the missing viewport-fit=cover (see layout.tsx), any area outside the
-   safe-area-covered content rendered as this near-black body color instead
-   of the app's actual background. */
 
 html,
 body {
@@ -61,4 +71,9 @@ body {
   background: linear-gradient(90deg, #eef0f6 25%, #e2e5f0 37%, #eef0f6 63%);
   background-size: 800px 100%;
   animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.dark .skeleton {
+  background: linear-gradient(90deg, #1f2430 25%, #2a3040 37%, #1f2430 63%);
+  background-size: 800px 100%;
 }

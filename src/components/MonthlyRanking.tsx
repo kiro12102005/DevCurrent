@@ -7,6 +7,7 @@ import { SOURCE_BADGE_CLASS, SOURCE_LABEL } from "@/lib/sourceLabels";
 import { formatArticleDate } from "@/lib/formatDate";
 import { countryFlag } from "@/lib/countryLabels";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { hapticTap } from "@/lib/haptics";
 import { ShareButton } from "./ShareButton";
 
 type ArticleState = { isRead: boolean; isBookmarked: boolean };
@@ -42,6 +43,7 @@ export function MonthlyRanking({ onSelectArticle }: { onSelectArticle: (url: str
   }, []);
 
   async function handleToggleState(articleId: string, key: "isRead" | "isBookmarked") {
+    hapticTap();
     const current = states[articleId] ?? { isRead: false, isBookmarked: false };
     const next = { ...current, [key]: !current[key] };
     setStates((prev) => ({ ...prev, [articleId]: next }));
@@ -57,7 +59,7 @@ export function MonthlyRanking({ onSelectArticle }: { onSelectArticle: (url: str
   }
 
   if (error) {
-    return <p className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-red-700 text-sm">{error}</p>;
+    return <p className="rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 px-4 py-3 text-red-700 dark:text-red-400 text-sm">{error}</p>;
   }
 
   if (!ranking) {
@@ -71,7 +73,7 @@ export function MonthlyRanking({ onSelectArticle }: { onSelectArticle: (url: str
   }
 
   if (ranking.length === 0) {
-    return <p className="text-center py-16 text-gray-400 text-sm">直近1ヶ月の記事がまだありません。</p>;
+    return <p className="text-center py-16 text-gray-400 dark:text-gray-500 text-sm">直近1ヶ月の記事がまだありません。</p>;
   }
 
   return (
@@ -81,11 +83,11 @@ export function MonthlyRanking({ onSelectArticle }: { onSelectArticle: (url: str
         return (
           <li
             key={article.id}
-            className={`rounded-xl border border-gray-200 bg-white p-3 shadow-sm flex items-start gap-3 ${state?.isRead ? "opacity-60" : ""}`}
+            className={`rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-3 shadow-sm flex items-start gap-3 ${state?.isRead ? "opacity-60" : ""}`}
           >
             <span
               className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                i < 3 ? "brand-gradient text-white" : "bg-gray-100 text-gray-500"
+                i < 3 ? "brand-gradient text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
               }`}
             >
               {i + 1}
@@ -96,22 +98,22 @@ export function MonthlyRanking({ onSelectArticle }: { onSelectArticle: (url: str
                   {SOURCE_LABEL[article.sourceType]}
                 </span>
                 {countryFlag(article.country) && <span title={article.country ?? undefined}>{countryFlag(article.country)}</span>}
-                {article.publishedAt && <span className="text-gray-500">{formatArticleDate(article.publishedAt)}</span>}
+                {article.publishedAt && <span className="text-gray-500 dark:text-gray-400">{formatArticleDate(article.publishedAt)}</span>}
               </div>
               <button type="button" onClick={() => onSelectArticle(article.url)} className="block w-full text-left">
-                <p className="font-semibold text-gray-800 leading-snug hover:text-indigo-600 transition-colors truncate">
+                <p className="font-semibold text-gray-800 dark:text-gray-100 leading-snug hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors truncate">
                   {article.title ?? article.url}
                 </p>
               </button>
               <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
-                <ShareButton title={article.title ?? article.url} url={article.url} className="p-1 text-gray-400 hover:text-indigo-600" />
+                <ShareButton title={article.title ?? article.url} url={article.url} className="p-1 text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400" />
                 {user && (
                   <>
                     <button
                       type="button"
                       onClick={() => handleToggleState(article.id, "isBookmarked")}
                       className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
-                        state?.isBookmarked ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                        state?.isBookmarked ? "bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400" : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                       }`}
                     >
                       <Bookmark className="w-3 h-3" strokeWidth={2.25} fill={state?.isBookmarked ? "currentColor" : "none"} />
@@ -121,7 +123,7 @@ export function MonthlyRanking({ onSelectArticle }: { onSelectArticle: (url: str
                       type="button"
                       onClick={() => handleToggleState(article.id, "isRead")}
                       className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
-                        state?.isRead ? "bg-indigo-100 text-indigo-700" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                        state?.isRead ? "bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-400" : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                       }`}
                     >
                       {state?.isRead ? <CircleCheckBig className="w-3 h-3" strokeWidth={2.25} /> : <Square className="w-3 h-3" strokeWidth={2.25} />}

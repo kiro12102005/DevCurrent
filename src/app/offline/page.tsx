@@ -10,9 +10,9 @@ export const metadata = {
 export default function OfflinePage() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6 text-center">
-      <WifiOff className="w-14 h-14 text-gray-300" strokeWidth={1.5} />
+      <WifiOff className="w-14 h-14 text-gray-300 dark:text-gray-600" strokeWidth={1.5} />
       <h1 className="text-lg font-bold brand-gradient-text">オフラインです</h1>
-      <p className="text-sm text-gray-500 max-w-xs">
+      <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs">
         インターネット接続が確認できませんでした。接続を確認してから、もう一度お試しください。以前に閲覧したページはキャッシュから表示できる場合があります。
       </p>
     </div>

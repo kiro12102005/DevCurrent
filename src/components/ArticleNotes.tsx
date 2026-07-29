@@ -83,9 +83,9 @@ export function ArticleNotes({ articleId }: { articleId: string }) {
   if (authLoading) return null;
 
   return (
-    <section className="rounded-xl bg-white shadow-sm border border-gray-200 p-5">
+    <section className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-5">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-bold text-gray-800 flex items-center gap-1.5">
+        <h3 className="font-bold text-gray-800 dark:text-gray-100 flex items-center gap-1.5">
           <FileText className="w-4 h-4" strokeWidth={2.25} /> メモ・保存
         </h3>
         {user && (
@@ -93,7 +93,7 @@ export function ArticleNotes({ articleId }: { articleId: string }) {
             type="button"
             onClick={handleToggleBookmark}
             className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-              isBookmarked ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              isBookmarked ? "bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400" : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
             }`}
           >
             <Bookmark className="w-3.5 h-3.5" strokeWidth={2.25} fill={isBookmarked ? "currentColor" : "none"} />
@@ -103,7 +103,7 @@ export function ArticleNotes({ articleId }: { articleId: string }) {
       </div>
 
       {!user ? (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           ログインすると、この記事を保存したりメモ（面接対策の一言・気づきなど）を残せます。
         </p>
       ) : (
@@ -114,9 +114,9 @@ export function ArticleNotes({ articleId }: { articleId: string }) {
               onChange={(e) => setDraft(e.target.value)}
               placeholder="この記事についてのメモを書く..."
               rows={2}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
             />
-            {error && <p className="text-xs text-red-600">{error}</p>}
+            {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
             <button
               type="submit"
               disabled={saving || !draft.trim()}
@@ -129,17 +129,17 @@ export function ArticleNotes({ articleId }: { articleId: string }) {
           {loading ? (
             <div className="skeleton h-10 w-full rounded" />
           ) : notes.length === 0 ? (
-            <p className="text-xs text-gray-400">まだメモがありません。</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">まだメモがありません。</p>
           ) : (
             <ul className="flex flex-col gap-2">
               {notes.map((note) => (
-                <li key={note.id} className="rounded-lg bg-indigo-50/60 border border-indigo-100 px-3 py-2 text-sm text-gray-700">
+                <li key={note.id} className="rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-900 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">
                   <div className="flex items-start justify-between gap-2">
                     <p className="whitespace-pre-line">{note.body}</p>
                     <button
                       type="button"
                       onClick={() => handleDelete(note.id)}
-                      className="shrink-0 text-xs text-gray-400 hover:text-red-600"
+                      className="shrink-0 text-xs text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400"
                     >
                       削除
                     </button>
