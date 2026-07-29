@@ -83,7 +83,6 @@ export async function sendWeeklyDigest(): Promise<{ sent: number; skipped: strin
 
 const FEEDBACK_TYPE_LABELS: Record<string, string> = {
   bug: "🐛 バグ報告",
-  rating: "⭐ 評価",
   suggestion: "💡 改善提案",
   other: "💬 その他",
 };
@@ -97,7 +96,6 @@ const FEEDBACK_TYPE_LABELS: Record<string, string> = {
 export async function notifyFeedbackSubmission(feedback: {
   type: string;
   message: string;
-  rating: number | null;
   email: string | null;
 }): Promise<void> {
   const client = resendClient();
@@ -105,13 +103,9 @@ export async function notifyFeedbackSubmission(feedback: {
   if (!client || !notifyTo) return;
 
   const typeLabel = FEEDBACK_TYPE_LABELS[feedback.type] ?? feedback.type;
-  const ratingLine = feedback.rating
-    ? `<p><strong>評価:</strong> ${"★".repeat(feedback.rating)}${"☆".repeat(5 - feedback.rating)}</p>`
-    : "";
   const html = `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
       <h1 style="font-size:16px;">新しいフィードバック: ${typeLabel}</h1>
-      ${ratingLine}
       <p><strong>連絡先:</strong> ${feedback.email ? escapeHtml(feedback.email) : "未記入"}</p>
       <p><strong>内容:</strong></p>
       <p style="white-space:pre-wrap;border-left:3px solid #6d5bf5;padding-left:12px;">${escapeHtml(feedback.message)}</p>

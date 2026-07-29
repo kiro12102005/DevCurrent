@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Bug, Star, Lightbulb, MessageCircle, Send, CircleCheckBig } from "lucide-react";
+import { Bug, Lightbulb, MessageCircle, Send, CircleCheckBig } from "lucide-react";
 import { useAuth } from "@/lib/auth/AuthContext";
 
 const FEEDBACK_TYPES = [
   { key: "bug", icon: Bug, label: "バグ報告" },
-  { key: "rating", icon: Star, label: "評価" },
   { key: "suggestion", icon: Lightbulb, label: "改善提案" },
   { key: "other", icon: MessageCircle, label: "その他" },
 ] as const;
@@ -14,13 +13,12 @@ type FeedbackType = (typeof FEEDBACK_TYPES)[number]["key"];
 
 const MESSAGE_MAX_LENGTH = 2000;
 
-// Deliberately not gated behind login - a bug report or rating shouldn't
-// require an account (POST /api/feedback works either way).
+// Deliberately not gated behind login - a bug report shouldn't require an
+// account (POST /api/feedback works either way).
 export function FeedbackForm() {
   const { user } = useAuth();
   const [type, setType] = useState<FeedbackType>("bug");
   const [message, setMessage] = useState("");
-  const [rating, setRating] = useState(0);
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +36,6 @@ export function FeedbackForm() {
         body: JSON.stringify({
           type,
           message: message.trim(),
-          ...(type === "rating" && rating > 0 ? { rating } : {}),
           ...(!user && email.trim() ? { email: email.trim() } : {}),
           pageContext: "mypage-feedback",
         }),
@@ -47,7 +44,6 @@ export function FeedbackForm() {
       if (!res.ok) throw new Error(data.error ?? "送信に失敗しました");
       setDone(true);
       setMessage("");
-      setRating(0);
       setEmail("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "送信に失敗しました");
@@ -77,7 +73,7 @@ export function FeedbackForm() {
     <div className="rounded-xl bg-white shadow-sm border border-gray-200 p-5">
       <h3 className="font-bold text-gray-800 mb-1">フィードバック</h3>
       <p className="text-xs text-gray-500 leading-relaxed mb-3">
-        不具合報告・評価・改善提案など、お気軽にお寄せください。
+        不具合報告・改善提案など、お気軽にお寄せください。
       </p>
 
       <div className="flex gap-2 mb-3 flex-wrap">
@@ -95,20 +91,6 @@ export function FeedbackForm() {
         ))}
       </div>
 
-      {type === "rating" && (
-        <div className="flex gap-1 mb-3">
-          {[1, 2, 3, 4, 5].map((n) => (
-            <button key={n} type="button" onClick={() => setRating(n)} aria-label={`${n}つ星`}>
-              <Star
-                className={`w-6 h-6 ${n <= rating ? "text-amber-400" : "text-gray-200"}`}
-                strokeWidth={1.5}
-                fill={n <= rating ? "currentColor" : "none"}
-              />
-            </button>
-          ))}
-        </div>
-      )}
-
       <form onSubmit={handleSubmit} className="flex flex-col gap-2">
         <textarea
           value={message}
@@ -117,11 +99,7 @@ export function FeedbackForm() {
           rows={4}
           required
           placeholder={
-            type === "bug"
-              ? "どの画面で・何をしたら・どうなったかを教えてください"
-              : type === "rating"
-                ? "感想をお聞かせください"
-                : "内容を入力してください"
+            type === "bug" ? "どの画面で・何をしたら・どうなったかを教えてください" : "内容を入力してください"
           }
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />

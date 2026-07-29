@@ -209,9 +209,9 @@ model PodcastEpisode {
 // report shouldn't require an account), so userId/email are both optional.
 model Feedback {
   id          String   @id @default(cuid())
-  type        String // "bug" | "rating" | "suggestion" | "other" - see FEEDBACK_TYPES in the API route
+  type        String // "bug" | "suggestion" | "other" - see FEEDBACK_TYPES in the API route
   message     String
-  rating      Int? // 1-5, only meaningful when type = "rating"
+  rating      Int? // unused (was 1-5 for a since-removed "rating" type - star ratings don't mean much without an App/Play Store listing to aggregate into). Column kept rather than dropped so existing rows aren't lost; always null going forward.
   email       String? // optional follow-up contact - auto-filled from the account when logged in, freeform when not
   userId      String?
   user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
