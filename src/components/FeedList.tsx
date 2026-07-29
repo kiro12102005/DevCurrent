@@ -25,6 +25,8 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [bookmarkedOnly, setBookmarkedOnly] = useState(false);
+  const [country, setCountry] = useState<string | null>(null); // null = すべて
+  const [availableCountries, setAvailableCountries] = useState<string[]>([]);
   const [featured, setFeatured] = useState<FeedArticle[]>([]);
   const [regular, setRegular] = useState<FeedArticle[]>([]);
   const [states, setStates] = useState<Record<string, ArticleState>>({});
@@ -45,6 +47,15 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
     return () => clearTimeout(t);
   }, [query]);
 
+  useEffect(() => {
+    queueMicrotask(() => {
+      fetch("/api/feed/countries")
+        .then((res) => res.json())
+        .then((data) => setAvailableCountries(data.countries ?? []))
+        .catch(() => {});
+    });
+  }, []);
+
   function loadArticleStates(articles: FeedArticle[]) {
     if (!user || articles.length === 0) return;
     const ids = articles.map((a) => a.id).join(",");
@@ -61,6 +72,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
       regularOffset: String(offset),
       ...(unreadOnly ? { unreadOnly: "1" } : {}),
       ...(bookmarkedOnly ? { bookmarkedOnly: "1" } : {}),
+      ...(country ? { country } : {}),
     });
     return fetch(`/api/feed?${params}`)
       .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
@@ -159,7 +171,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
       loadFirstPage();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [period, date, debouncedQuery, unreadOnly, bookmarkedOnly]);
+  }, [period, date, debouncedQuery, unreadOnly, bookmarkedOnly, country]);
 
   // Infinite scroll: re-attaches after every successful load (regular.length
   // changes) so the observer's callback always closes over the current
@@ -232,6 +244,19 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
               }}
             >
               {i === 0 ? "今日" : formatShortDateWithWeekday(d)}
+            </PeriodChip>
+          ))}
+        </div>
+      )}
+
+      {!isSearching && availableCountries.length > 1 && (
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+          <PeriodChip active={country === null} onClick={() => setCountry(null)}>
+            すべての国
+          </PeriodChip>
+          {availableCountries.map((c) => (
+            <PeriodChip key={c} active={country === c} onClick={() => setCountry(c)}>
+              {countryFlag(c) ?? "🌐"} {c}
             </PeriodChip>
           ))}
         </div>
