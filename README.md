@@ -79,6 +79,20 @@ DB接続・外部APIキーが不要な純粋関数（URL正規化・タグ判定
 `prisma.config.ts`が`DATABASE_URL`未設定時にSQLiteへフォールバックし、全APIルートが動的レンダリング
 （ビルド時に実DBへ接続しない）のため。
 
+**ローカルでの目視確認用に`@playwright/test`を導入済み**（CIには組み込んでいない — GitHub Actionsには
+本番相当のDBアクセスがなく、フィード記事などの実データ描画を伴うE2Eはそこでは意味をなさないため）。
+このリポジトリの開発コンテナ（Debian 11）はPlaywright公式のブラウザダウンロードが「未サポートOS」として
+弾かれるため、システムにaptで入れた`chromium`パッケージを`executablePath`で直接指定して起動する
+（`fonts-noto-cjk`も別途必要、無いと日本語がすべて空box表示になる）:
+
+```js
+import { chromium } from "@playwright/test";
+const browser = await chromium.launch({
+  executablePath: "/usr/bin/chromium",
+  args: ["--no-sandbox", "--disable-setuid-sandbox"],
+});
+```
+
 ## セキュリティ
 
 - **依存関係の脆弱性監査**: `pnpm audit`で発見された8件のうち6件（PostCSS 3件・serialize-javascript 2件
