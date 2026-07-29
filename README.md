@@ -118,7 +118,8 @@ DB接続・外部APIキーが不要な純粋関数（URL正規化・タグ判定
 
 Next.js 16 (App Router) / TypeScript / React 19 / Tailwind CSS v4 / Prisma ORM (SQLite → PostgreSQL) /
 Google Gemini API (`@google/genai`) / Web Push (`web-push`) / bcryptjs + jose（自前認証） / next-pwa /
-lucide-react（アプリ内アイコン・アプリアイコン共通のストロークベースのアイコン言語で統一）
+lucide-react（アプリ内アイコン・アプリアイコン共通のストロークベースのアイコン言語で統一） /
+mcp-handler + @modelcontextprotocol/sdk（Claude向けMCPサーバー）
 
 ## ディレクトリ構成
 
@@ -151,6 +152,7 @@ src/
       repo-check/route.ts          # POST: 公開リポジトリの依存関係と破壊的変更ニュースの照合（Gemini不使用・無料）
       feedback/route.ts            # POST: フィードバック送信（ログイン不要・DB保存＋運営者通知メール）
       feed/countries/route.ts      # GET: フィードの国フィルター用に実在する国一覧を返す
+      [transport]/route.ts         # GET/POST: MCPサーバー（Claude向け、mcp-handler使用）
     u/[slug]/page.tsx             # 公開共有ページ（認証不要、shareSlugでUserを引く）
   components/
     AppShell.tsx                 # ヘッダー・4タブ切り替えを統括するクライアントコンポーネント（モバイルは下部ナビのみ）
@@ -193,6 +195,7 @@ src/
     repoCheck.ts                       # package.jsonの依存関係抽出とisBreakingChange記事とのキーワード照合
     hnComments.ts                      # Hacker Newsのコメントスレッド取得（Algolia検索API、技術論争サマライザー用）
     articleSelect.ts                 # /api/feedと/api/searchで共有するArticleのPrisma select/整形
+    feedQuery.ts                      # フィード取得ロジック本体（/api/feedとMCPサーバーのget_feedツールで共有）
     auth/{session,password,AuthContext}.ts,tsx  # セッション発行/検証・パスワードハッシュ・クライアント側認証状態
     curation/aiToolPicks.ts       # Gemini駆動のAIツールピックアップ生成バッチ
     crawlers/
@@ -233,6 +236,19 @@ Supabase Authなどの外部サービスは使わず、bcryptjsによるパス�
 ## 定期実行（本番）
 
 `instrumentation.ts`のインプロセスタイマーはVercelのようなサーバーレス環境では動かないため、本番では`vercel.json`（週次のAIツールピックアップ更新・週次ダイジェスト送信）と`.github/workflows/cron-refresh.yml`（3時間おきのフィード更新・週次のAIツールピックアップ更新・毎日6時JSTのポッドキャスト生成）を使う。詳細は[DEPLOY.md](./DEPLOY.md)を参照。
+
+## AI連携（Claude / ChatGPT / Gemini）
+
+フィード・AIツールピックアップ・ポッドキャストは、すべて認証不要・無料で外部のAIアシスタントから参照できる。
+生成をトリガーするツールは意図的に含めていない（誰でも呼べる公開エンドポイントなので、Gemini生成コストが青天井にならないよう既にキャッシュ済み・公開済みのデータの読み取りだけに限定）。
+
+- **Claude Code / Claude Desktop（MCP）**: [Vercel公式のmcp-handler](https://github.com/vercel/mcp-handler)（Streamable HTTP transport）で`/api/mcp`にMCPサーバーを実装済み。`get_feed`・`search_articles`・`get_ai_tool_picks`・`get_latest_podcast`の4ツールを提供。
+  ```bash
+  claude mcp add --transport http tech-trend-catchup https://dev-current.vercel.app/api/mcp
+  ```
+  Claude Desktop / claude.aiでも「設定＞コネクタ」から同じURLを追加すれば利用可能（バージョンにより`mcp-remote`経由になる場合あり）。
+- **ChatGPT（カスタムGPT）**: `https://dev-current.vercel.app/openapi.json` をカスタムGPTの「Actions」にそのまま登録すれば、同じ4種類のデータをGETリクエストとして呼び出せる。
+- **Gemini**: 現時点でサードパーティが簡単に登録できる拡張機能の仕組みが無いため、上記OpenAPI仕様書を参照する形での手動連携、またはGemini APIのFunction Callingを使った自作クライアントでの利用を想定（Claude/ChatGPTほど手軽な「URLを貼るだけ」の連携方法は無い）。
 
 ## 開発状況
 

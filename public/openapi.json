@@ -1,0 +1,154 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "技術トレンド キャッチアップ API",
+    "description": "Qiita/Zenn/Hacker News/ArXivから自動収集した技術記事フィード、Gemini選定のAIツールピックアップ、音声ポッドキャストを取得できる読み取り専用の公開API。認証不要・無料。Claude Code/Claude Desktopからは同じデータをMCPサーバー（/api/mcp）経由でも利用できます。",
+    "version": "1.0.0"
+  },
+  "servers": [{ "url": "https://dev-current.vercel.app" }],
+  "paths": {
+    "/api/feed": {
+      "get": {
+        "operationId": "getFeed",
+        "summary": "技術記事フィードを取得",
+        "description": "日別または週間（直近7日間、JST基準）の注目ピックアップと通常記事一覧を返します。",
+        "parameters": [
+          { "name": "period", "in": "query", "schema": { "type": "string", "enum": ["day", "week"], "default": "week" }, "description": "day=指定日のみ, week=直近7日間" },
+          { "name": "date", "in": "query", "schema": { "type": "string", "format": "date" }, "description": "YYYY-MM-DD（JST）。未指定なら今日" },
+          { "name": "country", "in": "query", "schema": { "type": "string" }, "description": "発信国で絞り込む（例: アメリカ）" }
+        ],
+        "responses": {
+          "200": {
+            "description": "フィード取得成功",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FeedResponse" } } }
+          }
+        }
+      }
+    },
+    "/api/search": {
+      "get": {
+        "operationId": "searchArticles",
+        "summary": "記事をタイトル検索",
+        "description": "これまでにクロールした全期間の記事を、タイトルのキーワードで横断検索します。",
+        "parameters": [
+          { "name": "q", "in": "query", "required": true, "schema": { "type": "string", "minLength": 2 }, "description": "検索キーワード（2文字以上）" }
+        ],
+        "responses": {
+          "200": {
+            "description": "検索成功",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SearchResponse" } } }
+          }
+        }
+      }
+    },
+    "/api/tools": {
+      "get": {
+        "operationId": "getAiToolPicks",
+        "summary": "話題のAIツール一覧を取得",
+        "description": "Geminiが選定した今話題のAIサービス・アプリ・開発支援ツールのピックアップを取得します。",
+        "parameters": [
+          { "name": "offset", "in": "query", "schema": { "type": "integer", "default": 0 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "取得成功",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AiToolPicksResponse" } } }
+          }
+        }
+      }
+    },
+    "/api/podcast/latest": {
+      "get": {
+        "operationId": "getLatestPodcast",
+        "summary": "最新の音声ポッドキャストエピソードを取得",
+        "description": "その週の注目記事を2人のパーソナリティが解説する、最新エピソードの情報（台本・音声URL・取り上げた記事一覧）を取得します。",
+        "responses": {
+          "200": {
+            "description": "取得成功",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PodcastLatestResponse" } } }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "FeedArticle": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "url": { "type": "string" },
+          "title": { "type": ["string", "null"] },
+          "sourceType": { "type": "string", "enum": ["QIITA", "ZENN", "HACKER_NEWS", "ARXIV", "AI_TOOL_PICK", "USER_SUBMITTED"] },
+          "publishedAt": { "type": ["string", "null"], "format": "date-time" },
+          "country": { "type": ["string", "null"] },
+          "engagementScore": { "type": ["integer", "null"] },
+          "hasInsight": { "type": "boolean" }
+        }
+      },
+      "FeedResponse": {
+        "type": "object",
+        "properties": {
+          "period": { "type": "string", "enum": ["day", "week"] },
+          "date": { "type": "string" },
+          "featured": { "type": "array", "items": { "$ref": "#/components/schemas/FeedArticle" } },
+          "regular": { "type": "array", "items": { "$ref": "#/components/schemas/FeedArticle" } },
+          "regularOffset": { "type": "integer" },
+          "regularCount": { "type": "integer" },
+          "regularTotal": { "type": "integer" },
+          "hasMore": { "type": "boolean" }
+        }
+      },
+      "SearchResponse": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string" },
+          "results": { "type": "array", "items": { "$ref": "#/components/schemas/FeedArticle" } },
+          "offset": { "type": "integer" },
+          "count": { "type": "integer" },
+          "total": { "type": "integer" },
+          "hasMore": { "type": "boolean" }
+        }
+      },
+      "AiToolPick": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "category": { "type": "string" },
+          "summary": { "type": "string" },
+          "recommendedFor": { "type": "string" },
+          "useCaseExample": { "type": "string" },
+          "sourceUrl": { "type": ["string", "null"] },
+          "publishedAt": { "type": ["string", "null"], "format": "date-time" }
+        }
+      },
+      "AiToolPicksResponse": {
+        "type": "object",
+        "properties": {
+          "picks": { "type": "array", "items": { "$ref": "#/components/schemas/AiToolPick" } },
+          "offset": { "type": "integer" },
+          "count": { "type": "integer" },
+          "total": { "type": "integer" },
+          "hasMore": { "type": "boolean" }
+        }
+      },
+      "PodcastEpisode": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "date": { "type": "string" },
+          "audioUrl": { "type": "string" },
+          "script": { "type": "string" },
+          "durationSec": { "type": ["integer", "null"] }
+        }
+      },
+      "PodcastLatestResponse": {
+        "type": "object",
+        "properties": {
+          "episode": { "anyOf": [{ "$ref": "#/components/schemas/PodcastEpisode" }, { "type": "null" }] }
+        }
+      }
+    }
+  }
+}
