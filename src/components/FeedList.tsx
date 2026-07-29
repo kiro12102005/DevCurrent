@@ -10,6 +10,7 @@ import { formatShortDateWithWeekday, jstDateStringDaysAgo, jstTodayString } from
 import { countryFlag } from "@/lib/countryLabels";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { PodcastPlayer } from "./PodcastPlayer";
+import { ShareButton } from "./ShareButton";
 
 const DAY_CHIPS = Array.from({ length: 7 }, (_, i) => jstDateStringDaysAgo(i)); // today, then back 6 more days
 const SEARCH_DEBOUNCE_MS = 400;
@@ -419,14 +420,17 @@ function FeedCard({
         </p>
       </button>
       <div className="mt-2 flex items-center justify-between gap-2 flex-wrap">
-        <a
-          href={article.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-indigo-600 hover:underline"
-        >
-          元記事を読む ↗
-        </a>
+        <div className="flex items-center gap-1">
+          <a
+            href={article.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-indigo-600 hover:underline"
+          >
+            元記事を読む ↗
+          </a>
+          <ShareButton title={article.title ?? article.url} url={article.url} className="p-1 text-gray-400 hover:text-indigo-600" />
+        </div>
         {onToggleState && (
           <div className="flex items-center gap-1.5">
             <button

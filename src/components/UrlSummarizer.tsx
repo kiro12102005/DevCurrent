@@ -8,6 +8,7 @@ import { ArticleNotes } from "./ArticleNotes";
 import { GithubRepoCard } from "./GithubRepoCard";
 import { HandsOnGenerator } from "./HandsOnGenerator";
 import { EditorConfigGenerator } from "./EditorConfigGenerator";
+import { ShareButton } from "./ShareButton";
 import { useStoredApiKey } from "@/lib/apiKeyStorage";
 import { SOURCE_BADGE_CLASS, SOURCE_LABEL } from "@/lib/sourceLabels";
 import { formatArticleDate } from "@/lib/formatDate";
@@ -135,14 +136,21 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
                 )}
               </div>
               <h2 className="text-lg font-bold">{result.article.title ?? "無題の記事"}</h2>
-              <a
-                href={result.article.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block mt-1 text-xs text-indigo-600 hover:underline"
-              >
-                元記事を読む ↗
-              </a>
+              <div className="flex items-center gap-1 mt-1">
+                <a
+                  href={result.article.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block text-xs text-indigo-600 hover:underline"
+                >
+                  元記事を読む ↗
+                </a>
+                <ShareButton
+                  title={result.article.title ?? result.article.url}
+                  url={result.article.url}
+                  className="p-1 text-gray-400 hover:text-indigo-600"
+                />
+              </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0 print:hidden">
               {result.cached && (
