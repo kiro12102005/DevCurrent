@@ -8,6 +8,7 @@ import { InterviewPractice } from "./InterviewPractice";
 import { SharePageSettings } from "./SharePageSettings";
 import { RepoBreakingChangeCheck } from "./RepoBreakingChangeCheck";
 import { FeedbackForm } from "./FeedbackForm";
+import { ContactCard } from "./ContactCard";
 
 const SECTIONS = [
   { key: "saved", icon: Bookmark, label: "保存済み" },
@@ -48,7 +49,12 @@ export function MyPage({ onSelectArticle }: { onSelectArticle: (url: string) => 
       {section === "interview" && <InterviewPractice />}
       {section === "repo" && <RepoBreakingChangeCheck />}
       {section === "share" && <SharePageSettings />}
-      {section === "feedback" && <FeedbackForm />}
+      {section === "feedback" && (
+        <div className="flex flex-col gap-4">
+          <ContactCard />
+          <FeedbackForm />
+        </div>
+      )}
     </div>
   );
 }
