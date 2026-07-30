@@ -1,6 +1,7 @@
 "use client"; // Error boundaries must be Client Components
 
 import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
 
 // Catches errors in the root layout itself (rare, but if it happens error.tsx
 // can't help since it's also inside the layout tree) - must define its own
@@ -14,6 +15,7 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     console.error(error);
+    Sentry.captureException(error); // Next.js catches global-error.tsx boundary errors before Sentry can
     fetch("/api/log-client-error", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

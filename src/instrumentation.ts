@@ -1,17 +1,32 @@
-// Next.js calls register() once when the server process starts. We use it to
-// run the feed crawler on a recurring timer for any long-running deployment
+import * as Sentry from "@sentry/nextjs";
+
+// Next.js calls register() once when the server process starts, for both the
+// nodejs AND edge runtime targets - load the matching Sentry init for each.
+export async function register() {
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    await import("./sentry.server.config");
+    startFeedCron();
+  }
+
+  if (process.env.NEXT_RUNTIME === "edge") {
+    await import("./sentry.edge.config");
+  }
+}
+
+// Automatically captures Server Component / Server Action / Route Handler
+// errors that reach Next.js without being manually caught.
+export const onRequestError = Sentry.captureRequestError;
+
+// Runs the feed crawler on a recurring timer for any long-running deployment
 // (self-hosted, Docker, this devcontainer). Serverless deployments (Vercel)
 // can't keep a setInterval alive between requests - for those, hit
 // POST /api/feed/refresh from Vercel Cron or a GitHub Actions schedule instead.
 //
 // This calls the /api/feed/refresh route over HTTP rather than importing
-// refreshFeed() directly. Next.js compiles instrumentation.ts for both the
-// nodejs AND edge runtime targets, and a direct import drags in web-push
-// (Node-only, needs "http"/"https") into the edge bundle, which fails to
-// compile. Going through the route keeps that import confined to the route
-// handler, which Next always bundles nodejs-only.
-export async function register() {
-  if (process.env.NEXT_RUNTIME !== "nodejs") return;
+// refreshFeed() directly, so the web-push import it drags in (Node-only,
+// needs "http"/"https") stays confined to the route handler instead of this
+// file, which Next.js also compiles for the edge runtime target.
+function startFeedCron() {
   if (process.env.ENABLE_AUTO_FEED_CRON === "false") return;
 
   const globalForCron = globalThis as unknown as { __feedCronStarted?: boolean };

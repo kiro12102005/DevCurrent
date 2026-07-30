@@ -80,6 +80,8 @@ npx vercel --prod # 本番デプロイ
 | `FEEDBACK_NOTIFY_EMAIL` | 任意。マイページ＞フィードバックの送信内容を通知するメール送信先。`RESEND_API_KEY`未設定時は通知メールだけスキップされ、投稿自体はDBに保存される |
 | `ABUSE_ALERT_EMAIL` | 任意。ログイン・要約・フィードバックなど不正利用対策の対象エンドポイント（下記セクション7参照）で、単一IPから短時間に大量アクセス（5分で40回以上）を検知した際の通知メール送信先。ブロックはせず通知のみ（`src/lib/abuseAlert.ts`、サーバーのメモリ上でカウント・DBには書き込まない）。`RESEND_API_KEY`未設定時は通知自体がスキップされる |
 | `BLOB_READ_WRITE_TOKEN` | 音声ポッドキャストを使うなら必須。`vercel blob create-store <name> --access public --yes`で作成すると自動的にVercelプロジェクトの環境変数へ注入される（`.env.local`にも自動反映）。未設定でも他機能に影響なし（ポッドキャスト生成だけスキップ） |
+| `NEXT_PUBLIC_SENTRY_DSN` / `SENTRY_DSN` | Sentryエラートラッキング用DSN（[sentry.io](https://sentry.io)の Settings > Projects > Client Keys で取得）。同じ値を両方に設定。未設定でもビルド・起動は通るがエラーが送信されない |
+| `SENTRY_ORG` / `SENTRY_PROJECT` / `SENTRY_AUTH_TOKEN` | 任意。本番スタックトレースをソースマップ付きで見たい場合に設定（`SENTRY_AUTH_TOKEN`は`project:releases`スコープが必要）。未設定だとアップロードが静かにスキップされ、Sentry上のスタックトレースはminifyされたコードのまま |
 
 ## 5. 定期実行（自動クロール・自動キュレーション・週次ダイジェスト）
 

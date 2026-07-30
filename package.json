@@ -18,6 +18,7 @@
     "@google/genai": "^2.13.0",
     "@modelcontextprotocol/sdk": "1.26.0",
     "@prisma/client": "^6.19.3",
+    "@sentry/nextjs": "^10.69.0",
     "@vercel/blob": "^2.6.1",
     "bcryptjs": "^3.0.3",
     "cheerio": "^1.2.0",
@@ -52,9 +53,12 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
+      "@google/genai",
       "@prisma/client",
       "@prisma/engines",
-      "prisma"
+      "@sentry/cli",
+      "prisma",
+      "protobufjs"
     ],
     "overrides": {
       "postcss": ">=8.5.18",

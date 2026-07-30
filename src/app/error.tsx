@@ -1,6 +1,7 @@
 "use client"; // Error boundaries must be Client Components
 
 import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
 import { useT } from "@/lib/i18n/useT";
 
 export default function ErrorPage({
@@ -14,6 +15,7 @@ export default function ErrorPage({
 
   useEffect(() => {
     console.error(error);
+    Sentry.captureException(error); // Next.js catches error.tsx boundary errors before Sentry can
     fetch("/api/log-client-error", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

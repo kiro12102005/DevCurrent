@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import withPWAInit from "@ducanh2912/next-pwa";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -48,4 +49,33 @@ const withPWA = withPWAInit({
   extendDefaultRuntimeCaching: true,
 });
 
-export default withPWA(nextConfig);
+export default withSentryConfig(withPWA(nextConfig), {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+
+  // Source map upload auth token - unset for now (see DEPLOY.md), so uploads
+  // are silently skipped and production stack traces show minified code
+  // until it's configured.
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  widenClientFileUpload: true,
+
+  // Proxies Sentry's own requests through our domain so ad-blockers don't
+  // silently drop client-side events/replays.
+  tunnelRoute: "/monitoring",
+
+  silent: !process.env.CI,
+
+  // Disabled: the rollup-based AST rewrite this performs (auto-wrapping
+  // every page/API-route/route-handler/server-component for finer-grained
+  // per-route tracing spans) fails to resolve its own
+  // @rollup/rollup-linux-x64-gnu optional dependency through Next.js's
+  // build-time require-hook in this environment, which hard-fails the whole
+  // build. Error capture is unaffected - that comes from onRequestError in
+  // instrumentation.ts, not this wrapping.
+  webpack: {
+    autoInstrumentServerFunctions: false,
+    autoInstrumentAppDirectory: false,
+    autoInstrumentMiddleware: false,
+  },
+});
