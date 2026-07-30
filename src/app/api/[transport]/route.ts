@@ -5,6 +5,7 @@ import { SourceType } from "@/generated/prisma";
 import { ARTICLE_LIST_SELECT, toFeedArticle } from "@/lib/articleSelect";
 import { getFeedPage } from "@/lib/feedQuery";
 import { jstTodayString } from "@/lib/dateRange";
+import { recordAndCheckAbuse } from "@/lib/abuseAlert";
 
 const SEARCH_PAGE_SIZE = 20;
 const MIN_QUERY_LENGTH = 2;
@@ -109,4 +110,12 @@ const handler = createMcpHandler(
   { basePath: "/api", maxDuration: 60 }
 );
 
-export { handler as GET, handler as POST };
+export function GET(req: Request) {
+  recordAndCheckAbuse(req, "/api/mcp");
+  return handler(req);
+}
+
+export function POST(req: Request) {
+  recordAndCheckAbuse(req, "/api/mcp");
+  return handler(req);
+}

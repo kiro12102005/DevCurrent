@@ -119,3 +119,41 @@ export async function notifyFeedbackSubmission(feedback: {
     console.error("[feedback] operator notification email failed:", err);
   }
 }
+
+// Best-effort alert when recordAndCheckAbuse (lib/abuseAlert.ts) sees a
+// single IP cross its in-memory threshold on a sensitive endpoint. Purely
+// informational - doesn't block anything itself (see DEPLOY.md section 7 for
+// the actual Vercel Firewall rate-limit rule, which can be promoted to real
+// blocking after reviewing traffic). Separate env var from
+// FEEDBACK_NOTIFY_EMAIL so the two concerns can be routed differently later.
+// Silently no-ops if RESEND_API_KEY or ABUSE_ALERT_EMAIL isn't configured,
+// same degrade-gracefully pattern as the rest of this file.
+export async function notifyAbuseDetected(info: {
+  ip: string;
+  path: string;
+  hitCount: number;
+  windowMinutes: number;
+}): Promise<void> {
+  const client = resendClient();
+  const notifyTo = process.env.ABUSE_ALERT_EMAIL;
+  if (!client || !notifyTo) return;
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
+      <h1 style="font-size:16px;">⚠️ 不審なアクセスを検知しました</h1>
+      <p><strong>IPアドレス:</strong> ${escapeHtml(info.ip)}</p>
+      <p><strong>エンドポイント:</strong> ${escapeHtml(info.path)}</p>
+      <p><strong>直近${info.windowMinutes}分間のリクエスト数:</strong> ${info.hitCount}</p>
+      <p style="color:#999;font-size:12px;margin-top:24px;">
+        これは通知のみで、自動ブロックはしていません。実際にブロックする場合はVercel Firewallのルールを有効化してください。
+      </p>
+    </div>
+  `;
+
+  const from = process.env.RESEND_FROM || "onboarding@resend.dev";
+  try {
+    await client.emails.send({ from, to: notifyTo, subject: `[不審なアクセス検知] ${info.path}`, html });
+  } catch (err) {
+    console.error("[abuseAlert] notification email failed:", err);
+  }
+}

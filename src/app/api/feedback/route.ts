@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth/session";
 import { notifyFeedbackSubmission } from "@/lib/email";
+import { recordAndCheckAbuse } from "@/lib/abuseAlert";
 
 const FEEDBACK_TYPES = ["bug", "suggestion", "other"] as const;
 
@@ -18,6 +19,7 @@ const bodySchema = z.object({
 // automatically (not the freeform `email` field, which is only for
 // anonymous submitters who want a reply).
 export async function POST(req: Request) {
+  recordAndCheckAbuse(req, "/api/feedback");
   const body = await req.json().catch(() => null);
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {

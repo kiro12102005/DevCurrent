@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { refreshAiToolPicks } from "@/lib/curation/aiToolPicks";
 import { isAuthorizedCronRequest } from "@/lib/cronAuth";
+import { recordAndCheckAbuse } from "@/lib/abuseAlert";
 
 // Triggers a Gemini-curated refresh of the "AIツール" pickup list (server
 // GEMINI_API_KEY - shared content, same reasoning as feed featured picks).
@@ -22,13 +23,15 @@ async function handleRefresh() {
 // require a server-only secret. GitHub Actions calls this too (its
 // x-cron-secret header is simply ignored here). Safe to leave open:
 // refreshAiToolPicks() upserts by name, so repeat calls just refresh the same rows.
-export async function POST() {
+export async function POST(req: Request) {
+  recordAndCheckAbuse(req, "/api/tools/refresh");
   return handleRefresh();
 }
 
 // GET: Vercel Cron only (nothing in the UI calls GET on this route), which sends
 // "Authorization: Bearer $CRON_SECRET" automatically - keep this one authenticated.
 export async function GET(req: Request) {
+  recordAndCheckAbuse(req, "/api/tools/refresh");
   if (!isAuthorizedCronRequest(req)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }

@@ -227,6 +227,7 @@ src/
     pushClient.ts                  # ブラウザ側のPush購読ヘルパー
     apiKeyStorage.ts                # localStorageでのBYOKキー管理（useSyncExternalStore）
     cronAuth.ts                      # スケジューラ認証共通ロジック（x-cron-secret / Vercel CronのBearerヘッダー両対応）
+    abuseAlert.ts                    # 不正利用対策の対象エンドポイントでIPごとのアクセス数をメモリ上で計測し、閾値超過時に通知メールを送る（ブロックはしない）
     tags.ts                          # 固定タグ一覧＋タイトルからのキーワード判定（無料・Gemini不使用）
     email.ts                         # Resend経由の週次ダイジェスト送信
     weeklyPicks.ts                    # 週次注目ピックアップの取得（週次ダイジェストとポッドキャスト台本生成が共有）

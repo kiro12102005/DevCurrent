@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth/password";
 import { createSession } from "@/lib/auth/session";
+import { recordAndCheckAbuse } from "@/lib/abuseAlert";
 
 const requestSchema = z.object({
   email: z.string().trim().toLowerCase().email("有効なメールアドレスを入力してください"),
@@ -10,6 +11,7 @@ const requestSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  recordAndCheckAbuse(req, "/api/auth/signup");
   const body = await req.json().catch(() => null);
   const parsed = requestSchema.safeParse(body);
   if (!parsed.success) {

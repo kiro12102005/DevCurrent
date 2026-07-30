@@ -78,6 +78,7 @@ npx vercel --prod # 本番デプロイ
 | `ENABLE_AUTO_FEED_CRON` | `"false"`にする（Vercelはサーバーレスなので`instrumentation.ts`のインプロセスタイマーは使えない。下記のスケジューラで代替） |
 | `RESEND_API_KEY` / `RESEND_FROM` | 任意。週次ダイジェストメール用（[resend.com](https://resend.com)で取得）。未設定でも他機能に影響なし |
 | `FEEDBACK_NOTIFY_EMAIL` | 任意。マイページ＞フィードバックの送信内容を通知するメール送信先。`RESEND_API_KEY`未設定時は通知メールだけスキップされ、投稿自体はDBに保存される |
+| `ABUSE_ALERT_EMAIL` | 任意。ログイン・要約・フィードバックなど不正利用対策の対象エンドポイント（下記セクション7参照）で、単一IPから短時間に大量アクセス（5分で40回以上）を検知した際の通知メール送信先。ブロックはせず通知のみ（`src/lib/abuseAlert.ts`、サーバーのメモリ上でカウント・DBには書き込まない）。`RESEND_API_KEY`未設定時は通知自体がスキップされる |
 | `BLOB_READ_WRITE_TOKEN` | 音声ポッドキャストを使うなら必須。`vercel blob create-store <name> --access public --yes`で作成すると自動的にVercelプロジェクトの環境変数へ注入される（`.env.local`にも自動反映）。未設定でも他機能に影響なし（ポッドキャスト生成だけスキップ） |
 
 ## 5. 定期実行（自動クロール・自動キュレーション・週次ダイジェスト）
@@ -105,15 +106,18 @@ npx vercel --prod # 本番デプロイ
 - `POST /api/feed/refresh`を手動で一度叩いて記事が入るか確認（`x-cron-secret`ヘッダー必須）
 - プッシュ通知の購読・受信ができるか
 
-## 7. Vercel Firewallでのレート制限（任意・要手動publish）
+## 7. Vercel Firewallでのレート制限・不正利用アラート
 
-`/api/auth/login`・`/api/auth/signup`・`/api/feed/refresh`・`/api/tools/refresh`・`/api/feedback`・`/api/summarize`・`/api/mcp`に対して、IPごと300秒あたり15リクエストの制限ルールを`vercel firewall`コマンドでステージング済み（`fixed_window`・IPキー・現状は`log`のみでブロックはしない設定）。
+`/api/auth/login`・`/api/auth/signup`・`/api/feed/refresh`・`/api/tools/refresh`・`/api/feedback`・`/api/summarize`・`/api/mcp`に対して、IPごと300秒あたり15リクエストの制限ルールを`vercel firewall`コマンドで設定・publish済み（`fixed_window`・IPキー、**現状は`log`のみでブロックはしない設定**）。
 
-CLIでのルール変更は下書き（staged）扱いで、実際に反映するには**ダッシュボードでトラフィックを確認した上で自分で**以下を実行する必要があります（エージェントからの自動publishは行いません）:
+ダッシュボードでトラフィックを確認し、悪意ある連打だけが引っかかっていて正当な利用が誤検知されていないことを確認できたら、以下で実際にブロックする設定へ切り替えられます:
 
 ```bash
-vercel firewall diff          # ステージング中の変更を確認
+vercel firewall rules edit "Rate limit sensitive endpoints" --rate-limit-action rate_limit --yes
+vercel firewall diff          # 変更内容を確認
 vercel firewall publish --yes # 本番反映
 ```
 
 無料のHobbyプランでもDDoS自動緩和は標準搭載されていますが、このカスタムルールはログイン試行やAPIエンドポイントへの連打を個別に抑えるための追加レイヤーです。
+
+**アプリ側の不正利用アラート（`src/lib/abuseAlert.ts`）**: 上記と同じ7エンドポイントに対して、単一IPから5分間に40回以上のアクセスがあった場合（Firewallの閾値より意図的に高く設定し誤検知を減らしている）、`ABUSE_ALERT_EMAIL`宛にメール通知が届く仕組みも実装済み（サーバーのメモリ上でカウントするだけでDBには書き込まない・ブロックはしない・同一IPへの通知は1時間に1通までのクールダウンあり）。Firewallのダッシュボードを能動的に見に行かなくても、実際に閾値を超えるアクセスがあった時に気づける保険的な仕組み。

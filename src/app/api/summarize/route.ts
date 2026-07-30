@@ -6,6 +6,7 @@ import { scrapeArticle } from "@/lib/scrape";
 import { generateInsight } from "@/lib/gemini";
 import { parseGeneration, persistInsight } from "@/lib/summarize";
 import { getTranslatedInsight } from "@/lib/translate";
+import { recordAndCheckAbuse } from "@/lib/abuseAlert";
 
 const requestSchema = z.object({
   url: z.string().url("有効なURLを入力してください"),
@@ -13,6 +14,7 @@ const requestSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  recordAndCheckAbuse(req, "/api/summarize");
   const body = await req.json().catch(() => null);
   const parsed = requestSchema.safeParse(body);
   if (!parsed.success) {
