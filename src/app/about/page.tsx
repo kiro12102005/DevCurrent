@@ -1,3 +1,5 @@
+// JA-only for now - long prose page (design-decisions writeup), out of scope
+// for the i18n sweep (see src/lib/i18n/).
 import Link from "next/link";
 import type { Metadata } from "next";
 import {

@@ -5,6 +5,7 @@ import { Mic, ChevronDown, ChevronUp } from "lucide-react";
 import type { PodcastEpisodeDto } from "@/types/podcast";
 import { SOURCE_LABEL, SOURCE_BADGE_CLASS } from "@/lib/sourceLabels";
 import { hapticTap } from "@/lib/haptics";
+import { useT } from "@/lib/i18n/useT";
 
 const COLLAPSE_STORAGE_KEY = "podcast_collapsed_date";
 
@@ -31,6 +32,7 @@ export function PodcastPlayer() {
   // day's episode automatically starts expanded again.
   const [collapsed, setCollapsed] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const t = useT();
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -71,8 +73,8 @@ export function PodcastPlayer() {
     if (!episode || typeof navigator === "undefined" || !("mediaSession" in navigator)) return;
 
     navigator.mediaSession.metadata = new MediaMetadata({
-      title: "今日のポッドキャスト",
-      artist: "技術トレンド キャッチアップ",
+      title: t.podcastPlayer.title,
+      artist: t.podcastPlayer.mediaSessionArtist,
       album: episode.date,
       artwork: [
         { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
@@ -98,7 +100,7 @@ export function PodcastPlayer() {
       navigator.mediaSession.setActionHandler("seekbackward", null);
       navigator.mediaSession.setActionHandler("seekforward", null);
     };
-  }, [episode]);
+  }, [episode, t]);
 
   // Keep the lock-screen play/pause indicator in sync with actual playback
   // state (e.g. if the user pauses from the lock screen vs. the in-app button).
@@ -129,7 +131,7 @@ export function PodcastPlayer() {
         className="w-full flex items-center justify-between gap-2 rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 px-4 py-2.5 print:hidden text-left"
       >
         <span className="font-semibold text-gray-500 dark:text-gray-400 text-sm flex items-center gap-1.5">
-          <Mic className="w-3.5 h-3.5" strokeWidth={2.25} /> 今日のポッドキャスト
+          <Mic className="w-3.5 h-3.5" strokeWidth={2.25} /> {t.podcastPlayer.title}
           <span className="text-[11px] font-normal text-gray-400 dark:text-gray-500">{episode.date}</span>
         </span>
         <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" strokeWidth={2.25} />
@@ -141,20 +143,20 @@ export function PodcastPlayer() {
     <div className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-4 print:hidden">
       <div className="flex items-center justify-between gap-2 mb-2">
         <p className="font-bold text-gray-800 dark:text-gray-100 flex items-center gap-1.5">
-          <Mic className="w-4 h-4" strokeWidth={2.25} /> 今日のポッドキャスト
+          <Mic className="w-4 h-4" strokeWidth={2.25} /> {t.podcastPlayer.title}
           <span className="text-[11px] font-normal text-gray-400 dark:text-gray-500">
             {episode.date}{episode.durationSec ? ` ・ ${formatDuration(episode.durationSec)}` : ""}
           </span>
         </p>
         <div className="flex items-center gap-2 shrink-0">
           <button type="button" onClick={() => setShowScript((v) => !v)} className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">
-            {showScript ? "台本を隠す" : "台本を見る"}
+            {showScript ? t.podcastPlayer.hideScript : t.podcastPlayer.showScript}
           </button>
           <button
             type="button"
             onClick={handleCollapse}
-            aria-label="しまう"
-            title="しまう（明日また表示されます）"
+            aria-label={t.podcastPlayer.collapseAriaLabel}
+            title={t.podcastPlayer.collapseTitle}
             className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 p-0.5"
           >
             <ChevronUp className="w-4 h-4" strokeWidth={2.25} />
@@ -162,7 +164,7 @@ export function PodcastPlayer() {
         </div>
       </div>
       <audio ref={audioRef} controls preload="none" src={episode.audioUrl} className="w-full h-10">
-        お使いのブラウザは音声再生に対応していません。
+        {t.podcastPlayer.audioUnsupported}
       </audio>
 
       {episode.sourceArticles.length > 0 && (
@@ -171,7 +173,9 @@ export function PodcastPlayer() {
           onClick={() => setShowSources((v) => !v)}
           className="mt-2 text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
         >
-          {showSources ? "取り上げた記事を隠す" : `取り上げた記事を見る（${episode.sourceArticles.length}件）`}
+          {showSources
+            ? t.podcastPlayer.hideSources
+            : t.podcastPlayer.showSources.replace("{n}", String(episode.sourceArticles.length))}
         </button>
       )}
 

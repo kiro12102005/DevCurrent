@@ -293,6 +293,108 @@ ${titles.map((t, i) => `${i}: ${t}`).join("\n")}
   return result;
 }
 
+export type TranslationLanguage = "en" | "zh";
+
+const TRANSLATION_LANGUAGE_NAMES: Record<TranslationLanguage, string> = {
+  en: "English",
+  zh: "Simplified Chinese (简体中文)",
+};
+
+const INSIGHT_TRANSLATION_SCHEMA = {
+  type: "object",
+  properties: {
+    summary: { type: "string" },
+    pros: { type: "array", items: { type: "string" } },
+    cons: { type: "array", items: { type: "string" } },
+    outlook: { type: "string" },
+    breakingChangeSummary: { type: "string", description: "Empty string if the input was empty" },
+    debateProArguments: { type: "array", items: { type: "string" } },
+    debateConArguments: { type: "array", items: { type: "string" } },
+    glossary: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: { term: { type: "string" }, explanation: { type: "string" } },
+        required: ["term", "explanation"],
+      },
+    },
+  },
+  required: [
+    "summary",
+    "pros",
+    "cons",
+    "outlook",
+    "breakingChangeSummary",
+    "debateProArguments",
+    "debateConArguments",
+    "glossary",
+  ],
+} as const;
+
+export interface InsightTranslationInput {
+  summary: string;
+  pros: string[];
+  cons: string[];
+  outlook: string;
+  breakingChangeSummary: string | null;
+  debateMatrix: { pro: string[]; con: string[] } | null;
+  glossary: { term: string; explanation: string }[];
+}
+
+export interface InsightTranslationResult {
+  summary: string;
+  pros: string[];
+  cons: string[];
+  outlook: string;
+  breakingChangeSummary: string | null;
+  debateMatrix: { pro: string[]; con: string[] } | null;
+  glossary: { term: string; explanation: string }[];
+}
+
+// Translates an already-generated Japanese insight into another language.
+// Deliberately separate from generateInsight (translation is far cheaper than
+// the original analysis) and always uses the operator key - the result is
+// cached per (AIGeneration, language) in the DB (see lib/translate.ts), so
+// this runs once ever per article+language, not per request.
+export async function translateInsightContent(
+  input: InsightTranslationInput,
+  lang: TranslationLanguage
+): Promise<InsightTranslationResult> {
+  const prompt = `Translate the following Japanese tech-article analysis into natural, fluent ${TRANSLATION_LANGUAGE_NAMES[lang]}, for a technical audience. Preserve product/library names and proper nouns as-is where that's the natural convention (don't force-translate names like "React" or "Next.js"). Keep the technical meaning precise - this is not casual text.
+
+summary: ${input.summary}
+pros: ${JSON.stringify(input.pros)}
+cons: ${JSON.stringify(input.cons)}
+outlook: ${input.outlook}
+breakingChangeSummary: ${input.breakingChangeSummary ?? ""}
+debateMatrix.pro: ${JSON.stringify(input.debateMatrix?.pro ?? [])}
+debateMatrix.con: ${JSON.stringify(input.debateMatrix?.con ?? [])}
+glossary: ${JSON.stringify(input.glossary)}
+
+Return the same structure translated. If breakingChangeSummary was empty, return an empty string. If a debate array was empty, return an empty array.`;
+
+  const result = await generateJson<{
+    summary: string;
+    pros: string[];
+    cons: string[];
+    outlook: string;
+    breakingChangeSummary: string;
+    debateProArguments: string[];
+    debateConArguments: string[];
+    glossary: { term: string; explanation: string }[];
+  }>(prompt, INSIGHT_TRANSLATION_SCHEMA, undefined, 0.2);
+
+  return {
+    summary: result.summary,
+    pros: result.pros,
+    cons: result.cons,
+    outlook: result.outlook,
+    breakingChangeSummary: result.breakingChangeSummary || null,
+    debateMatrix: input.debateMatrix === null ? null : { pro: result.debateProArguments, con: result.debateConArguments },
+    glossary: result.glossary,
+  };
+}
+
 const INTERVIEW_SCHEMA = {
   type: "object",
   properties: {

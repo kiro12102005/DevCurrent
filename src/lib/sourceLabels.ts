@@ -1,5 +1,8 @@
 import type { SourceType } from "@/types/insight";
 
+// Out of scope for the i18n sweep (see src/lib/i18n/) - most values are
+// already source proper nouns (Qiita/Zenn/Hacker News/ArXiv); only
+// AI_TOOL_PICK/USER_SUBMITTED are Japanese and stay that way for now.
 export const SOURCE_LABEL: Record<SourceType, string> = {
   QIITA: "Qiita",
   ZENN: "Zenn",

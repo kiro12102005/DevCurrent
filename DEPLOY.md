@@ -70,7 +70,7 @@ npx vercel --prod # 本番デプロイ
 | `DATABASE_URL` | Supabaseのpooling接続文字列 |
 | `DIRECT_URL` | Supabaseのdirect接続文字列 |
 | `AUTH_SECRET` | 本番用に新規生成（`node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`）。ローカル開発用の値を再利用しない |
-| `GEMINI_API_KEY` | 運営者用キー（任意・featured picksの自動要約とAIツールピックアップに使用） |
+| `GEMINI_API_KEY` | 運営者用キー（任意・featured picksの自動要約、AIツールピックアップ、UI言語がEN/ZHの時のURL要約結果の翻訳キャッシュ生成に使用） |
 | `GEMINI_MODEL` | 任意 |
 | `VAPID_PUBLIC_KEY` / `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | `npx web-push generate-vapid-keys`で本番用に新規生成 |
 | `VAPID_SUBJECT` | `mailto:` + 実際の連絡先 |
@@ -79,6 +79,7 @@ npx vercel --prod # 本番デプロイ
 | `RESEND_API_KEY` / `RESEND_FROM` | 任意。週次ダイジェストメール用（[resend.com](https://resend.com)で取得）。未設定でも他機能に影響なし |
 | `FEEDBACK_NOTIFY_EMAIL` | 任意。マイページ＞フィードバックの送信内容を通知するメール送信先。`RESEND_API_KEY`未設定時は通知メールだけスキップされ、投稿自体はDBに保存される |
 | `BLOB_READ_WRITE_TOKEN` | 音声ポッドキャストを使うなら必須。`vercel blob create-store <name> --access public --yes`で作成すると自動的にVercelプロジェクトの環境変数へ注入される（`.env.local`にも自動反映）。未設定でも他機能に影響なし（ポッドキャスト生成だけスキップ） |
+| `NEXT_PUBLIC_SPONSOR_URL` | 任意。マイページ＞フィードバックに表示される「開発を応援する」リンクの遷移先。GitHub Sponsors（[github.com/sponsors](https://github.com/sponsors)、無料で有効化可能・自分のGitHubアカウントに紐づけるだけ）を有効化して`https://github.com/sponsors/<自分のユーザー名>`を設定するか、他の投げ銭サービスのURLでも可。未設定ならリンク自体が非表示になる（死んだリンクを出さないため） |
 
 ## 5. 定期実行（自動クロール・自動キュレーション・週次ダイジェスト）
 

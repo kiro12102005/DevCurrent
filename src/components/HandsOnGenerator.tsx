@@ -5,6 +5,7 @@ import { FlaskConical, PlayCircle, Monitor, FileText } from "lucide-react";
 import { useStoredApiKey } from "@/lib/apiKeyStorage";
 import { downloadTextFile } from "@/lib/download";
 import type { HandsOnResponse } from "@/types/handsOn";
+import { useT } from "@/lib/i18n/useT";
 
 // "読むだけ" で終わらせない: 記事を読んだ流れでそのまま最小構成のコードを生成し、
 // 可能ならCodeSandboxで即座に開ける状態にする。BYOK生成なのでボタン押下トリガー式
@@ -14,6 +15,7 @@ export function HandsOnGenerator({ articleId, articleTitle }: { articleId: strin
   const [result, setResult] = useState<HandsOnResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const t = useT();
 
   async function handleGenerate() {
     setLoading(true);
@@ -28,10 +30,10 @@ export function HandsOnGenerator({ articleId, articleTitle }: { articleId: strin
         body: JSON.stringify({ articleId }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "生成に失敗しました");
+      if (!res.ok) throw new Error(data.error ?? t.common.generationFailedError);
       setResult(data as HandsOnResponse);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "生成に失敗しました");
+      setError(err instanceof Error ? err.message : t.common.generationFailedError);
     } finally {
       setLoading(false);
     }
@@ -40,11 +42,9 @@ export function HandsOnGenerator({ articleId, articleTitle }: { articleId: strin
   return (
     <section className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-5 print:hidden">
       <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-1.5">
-        <FlaskConical className="w-4 h-4" strokeWidth={2.25} /> 3分ハンズオン
+        <FlaskConical className="w-4 h-4" strokeWidth={2.25} /> {t.handsOnGenerator.title}
       </h3>
-      <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-3">
-        この記事のテーマを、Geminiが生成する最小構成コードで実際に試せます。
-      </p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-3">{t.handsOnGenerator.description}</p>
 
       {!result && (
         <button
@@ -53,7 +53,7 @@ export function HandsOnGenerator({ articleId, articleTitle }: { articleId: strin
           disabled={loading}
           className="rounded-lg brand-gradient px-4 py-2 text-sm font-semibold text-white disabled:opacity-40 transition-opacity"
         >
-          {loading ? "生成中..." : "ハンズオンコードを生成する"}
+          {loading ? t.common.generating : t.handsOnGenerator.generateButton}
         </button>
       )}
       {error && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p>}
@@ -69,12 +69,12 @@ export function HandsOnGenerator({ articleId, articleTitle }: { articleId: strin
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 self-start rounded-lg brand-gradient px-4 py-2 text-sm font-semibold text-white"
             >
-              <PlayCircle className="w-4 h-4" strokeWidth={2.25} /> CodeSandboxで開く
+              <PlayCircle className="w-4 h-4" strokeWidth={2.25} /> {t.handsOnGenerator.openInSandbox}
             </a>
           ) : (
             <p className="flex items-start gap-1.5 rounded-lg bg-gray-50 dark:bg-gray-800 px-3 py-2 text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
               <Monitor className="w-3.5 h-3.5 shrink-0 mt-0.5" strokeWidth={2.25} />
-              ローカルでの実行方法: {result.code.runInstructions}
+              {t.handsOnGenerator.localRunLabel}{result.code.runInstructions}
             </p>
           )}
 
@@ -88,7 +88,7 @@ export function HandsOnGenerator({ articleId, articleTitle }: { articleId: strin
                     onClick={() => navigator.clipboard?.writeText(f.content)}
                     className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline"
                   >
-                    コピー
+                    {t.common.copy}
                   </button>
                 </div>
                 <pre className="text-xs text-gray-700 dark:text-gray-300 p-3 overflow-x-auto bg-white dark:bg-gray-900 whitespace-pre">{f.content}</pre>
@@ -109,7 +109,7 @@ export function HandsOnGenerator({ articleId, articleTitle }: { articleId: strin
               }
               className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 px-3 py-1.5 text-[11px] font-semibold"
             >
-              <FileText className="w-3 h-3" strokeWidth={2.25} /> MDでダウンロード
+              <FileText className="w-3 h-3" strokeWidth={2.25} /> {t.handsOnGenerator.downloadMd}
             </button>
             <button
               type="button"
@@ -117,7 +117,7 @@ export function HandsOnGenerator({ articleId, articleTitle }: { articleId: strin
               disabled={loading}
               className="rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 px-3 py-1.5 text-[11px] font-semibold disabled:opacity-40"
             >
-              {loading ? "生成中..." : "作り直す"}
+              {loading ? t.common.generating : t.common.regenerate}
             </button>
           </div>
         </div>

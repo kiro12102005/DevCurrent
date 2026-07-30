@@ -5,6 +5,7 @@ import { Settings, Bot, Code2, MessageSquare } from "lucide-react";
 import { useStoredApiKey } from "@/lib/apiKeyStorage";
 import { downloadTextFile } from "@/lib/download";
 import type { EditorConfigFileDto } from "@/types/editorConfig";
+import { useT } from "@/lib/i18n/useT";
 
 const TOOL_ICON: Record<EditorConfigFileDto["tool"], typeof Bot> = {
   claude_code: Bot,
@@ -21,6 +22,7 @@ export function EditorConfigGenerator({ articleId }: { articleId: string }) {
   const [files, setFiles] = useState<EditorConfigFileDto[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const t = useT();
 
   async function handleGenerate() {
     setLoading(true);
@@ -35,10 +37,10 @@ export function EditorConfigGenerator({ articleId }: { articleId: string }) {
         body: JSON.stringify({ articleId }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "生成に失敗しました");
+      if (!res.ok) throw new Error(data.error ?? t.common.generationFailedError);
       setFiles(data.files as EditorConfigFileDto[]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "生成に失敗しました");
+      setError(err instanceof Error ? err.message : t.common.generationFailedError);
     } finally {
       setLoading(false);
     }
@@ -47,11 +49,9 @@ export function EditorConfigGenerator({ articleId }: { articleId: string }) {
   return (
     <section className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-5 print:hidden">
       <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-1.5">
-        <Settings className="w-4 h-4" strokeWidth={2.25} /> AIエディタ設定を生成
+        <Settings className="w-4 h-4" strokeWidth={2.25} /> {t.editorConfigGenerator.title}
       </h3>
-      <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-3">
-        この記事の内容をもとに、Claude Code / Cursor / 汎用チャット用の指示ファイルをそのまま貼り付けられる形式で生成します。
-      </p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-3">{t.editorConfigGenerator.description}</p>
 
       {!files && (
         <button
@@ -60,7 +60,7 @@ export function EditorConfigGenerator({ articleId }: { articleId: string }) {
           disabled={loading}
           className="rounded-lg brand-gradient px-4 py-2 text-sm font-semibold text-white disabled:opacity-40 transition-opacity"
         >
-          {loading ? "生成中..." : "設定ファイルを生成する"}
+          {loading ? t.common.generating : t.editorConfigGenerator.generateButton}
         </button>
       )}
       {error && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p>}
@@ -82,14 +82,14 @@ export function EditorConfigGenerator({ articleId }: { articleId: string }) {
                     onClick={() => navigator.clipboard?.writeText(f.content)}
                     className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline"
                   >
-                    コピー
+                    {t.common.copy}
                   </button>
                   <button
                     type="button"
                     onClick={() => downloadTextFile(f.filename, f.content)}
                     className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline"
                   >
-                    保存
+                    {t.common.save}
                   </button>
                 </div>
               </div>
@@ -103,7 +103,7 @@ export function EditorConfigGenerator({ articleId }: { articleId: string }) {
             disabled={loading}
             className="self-start rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 px-3 py-1.5 text-[11px] font-semibold disabled:opacity-40"
           >
-            {loading ? "生成中..." : "作り直す"}
+            {loading ? t.common.generating : t.common.regenerate}
           </button>
         </div>
       )}

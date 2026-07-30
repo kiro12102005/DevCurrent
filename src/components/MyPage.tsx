@@ -10,18 +10,21 @@ import { SharePageSettings } from "./SharePageSettings";
 import { RepoBreakingChangeCheck } from "./RepoBreakingChangeCheck";
 import { FeedbackForm } from "./FeedbackForm";
 import { ContactCard } from "./ContactCard";
+import { SupportLink } from "./SupportLink";
 import { MonthlySummaryShare } from "./MonthlySummaryShare";
 import { hapticTap } from "@/lib/haptics";
+import { useT } from "@/lib/i18n/useT";
 
-const SECTIONS = [
-  { key: "saved", icon: Bookmark, label: "保存済み" },
-  { key: "map", icon: BarChart3, label: "学習マップ" },
-  { key: "interview", icon: GraduationCap, label: "模擬面接" },
-  { key: "repo", icon: Search, label: "リポジトリチェック" },
-  { key: "share", icon: Share2, label: "共有ページ" },
-  { key: "feedback", icon: MessageSquareText, label: "フィードバック" },
-] as const;
-type SectionKey = (typeof SECTIONS)[number]["key"];
+const SECTION_KEYS = ["saved", "map", "interview", "repo", "share", "feedback"] as const;
+const SECTION_ICON = {
+  saved: Bookmark,
+  map: BarChart3,
+  interview: GraduationCap,
+  repo: Search,
+  share: Share2,
+  feedback: MessageSquareText,
+} as const;
+type SectionKey = (typeof SECTION_KEYS)[number];
 
 // A single hub tab for everything account/personal - keeps AppShell's primary
 // nav at 4 items while still having room to grow this list without adding
@@ -29,6 +32,16 @@ type SectionKey = (typeof SECTIONS)[number]["key"];
 // "Profile" tab housing several sub-sections).
 export function MyPage({ onSelectArticle }: { onSelectArticle: (url: string) => void }) {
   const [section, setSection] = useState<SectionKey>("saved");
+  const t = useT();
+
+  const SECTION_LABEL: Record<SectionKey, string> = {
+    saved: t.myPage.sectionSaved,
+    map: t.myPage.sectionMap,
+    interview: t.myPage.sectionInterview,
+    repo: t.myPage.sectionRepo,
+    share: t.myPage.sectionShare,
+    feedback: t.myPage.sectionFeedback,
+  };
 
   return (
     <div className="w-full max-w-3xl mx-auto flex flex-col gap-4 px-4 pb-24 pt-6 md:pb-6">
@@ -37,21 +50,24 @@ export function MyPage({ onSelectArticle }: { onSelectArticle: (url: string) => 
           no visual hint that more exist off-screen. A 2-column grid shows
           every section at a glance with no scrolling required. */}
       <div className="grid grid-cols-2 gap-2 print:hidden">
-        {SECTIONS.map((s) => (
-          <button
-            key={s.key}
-            type="button"
-            onClick={() => {
-              hapticTap();
-              setSection(s.key);
-            }}
-            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
-              section === s.key ? "brand-gradient text-white shadow-sm shadow-indigo-900/20" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-            }`}
-          >
-            <s.icon className="w-3.5 h-3.5 shrink-0" strokeWidth={2.25} /> {s.label}
-          </button>
-        ))}
+        {SECTION_KEYS.map((key) => {
+          const Icon = SECTION_ICON[key];
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => {
+                hapticTap();
+                setSection(key);
+              }}
+              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
+                section === key ? "brand-gradient text-white shadow-sm shadow-indigo-900/20" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5 shrink-0" strokeWidth={2.25} /> {SECTION_LABEL[key]}
+            </button>
+          );
+        })}
         {/* These two navigate away (real pages, not in-tab sections) - kept in
             the same grid for visual consistency, but Links rather than
             setSection buttons. */}
@@ -59,13 +75,13 @@ export function MyPage({ onSelectArticle }: { onSelectArticle: (url: string) => 
           href="/about"
           className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
         >
-          <Info className="w-3.5 h-3.5 shrink-0" strokeWidth={2.25} /> 技術スタックについて
+          <Info className="w-3.5 h-3.5 shrink-0" strokeWidth={2.25} /> {t.myPage.aboutLink}
         </Link>
         <Link
           href="/privacy"
           className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
         >
-          <Lock className="w-3.5 h-3.5 shrink-0" strokeWidth={2.25} /> プライバシーポリシー
+          <Lock className="w-3.5 h-3.5 shrink-0" strokeWidth={2.25} /> {t.myPage.privacyLink}
         </Link>
       </div>
 
@@ -82,6 +98,7 @@ export function MyPage({ onSelectArticle }: { onSelectArticle: (url: string) => 
       {section === "feedback" && (
         <div className="flex flex-col gap-4">
           <ContactCard />
+          <SupportLink />
           <FeedbackForm />
         </div>
       )}

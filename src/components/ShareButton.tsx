@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Share } from "lucide-react";
+import { useT } from "@/lib/i18n/useT";
 
 // Only rendered when the Web Share API is actually supported (mainly iOS/
 // Android browsers, not most desktop browsers) - this is specifically about
@@ -11,6 +12,7 @@ import { Share } from "lucide-react";
 // detection happens client-side only (navigator isn't available during SSR).
 export function ShareButton({ title, url, className }: { title: string; url: string; className?: string }) {
   const [supported, setSupported] = useState(false);
+  const t = useT();
 
   useEffect(() => {
     // deferred to a microtask so this effect doesn't set state synchronously
@@ -35,7 +37,7 @@ export function ShareButton({ title, url, className }: { title: string; url: str
     <button
       type="button"
       onClick={handleShare}
-      aria-label="共有"
+      aria-label={t.shareButton.ariaLabel}
       className={className ?? "shrink-0 rounded-full p-2 text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"}
     >
       <Share className="w-4 h-4" strokeWidth={2.25} />

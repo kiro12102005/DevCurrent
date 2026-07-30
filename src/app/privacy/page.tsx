@@ -1,3 +1,5 @@
+// JA-only for now - legal-ish prose page, out of scope for the i18n sweep
+// (see src/lib/i18n/) given the mistranslation risk on this specific content.
 import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowLeft, Database, Share2, Mail, Trash2, ShieldAlert } from "lucide-react";

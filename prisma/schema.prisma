@@ -16,26 +16,26 @@ datasource db {
 // One row per source URL (Qiita/Zenn/Hacker News/ArXiv article, or user-submitted URL).
 // This is the cache key that prevents duplicate Gemini calls for the same content.
 model Article {
-  id          String   @id @default(cuid())
-  url         String   @unique
-  urlHash     String   @unique // sha256(normalized url) - fast indexed lookup / cache key
-  title       String?
-  sourceType  SourceType @default(USER_SUBMITTED)
-  rawText     String?    // scraped article body, trimmed
-  contentHash String?    // sha256(rawText) - detects if source content changed since last fetch
-  language    String?    // "ja" | "en" | "zh"
+  id                String     @id @default(cuid())
+  url               String     @unique
+  urlHash           String     @unique // sha256(normalized url) - fast indexed lookup / cache key
+  title             String?
+  sourceType        SourceType @default(USER_SUBMITTED)
+  rawText           String? // scraped article body, trimmed
+  contentHash       String? // sha256(rawText) - detects if source content changed since last fetch
+  language          String? // "ja" | "en" | "zh"
   sourcePublishedAt DateTime? // publish date reported by the source (Qiita/Zenn/HN/ArXiv), for feed sorting
-  country           String?   // best-guess origin country (Qiita/Zenn: always Japan; others: Gemini-inferred from title/content)
-  engagementScore   Int?      // normalized popularity signal from the source (likes/points/stocks) at crawl time
-  isFeatured        Boolean   @default(false) // top picks from a refresh cycle - these get auto-summarized + push notified
-  tags              String[]  @default([]) // cheap keyword-derived topic tags (see lib/tags.ts) - no extra Gemini cost, used for interest-based filtering
-  fetchedAt   DateTime   @default(now())
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  country           String? // best-guess origin country (Qiita/Zenn: always Japan; others: Gemini-inferred from title/content)
+  engagementScore   Int? // normalized popularity signal from the source (likes/points/stocks) at crawl time
+  isFeatured        Boolean    @default(false) // top picks from a refresh cycle - these get auto-summarized + push notified
+  tags              String[]   @default([]) // cheap keyword-derived topic tags (see lib/tags.ts) - no extra Gemini cost, used for interest-based filtering
+  fetchedAt         DateTime   @default(now())
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
 
-  generation  AIGeneration?
-  userNotes   UserNote[]
-  userStates  UserArticleState[]
+  generation AIGeneration?
+  userNotes  UserNote[]
+  userStates UserArticleState[]
 
   @@index([sourceType])
   @@index([sourcePublishedAt])
@@ -55,20 +55,46 @@ enum SourceType {
 // Cached Gemini output for an Article. 1:1 with Article - this IS the cache layer:
 // once generated for a given contentHash, we never regenerate for the same article.
 model AIGeneration {
-  id               String   @id @default(cuid())
-  articleId        String   @unique
-  article          Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  articleId String  @unique
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
-  summary          String   // in-depth plain-language summary
-  prosAndCons      String   // JSON string: { pros: string[], cons: string[], outlook: string }
-  glossary         String   // JSON string: { term: string, explanation: string }[]
+  summary     String // in-depth plain-language summary
+  prosAndCons String // JSON string: { pros: string[], cons: string[], outlook: string }
+  glossary    String // JSON string: { term: string, explanation: string }[]
 
-  modelUsed        String   @default("gemini-2.5-flash")
-  promptTokens     Int?
-  outputTokens     Int?
+  modelUsed    String @default("gemini-2.5-flash")
+  promptTokens Int?
+  outputTokens Int?
 
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  translations AIGenerationTranslation[]
+}
+
+// On-demand translation cache for an AIGeneration's text content (summary /
+// pros-cons-outlook / breaking-change note / debate matrix / glossary). One
+// row per (AIGeneration, language), populated lazily the first time a
+// non-Japanese-language reader actually opens this article - using the
+// operator's Gemini key (translation is cheap and shared across all future
+// readers of that language, same cost model as AiToolPick/PodcastEpisode).
+// Never regenerated once cached. githubRepo/isBreakingChange aren't stored
+// here since they're not language-dependent - the base AIGeneration row is
+// still the source of truth for those.
+model AIGenerationTranslation {
+  id             String       @id @default(cuid())
+  aiGenerationId String
+  aiGeneration   AIGeneration @relation(fields: [aiGenerationId], references: [id], onDelete: Cascade)
+  language       String // "en" | "zh"
+
+  summary     String
+  prosAndCons String // JSON string: { pros, cons, outlook, breakingChangeSummary, debateMatrix } - same shape as AIGeneration.prosAndCons minus githubRepo/isBreakingChange
+  glossary    String // JSON string, same shape as AIGeneration.glossary
+
+  createdAt DateTime @default(now())
+
+  @@unique([aiGenerationId, language])
 }
 
 // --- User space ----------------------------------------------------------
@@ -79,9 +105,9 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
 
-  interestTags     String[] @default([]) // opt-in topic filter for personalized push (see lib/tags.ts for the fixed tag list)
-  stackKeywords    String[] @default([]) // freeform specific technologies (e.g. "React", "PyTorch") - matched by title substring, same personalized-push path as interestTags but not limited to the fixed category list
-  wantsWeeklyDigest Boolean @default(false) // opt-in - Resend digest email is off by default
+  interestTags      String[] @default([]) // opt-in topic filter for personalized push (see lib/tags.ts for the fixed tag list)
+  stackKeywords     String[] @default([]) // freeform specific technologies (e.g. "React", "PyTorch") - matched by title substring, same personalized-push path as interestTags but not limited to the fixed category list
+  wantsWeeklyDigest Boolean  @default(false) // opt-in - Resend digest email is off by default
 
   // Independently toggleable push notification channels (both default on -
   // interestTags/stackKeywords above only ever narrow WHICH articles trigger
@@ -89,8 +115,8 @@ model User {
   wantsFeaturedPush       Boolean @default(true) // general "found new featured picks" notifications
   wantsBreakingChangePush Boolean @default(true) // breaking-change alerts - independent of interestTags/stackKeywords, since "something you use might break" is high-signal regardless of topic interest
 
-  shareSlug      String?  @unique // random public identifier for the opt-in shareable achievement page (/u/[shareSlug]) - null until the user opts in, deliberately NOT the user id
-  publicNickname String?  // shown on the public share page instead of email; null = shown as "ユーザー"
+  shareSlug      String? @unique // random public identifier for the opt-in shareable achievement page (/u/[shareSlug]) - null until the user opts in, deliberately NOT the user id
+  publicNickname String? // shown on the public share page instead of email; null = shown as "ユーザー"
 
   notes             UserNote[]
   pushSubscriptions PushSubscription[]
@@ -102,17 +128,17 @@ model User {
 // Per-user read/bookmark state for an article. One row per (user, article) pair -
 // created lazily on first interaction, not backfilled for every article up front.
 model UserArticleState {
-  id           String   @id @default(cuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  articleId    String
-  article      Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
-  isRead       Boolean  @default(false)
-  isBookmarked Boolean  @default(false)
+  isRead       Boolean @default(false)
+  isBookmarked Boolean @default(false)
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, articleId])
   @@index([userId])
@@ -121,11 +147,11 @@ model UserArticleState {
 
 // Freeform memo / interview-prep note a user attaches to an article.
 model UserNote {
-  id        String   @id @default(cuid())
+  id        String  @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   articleId String
-  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
   body      String
   createdAt DateTime @default(now())
@@ -157,15 +183,15 @@ model PushSubscription {
 model AiToolPick {
   id             String    @id @default(cuid())
   name           String    @unique // e.g. "Gemini Gem", "Claude Fable" - unique so re-running curation upserts instead of duplicating
-  category       String    // "AIサービス" | "iOSアプリ" | "PC機能" | "開発支援ツール" | "ブラウザ拡張"
+  category       String // "AIサービス" | "iOSアプリ" | "PC機能" | "開発支援ツール" | "ブラウザ拡張"
   summary        String
-  recommendedFor String    // "who should use this"
+  recommendedFor String // "who should use this"
   useCaseExample String
   sourceUrl      String?
   publishedAt    DateTime?
   createdAt      DateTime  @default(now())
 
-  bookmarks      UserToolBookmark[]
+  bookmarks UserToolBookmark[]
 
   @@index([category])
 }
@@ -192,13 +218,13 @@ model UserToolBookmark {
 // tracks the URL + the script Gemini generated so it doesn't need
 // regenerating if requested again the same day.
 model PodcastEpisode {
-  id         String   @id @default(cuid())
-  date       String   @unique // YYYY-MM-DD (JST) - one episode per day
-  audioUrl   String
-  script     String // the full dialogue text, also shown as a transcript
-  durationSec Int?
-  sourceArticles String @default("[]") // JSON: {title, url, sourceType, summary}[] - which articles this episode covers, shown in the UI so listeners can see the source/gist without needing to catch every word in the audio
-  createdAt  DateTime @default(now())
+  id             String   @id @default(cuid())
+  date           String   @unique // YYYY-MM-DD (JST) - one episode per day
+  audioUrl       String
+  script         String // the full dialogue text, also shown as a transcript
+  durationSec    Int?
+  sourceArticles String   @default("[]") // JSON: {title, url, sourceType, summary}[] - which articles this episode covers, shown in the UI so listeners can see the source/gist without needing to catch every word in the audio
+  createdAt      DateTime @default(now())
 }
 
 // --- Feedback (bug reports / ratings / suggestions) ------------------------

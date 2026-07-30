@@ -2,21 +2,25 @@
 
 import { useEffect, useState } from "react";
 import { Newspaper, Search, Bot, User } from "lucide-react";
+import { useT } from "@/lib/i18n/useT";
 
 const STORAGE_KEY = "onboarding_dismissed_v1";
 
-const STEPS = [
-  { icon: Newspaper, title: "フィード", desc: "Qiita/Zenn/Hacker News/ArXivから自動収集。日別・週間で見逃さずキャッチアップ。" },
-  { icon: Search, title: "URLで要約", desc: "気になる記事のURLを貼ると、深掘り要約・メリデメ・用語解説をAIが生成。" },
-  { icon: Bot, title: "AIツール", desc: "今話題のAIサービス・アプリをカテゴリ別にチェック。" },
-  { icon: User, title: "マイページ", desc: "保存した記事・学習マップ・模擬面接・共有ページはここに集約されています。" },
-];
+const STEP_ICON = [Newspaper, Search, Bot, User] as const;
 
 // Shown once per browser (localStorage-gated) - the app has grown to 4 tabs
 // + a マイページ hub with 4 more sub-sections, so a first-time visitor
 // benefits from a 10-second orientation instead of guessing.
 export function OnboardingModal() {
   const [show, setShow] = useState(false);
+  const t = useT();
+
+  const STEPS = [
+    { icon: STEP_ICON[0], title: t.onboardingModal.stepFeedTitle, desc: t.onboardingModal.stepFeedDesc },
+    { icon: STEP_ICON[1], title: t.onboardingModal.stepSummarizeTitle, desc: t.onboardingModal.stepSummarizeDesc },
+    { icon: STEP_ICON[2], title: t.onboardingModal.stepToolsTitle, desc: t.onboardingModal.stepToolsDesc },
+    { icon: STEP_ICON[3], title: t.onboardingModal.stepMyPageTitle, desc: t.onboardingModal.stepMyPageDesc },
+  ];
 
   useEffect(() => {
     // deferred to a microtask so this effect doesn't set state synchronously
@@ -38,8 +42,8 @@ export function OnboardingModal() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 print:hidden">
       <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 shadow-xl p-5 max-h-[85vh] overflow-y-auto">
-        <h2 className="text-lg font-bold brand-gradient-text mb-1">技術トレンド キャッチアップへようこそ</h2>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">4つのタブでできることを簡単にご紹介します。</p>
+        <h2 className="text-lg font-bold brand-gradient-text mb-1">{t.onboardingModal.welcomeTitle}</h2>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">{t.onboardingModal.welcomeDesc}</p>
 
         <ul className="flex flex-col gap-3 mb-5">
           {STEPS.map((s) => (
@@ -60,7 +64,7 @@ export function OnboardingModal() {
           onClick={dismiss}
           className="w-full rounded-lg brand-gradient px-4 py-2.5 text-sm font-semibold text-white"
         >
-          はじめる
+          {t.onboardingModal.startButton}
         </button>
       </div>
     </div>

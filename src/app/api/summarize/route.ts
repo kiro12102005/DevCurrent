@@ -5,9 +5,11 @@ import { normalizeUrl, sha256 } from "@/lib/hash";
 import { scrapeArticle } from "@/lib/scrape";
 import { generateInsight } from "@/lib/gemini";
 import { parseGeneration, persistInsight } from "@/lib/summarize";
+import { getTranslatedInsight } from "@/lib/translate";
 
 const requestSchema = z.object({
   url: z.string().url("有効なURLを入力してください"),
+  lang: z.enum(["en", "zh"]).optional(),
 });
 
 export async function POST(req: Request) {
@@ -27,6 +29,9 @@ export async function POST(req: Request) {
   });
 
   if (existing?.generation) {
+    const insight = parsed.data.lang
+      ? await getTranslatedInsight(existing.generation, parsed.data.lang)
+      : parseGeneration(existing.generation);
     return NextResponse.json({
       cached: true,
       article: {
@@ -37,7 +42,7 @@ export async function POST(req: Request) {
         publishedAt: existing.sourcePublishedAt?.toISOString() ?? null,
         country: existing.country,
       },
-      insight: parseGeneration(existing.generation),
+      insight,
     });
   }
 
@@ -89,6 +94,15 @@ export async function POST(req: Request) {
     );
   }
 
+  // Translation needs the persisted AIGeneration row's id (persistInsight()
+  // doesn't return it), so this only re-fetches when a non-Japanese language
+  // was actually requested - the common case skips the extra round trip.
+  let responseInsight: typeof insight | Awaited<ReturnType<typeof getTranslatedInsight>> = insight;
+  if (parsed.data.lang) {
+    const generation = await prisma.aIGeneration.findUniqueOrThrow({ where: { articleId: article.id } });
+    responseInsight = await getTranslatedInsight(generation, parsed.data.lang);
+  }
+
   return NextResponse.json({
     cached: false,
     article: {
@@ -101,6 +115,6 @@ export async function POST(req: Request) {
       // writes country in a separate update() call after this upsert() ran
       country: insight.country && insight.country !== "不明" ? insight.country : (article.country ?? null),
     },
-    insight,
+    insight: responseInsight,
   });
 }

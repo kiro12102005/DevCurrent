@@ -3,13 +3,15 @@
 import { useEffect, useState } from "react";
 import { GitFork, Star } from "lucide-react";
 import type { GithubStats } from "@/types/github";
+import { useT } from "@/lib/i18n/useT";
+import type { Dictionary } from "@/lib/i18n/dictionaries/ja";
 
-function timeAgo(iso: string): string {
+function timeAgo(iso: string, t: Dictionary["githubRepoCard"]): string {
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24));
-  if (days < 1) return "今日";
-  if (days < 30) return `${days}日前`;
-  if (days < 365) return `${Math.floor(days / 30)}ヶ月前`;
-  return `${Math.floor(days / 365)}年前`;
+  if (days < 1) return t.today;
+  if (days < 30) return t.daysAgo.replace("{n}", String(days));
+  if (days < 365) return t.monthsAgo.replace("{n}", String(Math.floor(days / 30)));
+  return t.yearsAgo.replace("{n}", String(Math.floor(days / 365)));
 }
 
 // Read-only "primary source" check: real, live GitHub activity for the repo
@@ -17,6 +19,7 @@ function timeAgo(iso: string): string {
 // active/maintained a project is.
 export function GithubRepoCard({ repo }: { repo: string }) {
   const [stats, setStats] = useState<GithubStats | null | undefined>(undefined); // undefined = loading, null = unavailable
+  const t = useT();
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -48,9 +51,12 @@ export function GithubRepoCard({ repo }: { repo: string }) {
         </span>
       </div>
       <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
-        GitHub上の実データ（一次情報）
-        {stats.lastCommitAt && ` ・最終コミット: ${timeAgo(stats.lastCommitAt)}`}
-        {stats.latestReleaseTag && ` ・最新リリース: ${stats.latestReleaseTag}（${timeAgo(stats.latestReleaseAt!)}）`}
+        {t.githubRepoCard.primarySourceLabel}
+        {stats.lastCommitAt && t.githubRepoCard.lastCommitTemplate.replace("{value}", timeAgo(stats.lastCommitAt, t.githubRepoCard))}
+        {stats.latestReleaseTag &&
+          t.githubRepoCard.latestReleaseTemplate
+            .replace("{tag}", stats.latestReleaseTag)
+            .replace("{time}", timeAgo(stats.latestReleaseAt!, t.githubRepoCard))}
       </p>
     </a>
   );

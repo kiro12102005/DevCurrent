@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import { FileText, Bookmark } from "lucide-react";
 import { useAuth } from "@/lib/auth/AuthContext";
 import type { UserNoteDto } from "@/types/notes";
+import { useT } from "@/lib/i18n/useT";
 
 export function ArticleNotes({ articleId }: { articleId: string }) {
   const { user, loading: authLoading } = useAuth();
+  const t = useT();
   const [notes, setNotes] = useState<UserNoteDto[]>([]);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -64,12 +66,12 @@ export function ArticleNotes({ articleId }: { articleId: string }) {
         body: JSON.stringify({ articleId, body: draft }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "保存に失敗しました");
+      if (!res.ok) throw new Error(data.error ?? t.common.saveFailedError);
       setNotes((prev) => [data.note, ...prev]);
       setIsBookmarked(true); // adding a note always bookmarks server-side too
       setDraft("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "保存に失敗しました");
+      setError(err instanceof Error ? err.message : t.common.saveFailedError);
     } finally {
       setSaving(false);
     }
@@ -86,7 +88,7 @@ export function ArticleNotes({ articleId }: { articleId: string }) {
     <section className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-5">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-bold text-gray-800 dark:text-gray-100 flex items-center gap-1.5">
-          <FileText className="w-4 h-4" strokeWidth={2.25} /> メモ・保存
+          <FileText className="w-4 h-4" strokeWidth={2.25} /> {t.articleNotes.title}
         </h3>
         {user && (
           <button
@@ -97,22 +99,20 @@ export function ArticleNotes({ articleId }: { articleId: string }) {
             }`}
           >
             <Bookmark className="w-3.5 h-3.5" strokeWidth={2.25} fill={isBookmarked ? "currentColor" : "none"} />
-            {isBookmarked ? "保存済み" : "保存"}
+            {isBookmarked ? t.common.saved : t.common.save}
           </button>
         )}
       </div>
 
       {!user ? (
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          ログインすると、この記事を保存したりメモ（面接対策の一言・気づきなど）を残せます。
-        </p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{t.articleNotes.loginPrompt}</p>
       ) : (
         <>
           <form onSubmit={handleAdd} className="flex flex-col gap-2 mb-4">
             <textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="この記事についてのメモを書く..."
+              placeholder={t.articleNotes.notePlaceholder}
               rows={2}
               className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
             />
@@ -122,14 +122,14 @@ export function ArticleNotes({ articleId }: { articleId: string }) {
               disabled={saving || !draft.trim()}
               className="self-start rounded-lg brand-gradient px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40"
             >
-              {saving ? "保存中..." : "メモを追加"}
+              {saving ? t.common.saving : t.articleNotes.addNote}
             </button>
           </form>
 
           {loading ? (
             <div className="skeleton h-10 w-full rounded" />
           ) : notes.length === 0 ? (
-            <p className="text-xs text-gray-400 dark:text-gray-500">まだメモがありません。</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">{t.articleNotes.noNotesYet}</p>
           ) : (
             <ul className="flex flex-col gap-2">
               {notes.map((note) => (
@@ -141,7 +141,7 @@ export function ArticleNotes({ articleId }: { articleId: string }) {
                       onClick={() => handleDelete(note.id)}
                       className="shrink-0 text-xs text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400"
                     >
-                      削除
+                      {t.common.delete}
                     </button>
                   </div>
                 </li>

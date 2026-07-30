@@ -40,6 +40,8 @@
 - **ハプティックフィードバック**: 記事の既読/保存トグル・フィードバック送信・テーマ切り替えなどの操作時に、対応端末（主にAndroid）でVibration APIによる短い振動フィードバックを付与。未対応環境では何も起きない（機能検出のみ、フォールバックなし）。
 - **プライバシーポリシー**: マイページから`/privacy`へ遷移すると、収集する情報・利用している外部サービス（Supabase / Vercel / Resend / Google Gemini API等）・データの削除方法を開発者向けではなく利用者向けにまとめたページを閲覧できる。
 - **SEO対応**: `robots.ts`（`/api/`配下をcrawl対象外に）・`sitemap.ts`（トップ/about/privacyのみ、`/u/[slug]`はユーザーの共有オプトインと検索エンジンへの掲載オプトインは別物と考え意図的に除外）・ルート直下の`opengraph-image.tsx`（X/LINE/Slack/Qiita等でリンクを共有した際のカード画像）を実装。
+- **開発支援リンク**: マイページ＞フィードバックに、`NEXT_PUBLIC_SPONSOR_URL`を設定すると表示される「開発を応援する」リンク（デフォルトはGitHub Sponsors想定）。未設定時はリンク自体が非表示。
+- **多言語対応（日本語/English/中文）**: 画面右上の地球アイコンでUI表示言語をタップ切り替え（`localStorage`保存・サーバー不要）。2階層構成: (1) ボタン・見出しなどのUI文言はビルド時に用意した固定辞書（`src/lib/i18n/`）を参照するだけで追加コストゼロ。(2) URL要約結果（要約・メリデメ・今後の展望・用語解説・技術論争サマライザー）は、日本語以外が選択されている時だけその記事について初回リクエスト時にGemini（運営者キー）で翻訳し`AIGenerationTranslation`テーブルにキャッシュ、以降は同じ記事×言語なら再翻訳しない（`src/lib/translate.ts`）。記事タイトルや発信国バッジ、模擬面接・3分ハンズオン・AIエディタ設定生成（いずれもBYOK）は現状日本語のみ。
 
 ## セットアップ
 
@@ -149,7 +151,7 @@ src/
   app/
     page.tsx                     # AppShellを描画するだけの薄いエントリ
     layout.tsx                   # PWA/iOSメタタグ、フォント
-    offline/page.tsx             # オフライン時のフォールバックページ（next-pwa）
+    offline/page.tsx             # オフライン時のフォールバックページ（next-pwa、サーバーラッパー+OfflineContent.tsx）
     api/
       summarize/route.ts         # POST: URL手動入力 -> キャッシュ確認 -> スクレイピング -> Gemini生成(BYOK) -> 保存
       feed/route.ts              # GET: フィード記事一覧
@@ -181,7 +183,7 @@ src/
     robots.ts                     # robots.txt生成（/api/配下をdisallow）
     sitemap.ts                    # sitemap.xml生成（トップ/about/privacyのみ、共有ページは意図的に除外）
     opengraph-image.tsx           # ルート直下のリンク共有カード画像（next/og ImageResponse）
-    u/[slug]/page.tsx             # 公開共有ページ（認証不要、shareSlugでUserを引く）
+    u/[slug]/page.tsx             # 公開共有ページ（認証不要、shareSlugでUserを引く、サーバーラッパー+SharePageContent.tsx）
   components/
     AppShell.tsx                 # ヘッダー・4タブ切り替えを統括するクライアントコンポーネント（モバイルは下部ナビのみ）
     FeedList.tsx                  # 自動収集フィード表示（注目ピックアップ＋最新記事一覧＋検索＋既読/ブックマークフィルター）
@@ -202,16 +204,25 @@ src/
     RepoBreakingChangeCheck.tsx             # リポジトリチェック（マイページ内）
     FeedbackForm.tsx                          # フィードバック送信フォーム（マイページ内）
     ContactCard.tsx                            # 開発者への連絡カード（マイページ＞フィードバック内）
+    SupportLink.tsx                             # 開発支援リンク（NEXT_PUBLIC_SPONSOR_URL未設定時は非表示）
     MonthlyRanking.tsx                          # 月間ランキング（フィード内、期間チップで切替）
     MonthlySummaryShare.tsx                      # 月間サマリー画像の生成・保存・共有（マイページ＞学習マップ内）
     ThemeToggle.tsx                               # ライト/ダーク/自動切り替えボタン（ヘッダー）
+    LanguageToggle.tsx                             # 日本語/EN/中文の切り替えボタン（ヘッダー）
+    OfflineContent.tsx                              # offline/page.tsxのクライアント本体（多言語対応のため分離）
+    SharePageContent.tsx                            # u/[slug]/page.tsxのクライアント本体（同上）
   lib/
     prisma.ts                    # PrismaClientシングルトン
-    gemini.ts                    # Gemini 2.5 Flash 呼び出し（BYOK対応・構造化JSON出力、模擬面接質問生成も含む）
+    gemini.ts                    # Gemini 2.5 Flash 呼び出し（BYOK対応・構造化JSON出力、模擬面接質問生成・翻訳も含む）
+    translate.ts                 # URL要約結果のオンデマンド翻訳＋DBキャッシュ（AIGenerationTranslation）
     learningStats.ts              # 学習マップ集計ロジック（/api/learning-mapと公開共有ページで共有）
     exportMarkdown.ts             # 記事要約・保存済み一覧のMarkdown変換
     download.ts                   # クライアント側でのファイルダウンロードヘルパー
     summarize.ts                  # スクレイピング+生成+DB保存の共有ロジック（手動要約とフィード自動要約の両方が使う）
+    i18n/
+      language.ts                # useLanguage()フック・localStorage永続化（useSyncExternalStore、apiKeyStorage.tsと同パターン）
+      useT.ts                    # 現在の言語の辞書を返すフック（t.namespace.key形式）
+      dictionaries/{ja,en,zh}.ts # UI文言の固定辞書（ja.tsが原本、en/zh.tsはja.tsの型で網羅性を型チェック）
     scrape.ts                     # cheerioによる記事本文抽出
     hash.ts                       # URL正規化 & sha256（キャッシュキー生成）
     push.ts                       # web-pushでの通知送信（sendPersonalizedPushで興味タグによる絞り込み）
@@ -256,6 +267,7 @@ public/
 
 - **Article**: 記事URLごとに1レコード。`urlHash`（正規化URLのsha256）をユニークキーにして、同じ記事への重複リクエストを検出。`contentHash`でスクレイピング内容の変化も検知できるようにしてある。`sourceType`（Qiita/Zenn/HackerNews/ArXiv/投稿URL）、`country`（発信国、Qiita/Zennは即時「日本」・他はGemini推定）、`engagementScore`・`isFeatured`（自動クロール時のエンゲージメントと注目フラグ）、`sourcePublishedAt`（フィード表示のソート用）を保持。
 - **AIGeneration**: `Article`と1:1。Geminiが生成した深掘り要約・メリデメ・今後の展望・用語解説をJSON文字列で保存。**ここに存在すれば、Gemini APIは二度と呼ばない。**
+- **AIGenerationTranslation**: `AIGeneration`の英語/中国語訳キャッシュ。`(aiGenerationId, language)`をユニークキーにして、同じ記事×言語への翻訳リクエストはGeminiを再度呼ばない（運営者キー使用、UI表示言語が日本語以外の時だけ初回アクセス時に生成）。
 - **User**: `email` + `passwordHash`（bcryptjs）。外部サービス不要の自前認証。意図的にGemini APIキーのカラムは持たせていない（BYOKキーはクライアント側のみで保持する設計のため）。
 - **UserNote**: ユーザーが記事に残す自由記述メモ（面接対策の一言・気づきなど）。ログインユーザーのみ作成・編集・削除可能。
 - **PushSubscription**: Web Push購読情報（endpoint / p256dh / auth）。ログイン中に購読するとそのデバイスに`userId`が紐づく（未ログインでも匿名購読は引き続き可能・全員へブロードキャストの挙動自体は変わらない）。

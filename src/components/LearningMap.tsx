@@ -7,12 +7,14 @@ import type { LearningMapResponse } from "@/types/learningMap";
 import type { LearningLogResponse } from "@/types/learningLog";
 import { downloadTextFile } from "@/lib/download";
 import { learningLogToMarkdown } from "@/lib/exportMarkdown";
+import { useT } from "@/lib/i18n/useT";
 
 export function LearningMap() {
   const { user, loading: authLoading } = useAuth();
   const [data, setData] = useState<LearningMapResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const t = useT();
 
   async function handleExport() {
     setExporting(true);
@@ -43,7 +45,7 @@ export function LearningMap() {
     return (
       <div className="flex flex-col items-center gap-2 py-16 text-center">
         <Lock className="w-10 h-10 mb-1 text-gray-300 dark:text-gray-600" strokeWidth={1.5} />
-        <p className="text-gray-500 dark:text-gray-400 text-sm">学習マップを見るにはログインしてください。</p>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">{t.learningMap.loginPrompt}</p>
       </div>
     );
   }
@@ -69,22 +71,20 @@ export function LearningMap() {
           disabled={exporting}
           className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 px-3 py-1.5 text-[11px] font-semibold disabled:opacity-40"
         >
-          <FileText className="w-3 h-3" strokeWidth={2.25} /> {exporting ? "生成中..." : "技術学習ログをMDで出力"}
+          <FileText className="w-3 h-3" strokeWidth={2.25} /> {exporting ? t.common.generating : t.learningMap.exportLog}
         </button>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
-        <StatTile label="既読" value={data.readCount} icon={CircleCheckBig} />
-        <StatTile label="保存済み" value={data.savedCount} icon={Bookmark} />
-        <StatTile label="直近30日の活動日数" value={data.activeDaysLast30} icon={Flame} />
+        <StatTile label={t.learningMap.statRead} value={data.readCount} icon={CircleCheckBig} />
+        <StatTile label={t.learningMap.statSaved} value={data.savedCount} icon={Bookmark} />
+        <StatTile label={t.learningMap.statActiveDays} value={data.activeDaysLast30} icon={Flame} />
       </div>
 
       <div className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-4">
-        <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-3">分野別キャッチアップ状況</h3>
+        <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-3">{t.learningMap.categoryTitle}</h3>
         {!hasAnyData ? (
-          <p className="text-xs text-gray-400 dark:text-gray-500">
-            まだデータがありません。フィードで記事を既読/保存すると、ここに分野別の内訳が表示されます。
-          </p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">{t.learningMap.noDataYet}</p>
         ) : (
           <ul className="flex flex-col gap-2.5">
             {data.tags.map(({ tag, count }) => (

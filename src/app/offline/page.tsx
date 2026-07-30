@@ -1,4 +1,4 @@
-import { WifiOff } from "lucide-react";
+import { OfflineContent } from "@/components/OfflineContent";
 
 export const metadata = {
   title: "オフライン - 技術トレンド キャッチアップ",
@@ -7,14 +7,9 @@ export const metadata = {
 // Shown by the service worker (fallbacks.document in next.config.ts) when a
 // page that isn't already cached is requested while offline. Cached pages
 // (recently viewed feed/tools/summarize screens) still load normally.
+// Split into a server wrapper (keeps the `metadata` export, which a Client
+// Component page can't have) + a client content component (for the language
+// switcher's translated text).
 export default function OfflinePage() {
-  return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6 text-center">
-      <WifiOff className="w-14 h-14 text-gray-300 dark:text-gray-600" strokeWidth={1.5} />
-      <h1 className="text-lg font-bold brand-gradient-text">オフラインです</h1>
-      <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs">
-        インターネット接続が確認できませんでした。接続を確認してから、もう一度お試しください。以前に閲覧したページはキャッシュから表示できる場合があります。
-      </p>
-    </div>
-  );
+  return <OfflineContent />;
 }

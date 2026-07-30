@@ -9,6 +9,7 @@ import { formatArticleDate } from "@/lib/formatDate";
 import { downloadTextFile } from "@/lib/download";
 import { savedListToMarkdown } from "@/lib/exportMarkdown";
 import { hapticTap, hapticSuccess } from "@/lib/haptics";
+import { useT } from "@/lib/i18n/useT";
 
 // Unified "保存済み" tab: bookmarked articles, each with any notes attached.
 // Bookmarking (from a feed card) and note-taking (from the article detail
@@ -20,6 +21,7 @@ export function SavedList({ onSelectArticle }: { onSelectArticle: (url: string) 
   const [loading, setLoading] = useState(false);
   const [draftFor, setDraftFor] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
+  const t = useT();
 
   function loadSaved() {
     setLoading(true);
@@ -75,7 +77,7 @@ export function SavedList({ onSelectArticle }: { onSelectArticle: (url: string) 
     return (
       <div className="flex flex-col items-center gap-2 py-16 text-center">
         <Lock className="w-10 h-10 mb-1 text-gray-300 dark:text-gray-600" strokeWidth={1.5} />
-        <p className="text-gray-500 dark:text-gray-400 text-sm">保存済み記事を使うには右上からログインしてください。</p>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">{t.savedList.loginPrompt}</p>
       </div>
     );
   }
@@ -83,9 +85,7 @@ export function SavedList({ onSelectArticle }: { onSelectArticle: (url: string) 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3 print:hidden">
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          フィードで保存した記事、またはメモを書いた記事がここにまとまります。
-        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">{t.savedList.description}</p>
         {items.length > 0 && (
           <div className="flex gap-1.5 shrink-0">
             <button
@@ -118,7 +118,7 @@ export function SavedList({ onSelectArticle }: { onSelectArticle: (url: string) 
       ) : items.length === 0 ? (
         <div className="text-center py-16">
           <Bookmark className="w-10 h-10 mx-auto mb-3 text-gray-300 dark:text-gray-600" strokeWidth={1.5} />
-          <p className="text-gray-400 dark:text-gray-500 text-sm">まだ保存した記事がありません。フィードの保存ボタンから保存できます。</p>
+          <p className="text-gray-400 dark:text-gray-500 text-sm">{t.savedList.emptyState}</p>
         </div>
       ) : (
         <ul className="flex flex-col gap-3">
@@ -146,7 +146,7 @@ export function SavedList({ onSelectArticle }: { onSelectArticle: (url: string) 
                   onClick={() => handleUnsave(article.id)}
                   className="shrink-0 text-xs text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400"
                 >
-                  保存解除
+                  {t.common.unsave}
                 </button>
               </div>
 
@@ -161,7 +161,7 @@ export function SavedList({ onSelectArticle }: { onSelectArticle: (url: string) 
                           onClick={() => handleDeleteNote(note.id, article.id)}
                           className="shrink-0 text-xs text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400"
                         >
-                          削除
+                          {t.common.delete}
                         </button>
                       </div>
                     </li>
@@ -175,7 +175,7 @@ export function SavedList({ onSelectArticle }: { onSelectArticle: (url: string) 
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
                     rows={2}
-                    placeholder="メモを書く..."
+                    placeholder={t.savedList.notePlaceholder}
                     className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
                   />
                   <div className="flex gap-2">
@@ -184,7 +184,7 @@ export function SavedList({ onSelectArticle }: { onSelectArticle: (url: string) 
                       onClick={() => handleAddNote(article.id)}
                       className="rounded-lg brand-gradient px-3 py-1.5 text-xs font-semibold text-white"
                     >
-                      追加
+                      {t.common.add}
                     </button>
                     <button
                       type="button"
@@ -194,7 +194,7 @@ export function SavedList({ onSelectArticle }: { onSelectArticle: (url: string) 
                       }}
                       className="rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400"
                     >
-                      キャンセル
+                      {t.common.cancel}
                     </button>
                   </div>
                 </div>
@@ -207,7 +207,7 @@ export function SavedList({ onSelectArticle }: { onSelectArticle: (url: string) 
                   }}
                   className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
                 >
-                  + メモを追加
+                  {t.savedList.addNotePrompt}
                 </button>
               )}
             </li>

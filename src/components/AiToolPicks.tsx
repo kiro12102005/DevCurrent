@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Bot, Smartphone, Monitor, Wrench, Puzzle, Sparkles, RefreshCw, Bookmark } from "lucide-react";
 import type { AiToolPickDto, AiToolPicksResponse } from "@/types/tools";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { useT } from "@/lib/i18n/useT";
 
 const CATEGORY_ICON: Record<string, typeof Bot> = {
   AIサービス: Bot,
@@ -13,13 +14,16 @@ const CATEGORY_ICON: Record<string, typeof Bot> = {
   ブラウザ拡張: Puzzle,
 };
 
+const ALL_CATEGORY = "__all__"; // language-independent sentinel - keeping the translated label out of state avoids a stale-comparison bug when the language changes after this state was set
+
 export function AiToolPicks() {
   const { user } = useAuth();
+  const t = useT();
   const [picks, setPicks] = useState<AiToolPickDto[]>([]);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [category, setCategory] = useState<string>("すべて");
+  const [category, setCategory] = useState<string>(ALL_CATEGORY);
   const [bookmarkedOnly, setBookmarkedOnly] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +34,7 @@ export function AiToolPicks() {
     return fetch(`/api/tools?offset=${offset}`)
       .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
       .then(({ ok, data }) => {
-        if (!ok) throw new Error(data.error ?? "読み込みに失敗しました");
+        if (!ok) throw new Error(data.error ?? t.common.loadFailedError);
         return data as AiToolPicksResponse;
       });
   }
@@ -43,7 +47,7 @@ export function AiToolPicks() {
         setHasMore(data.hasMore);
         setError(null);
       })
-      .catch(() => setError("読み込みに失敗しました"))
+      .catch(() => setError(t.common.loadFailedError))
       .finally(() => setLoading(false));
   }
 
@@ -63,7 +67,7 @@ export function AiToolPicks() {
       setPicks((prev) => [...prev, ...data.picks]);
       setHasMore(data.hasMore);
     } catch {
-      setError("読み込みに失敗しました");
+      setError(t.common.loadFailedError);
     } finally {
       setLoadingMore(false);
       loadingMoreRef.current = false;
@@ -90,10 +94,10 @@ export function AiToolPicks() {
     try {
       const res = await fetch("/api/tools/refresh", { method: "POST" });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "更新に失敗しました");
+      if (!res.ok) throw new Error(data.error ?? t.aiToolPicks.refreshFailed);
       await loadFirstPage();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "更新に失敗しました");
+      setError(err instanceof Error ? err.message : t.aiToolPicks.refreshFailed);
     } finally {
       setRefreshing(false);
     }
@@ -112,15 +116,15 @@ export function AiToolPicks() {
     }
   }
 
-  const categories = ["すべて", ...Array.from(new Set(picks.map((p) => p.category)))];
+  const categories = [ALL_CATEGORY, ...Array.from(new Set(picks.map((p) => p.category)))];
   const visible = picks
-    .filter((p) => category === "すべて" || p.category === category)
+    .filter((p) => category === ALL_CATEGORY || p.category === category)
     .filter((p) => !bookmarkedOnly || p.isBookmarked);
 
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col gap-4 px-4 pb-24 pt-6 md:pb-6">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs text-gray-500 dark:text-gray-400">Geminiが選ぶ、今知っておきたいAIツール・アプリのピックアップ</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">{t.aiToolPicks.description}</p>
         <button
           type="button"
           onClick={handleRefresh}
@@ -128,7 +132,7 @@ export function AiToolPicks() {
           className="flex items-center gap-1 text-xs font-semibold rounded-full px-3.5 py-1.5 text-white brand-gradient shadow-sm shadow-indigo-900/20 disabled:opacity-50 shrink-0 transition-transform active:scale-95"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} strokeWidth={2.5} />
-          {refreshing ? "更新中..." : "更新する"}
+          {refreshing ? t.common.updating : t.aiToolPicks.refreshButton}
         </button>
       </div>
 
@@ -145,7 +149,7 @@ export function AiToolPicks() {
                 category === c ? "brand-gradient text-white shadow-sm shadow-indigo-900/20" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
               }`}
             >
-              {c}
+              {c === ALL_CATEGORY ? t.aiToolPicks.allCategory : c}
             </button>
           ))}
         </div>
@@ -159,7 +163,7 @@ export function AiToolPicks() {
             bookmarkedOnly ? "brand-gradient text-white shadow-sm shadow-indigo-900/20" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
           }`}
         >
-          <Bookmark className="w-3.5 h-3.5" strokeWidth={2.25} fill={bookmarkedOnly ? "currentColor" : "none"} /> ブックマークのみ
+          <Bookmark className="w-3.5 h-3.5" strokeWidth={2.25} fill={bookmarkedOnly ? "currentColor" : "none"} /> {t.aiToolPicks.bookmarkedOnly}
         </button>
       )}
 
@@ -177,9 +181,7 @@ export function AiToolPicks() {
         <div className="text-center py-16">
           <Bot className="w-10 h-10 mx-auto mb-3 text-gray-300 dark:text-gray-600" strokeWidth={1.5} />
           <p className="text-gray-400 dark:text-gray-500 text-sm">
-            {bookmarkedOnly
-              ? "ブックマークしたツールがまだありません。"
-              : "まだピックアップがありません。「更新する」を押すとGeminiが最新のAIツールを選定します。"}
+            {bookmarkedOnly ? t.aiToolPicks.emptyBookmarked : t.aiToolPicks.emptyDefault}
           </p>
         </div>
       ) : (
@@ -207,18 +209,18 @@ export function AiToolPicks() {
                       }`}
                     >
                       <Bookmark className="w-3.5 h-3.5" strokeWidth={2.25} fill={pick.isBookmarked ? "currentColor" : "none"} />
-                      {pick.isBookmarked ? "保存済み" : "保存"}
+                      {pick.isBookmarked ? t.common.saved : t.common.save}
                     </button>
                   )}
                 </div>
                 <p className="font-bold text-gray-800 dark:text-gray-100 mb-1.5 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{pick.name}</p>
                 <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-2">{pick.summary}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                  <span className="font-semibold text-gray-600 dark:text-gray-400">おすすめの人: </span>
+                  <span className="font-semibold text-gray-600 dark:text-gray-400">{t.aiToolPicks.recommendedForLabel}</span>
                   {pick.recommendedFor}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                  <span className="font-semibold text-gray-600 dark:text-gray-400">活用例: </span>
+                  <span className="font-semibold text-gray-600 dark:text-gray-400">{t.aiToolPicks.useCaseLabel}</span>
                   {pick.useCaseExample}
                 </p>
                 {pick.sourceUrl && (
@@ -228,15 +230,15 @@ export function AiToolPicks() {
                     rel="noopener noreferrer"
                     className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
                   >
-                    公式サイトを見る ↗
+                    {t.aiToolPicks.officialSiteLink}
                   </a>
                 )}
               </div>
             ))}
           </div>
-          {hasMore && !bookmarkedOnly && category === "すべて" && (
+          {hasMore && !bookmarkedOnly && category === ALL_CATEGORY && (
             <div ref={sentinelRef} className="flex justify-center py-4">
-              {loadingMore && <span className="text-sm text-gray-400 dark:text-gray-500">読み込み中...</span>}
+              {loadingMore && <span className="text-sm text-gray-400 dark:text-gray-500">{t.common.loading}</span>}
             </div>
           )}
         </>

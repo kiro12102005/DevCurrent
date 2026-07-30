@@ -9,6 +9,7 @@ import { countryFlag } from "@/lib/countryLabels";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { hapticTap } from "@/lib/haptics";
 import { ShareButton } from "./ShareButton";
+import { useT } from "@/lib/i18n/useT";
 
 type ArticleState = { isRead: boolean; isBookmarked: boolean };
 
@@ -21,13 +22,14 @@ export function MonthlyRanking({ onSelectArticle }: { onSelectArticle: (url: str
   const [ranking, setRanking] = useState<FeedArticle[] | null>(null);
   const [states, setStates] = useState<Record<string, ArticleState>>({});
   const [error, setError] = useState<string | null>(null);
+  const t = useT();
 
   useEffect(() => {
     queueMicrotask(() => {
       fetch("/api/feed/ranking")
         .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
         .then(({ ok, data }) => {
-          if (!ok) throw new Error(data.error ?? "ランキングの取得に失敗しました");
+          if (!ok) throw new Error(data.error ?? t.monthlyRanking.fetchError);
           setRanking(data.ranking);
           if (user && data.ranking.length > 0) {
             const ids = data.ranking.map((a: FeedArticle) => a.id).join(",");
@@ -37,7 +39,7 @@ export function MonthlyRanking({ onSelectArticle }: { onSelectArticle: (url: str
               .catch(() => {});
           }
         })
-        .catch((err) => setError(err instanceof Error ? err.message : "ランキングの取得に失敗しました"));
+        .catch((err) => setError(err instanceof Error ? err.message : t.monthlyRanking.fetchError));
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -73,7 +75,7 @@ export function MonthlyRanking({ onSelectArticle }: { onSelectArticle: (url: str
   }
 
   if (ranking.length === 0) {
-    return <p className="text-center py-16 text-gray-400 dark:text-gray-500 text-sm">直近1ヶ月の記事がまだありません。</p>;
+    return <p className="text-center py-16 text-gray-400 dark:text-gray-500 text-sm">{t.monthlyRanking.noArticlesYet}</p>;
   }
 
   return (
@@ -117,7 +119,7 @@ export function MonthlyRanking({ onSelectArticle }: { onSelectArticle: (url: str
                       }`}
                     >
                       <Bookmark className="w-3 h-3" strokeWidth={2.25} fill={state?.isBookmarked ? "currentColor" : "none"} />
-                      保存
+                      {t.common.save}
                     </button>
                     <button
                       type="button"
@@ -127,7 +129,7 @@ export function MonthlyRanking({ onSelectArticle }: { onSelectArticle: (url: str
                       }`}
                     >
                       {state?.isRead ? <CircleCheckBig className="w-3 h-3" strokeWidth={2.25} /> : <Square className="w-3 h-3" strokeWidth={2.25} />}
-                      既読
+                      {t.monthlyRanking.readLabel}
                     </button>
                   </>
                 )}

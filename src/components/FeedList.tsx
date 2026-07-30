@@ -13,6 +13,7 @@ import { hapticTap } from "@/lib/haptics";
 import { PodcastPlayer } from "./PodcastPlayer";
 import { ShareButton } from "./ShareButton";
 import { MonthlyRanking } from "./MonthlyRanking";
+import { useT } from "@/lib/i18n/useT";
 
 const DAY_CHIPS = Array.from({ length: 7 }, (_, i) => jstDateStringDaysAgo(i)); // today, then back 6 more days
 const SEARCH_DEBOUNCE_MS = 400;
@@ -22,6 +23,7 @@ type ArticleState = { isRead: boolean; isBookmarked: boolean };
 
 export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) => void }) {
   const { user } = useAuth();
+  const t = useT();
   const [period, setPeriod] = useState<FeedPeriod>("week");
   const [date, setDate] = useState<string>(jstTodayString());
   const [query, setQuery] = useState("");
@@ -81,7 +83,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
     return fetch(`/api/feed?${params}`)
       .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
       .then(({ ok, data }) => {
-        if (!ok) throw new Error(data.error ?? "フィードの取得に失敗しました");
+        if (!ok) throw new Error(data.error ?? t.common.fetchFailedError);
         const d = data as FeedResponse;
         return { items: d.regular, featured: d.featured, hasMore: d.hasMore };
       });
@@ -97,7 +99,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
     return fetch(`/api/search?${params}`)
       .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
       .then(({ ok, data }) => {
-        if (!ok) throw new Error(data.error ?? "検索に失敗しました");
+        if (!ok) throw new Error(data.error ?? t.feedList.searchFailed);
         const d = data as SearchResponse;
         return { items: d.results, featured: [], hasMore: d.hasMore };
       });
@@ -118,7 +120,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
         loadArticleStates([...data.featured, ...data.items]);
       })
       .catch((err) => {
-        setError(err instanceof Error ? err.message : "取得に失敗しました");
+        setError(err instanceof Error ? err.message : t.common.fetchFailedError);
       })
       .finally(() => {
         setLoading(false);
@@ -135,7 +137,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
       setHasMore(data.hasMore);
       loadArticleStates(data.items);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "取得に失敗しました");
+      setError(err instanceof Error ? err.message : t.common.fetchFailedError);
     } finally {
       setLoadingMore(false);
       loadingMoreRef.current = false;
@@ -201,9 +203,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col gap-4 px-4 pb-24 pt-6 md:pb-6">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          Qiita / Zenn / Hacker News / ArXiv から自動収集（3時間ごとに自動更新・過去1週間分）
-        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">{t.feedList.autoCollectDesc}</p>
         <button
           type="button"
           onClick={handleManualRefresh}
@@ -211,7 +211,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
           className="flex items-center gap-1 text-xs font-semibold rounded-full px-3.5 py-1.5 text-white brand-gradient shadow-sm shadow-indigo-900/20 disabled:opacity-50 shrink-0 transition-transform active:scale-95"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} strokeWidth={2.5} />
-          {refreshing ? "更新中..." : "今すぐ更新"}
+          {refreshing ? t.common.updating : t.feedList.refreshNow}
         </button>
       </div>
 
@@ -223,7 +223,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="記事タイトルを検索（全期間対象）"
+          placeholder={t.feedList.searchPlaceholder}
           className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
         />
       </div>
@@ -238,7 +238,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
               setDate(jstTodayString());
             }}
           >
-            <Calendar className="w-3.5 h-3.5" strokeWidth={2.25} /> 週間まとめ
+            <Calendar className="w-3.5 h-3.5" strokeWidth={2.25} /> {t.feedList.weeklyDigestChip}
           </PeriodChip>
           {DAY_CHIPS.map((d, i) => (
             <PeriodChip
@@ -250,11 +250,11 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
                 setDate(d);
               }}
             >
-              {i === 0 ? "今日" : formatShortDateWithWeekday(d)}
+              {i === 0 ? t.feedList.today : formatShortDateWithWeekday(d)}
             </PeriodChip>
           ))}
           <PeriodChip active={showRanking} onClick={() => setShowRanking(true)}>
-            <Trophy className="w-3.5 h-3.5" strokeWidth={2.25} /> 月間ランキング
+            <Trophy className="w-3.5 h-3.5" strokeWidth={2.25} /> {t.feedList.monthlyRankingChip}
           </PeriodChip>
         </div>
       )}
@@ -262,7 +262,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
       {!isSearching && !showRanking && availableCountries.length > 1 && (
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
           <PeriodChip active={country === null} onClick={() => setCountry(null)}>
-            すべての国
+            {t.feedList.allCountries}
           </PeriodChip>
           {availableCountries.map((c) => (
             <PeriodChip key={c} active={country === c} onClick={() => setCountry(c)}>
@@ -275,10 +275,10 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
       {!showRanking && user && (
         <div className="flex gap-2">
           <PeriodChip active={unreadOnly} onClick={() => setUnreadOnly((v) => !v)}>
-            未読のみ
+            {t.feedList.unreadOnly}
           </PeriodChip>
           <PeriodChip active={bookmarkedOnly} onClick={() => setBookmarkedOnly((v) => !v)}>
-            <Bookmark className="w-3.5 h-3.5" strokeWidth={2.25} fill={bookmarkedOnly ? "currentColor" : "none"} /> ブックマークのみ
+            <Bookmark className="w-3.5 h-3.5" strokeWidth={2.25} fill={bookmarkedOnly ? "currentColor" : "none"} /> {t.feedList.bookmarkedOnly}
           </PeriodChip>
         </div>
       )}
@@ -300,10 +300,10 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
           )}
           <p className="text-gray-400 dark:text-gray-500 text-sm">
             {isSearching
-              ? `「${debouncedQuery}」に一致する記事が見つかりませんでした。`
+              ? t.feedList.noSearchResultsTemplate.replace("{q}", debouncedQuery)
               : period === "day"
-                ? "この日の記事はまだありません。"
-                : "まだ記事がありません。「今すぐ更新」を押すか、自動更新を待ってください。"}
+                ? t.feedList.noArticlesToday
+                : t.feedList.noArticlesDefault}
           </p>
         </div>
       ) : (
@@ -312,7 +312,9 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
             <section className="flex flex-col gap-3">
               <h2 className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-700 dark:text-amber-400">
                 <Star className="w-4 h-4" strokeWidth={2.25} fill="currentColor" />
-                注目ピックアップ（{period === "day" ? formatShortDateWithWeekday(date) : "今週"}）
+                {t.feedList.featuredHeadingPrefix}
+                {period === "day" ? formatShortDateWithWeekday(date) : t.feedList.thisWeekLabel}
+                {t.feedList.featuredHeadingSuffix}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {featured.map((article) => (
@@ -331,7 +333,11 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
 
           <section className="flex flex-col gap-3">
             <h2 className="text-sm font-bold text-gray-700 dark:text-gray-300">
-              {isSearching ? `検索結果「${debouncedQuery}」` : period === "day" ? "この日の記事" : "今週の記事"}
+              {isSearching
+                ? `${t.feedList.searchResultsHeadingPrefix}${debouncedQuery}${t.feedList.searchResultsHeadingSuffix}`
+                : period === "day"
+                  ? t.feedList.todaysArticlesHeading
+                  : t.feedList.thisWeeksArticlesHeading}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {regular.map((article) => (
@@ -346,7 +352,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
             </div>
             {hasMore && (
               <div ref={sentinelRef} className="flex justify-center py-4">
-                {loadingMore && <span className="text-sm text-gray-400 dark:text-gray-500">読み込み中...</span>}
+                {loadingMore && <span className="text-sm text-gray-400 dark:text-gray-500">{t.common.loading}</span>}
               </div>
             )}
           </section>
@@ -405,6 +411,8 @@ function FeedCard({
   state?: ArticleState;
   onToggleState?: (articleId: string, key: "isRead" | "isBookmarked") => void;
 }) {
+  const t = useT();
+
   return (
     <div
       className={`group rounded-xl border p-4 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 ${
@@ -422,7 +430,7 @@ function FeedCard({
         )}
         {article.publishedAt && <span className="text-gray-500 dark:text-gray-400">{formatArticleDate(article.publishedAt)}</span>}
         {article.hasInsight && (
-          <span className="rounded-full bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 font-semibold">要約済み</span>
+          <span className="rounded-full bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 font-semibold">{t.feedList.summarizedBadge}</span>
         )}
       </div>
       <button type="button" onClick={() => onSelect(article.url)} className="block w-full text-left">
@@ -438,7 +446,7 @@ function FeedCard({
             rel="noopener noreferrer"
             className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
           >
-            元記事を読む ↗
+            {t.feedList.readOriginal}
           </a>
           <ShareButton title={article.title ?? article.url} url={article.url} className="p-1 text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400" />
         </div>
@@ -452,7 +460,7 @@ function FeedCard({
               }`}
             >
               <Bookmark className="w-3.5 h-3.5" strokeWidth={2.25} fill={state?.isBookmarked ? "currentColor" : "none"} />
-              {state?.isBookmarked ? "保存済み" : "保存"}
+              {state?.isBookmarked ? t.common.saved : t.common.save}
             </button>
             <button
               type="button"
@@ -466,7 +474,7 @@ function FeedCard({
               ) : (
                 <Square className="w-3.5 h-3.5" strokeWidth={2.25} />
               )}
-              {state?.isRead ? "既読" : "未読"}
+              {state?.isRead ? t.feedList.read : t.feedList.unread}
             </button>
           </div>
         )}

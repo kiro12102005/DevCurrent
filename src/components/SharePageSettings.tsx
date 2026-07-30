@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { Share2 } from "lucide-react";
+import { useT } from "@/lib/i18n/useT";
 
 export function SharePageSettings() {
   const [shareSlug, setShareSlug] = useState<string | null>(null);
   const [nickname, setNickname] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const t = useT();
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -57,21 +59,19 @@ export function SharePageSettings() {
   return (
     <div className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-4 flex flex-col gap-3">
       <h3 className="font-bold text-gray-800 dark:text-gray-100 flex items-center gap-1.5">
-        <Share2 className="w-4 h-4" strokeWidth={2.25} /> 共有可能な学習実績ページ
+        <Share2 className="w-4 h-4" strokeWidth={2.25} /> {t.sharePageSettings.title}
       </h3>
-      <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-        公開すると、既読/保存件数や分野別の学習マップを誰でも見られる専用ページができます。メールアドレスなど個人情報は表示されません。履歴書や就活サイトへのリンクにどうぞ。
-      </p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{t.sharePageSettings.description}</p>
 
       <label className="flex flex-col gap-1 text-xs text-gray-600 dark:text-gray-400">
-        表示名（任意・空欄なら「ユーザー」と表示）
+        {t.sharePageSettings.nicknameLabel}
         <input
           type="text"
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
           onBlur={handleSaveNickname}
           maxLength={30}
-          placeholder="例: taro_dev"
+          placeholder={t.sharePageSettings.nicknamePlaceholder}
           className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
         />
       </label>
@@ -84,7 +84,7 @@ export function SharePageSettings() {
           shareSlug ? "border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800" : "brand-gradient text-white"
         }`}
       >
-        {shareSlug ? "公開を停止する" : "公開する"}
+        {shareSlug ? t.sharePageSettings.unpublishButton : t.sharePageSettings.publishButton}
       </button>
 
       {shareUrl && (
@@ -95,7 +95,7 @@ export function SharePageSettings() {
             onClick={() => navigator.clipboard?.writeText(shareUrl)}
             className="ml-2 text-indigo-600 dark:text-indigo-400 hover:underline shrink-0"
           >
-            コピー
+            {t.common.copy}
           </button>
         </div>
       )}

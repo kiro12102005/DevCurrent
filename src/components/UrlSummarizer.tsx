@@ -15,6 +15,8 @@ import { formatArticleDate } from "@/lib/formatDate";
 import { countryFlag } from "@/lib/countryLabels";
 import { downloadTextFile } from "@/lib/download";
 import { articleInsightToMarkdown } from "@/lib/exportMarkdown";
+import { useLanguage } from "@/lib/i18n/language";
+import { useT } from "@/lib/i18n/useT";
 
 // externalRequest.token must change (e.g. Date.now() at click time) even if the
 // same URL is picked twice in a row, so the effect below re-triggers reliably.
@@ -24,6 +26,8 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<SummarizeResponse | null>(null);
   const apiKey = useStoredApiKey();
+  const language = useLanguage();
+  const t = useT();
   // guards against React Strict Mode's dev-only double effect invocation
   // firing the same request twice (wastes a Gemini call and can race the DB)
   const lastRequestedToken = useRef<number | null>(null);
@@ -40,15 +44,15 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
           "Content-Type": "application/json",
           ...(apiKey ? { "x-gemini-api-key": apiKey } : {}),
         },
-        body: JSON.stringify({ url: targetUrl }),
+        body: JSON.stringify({ url: targetUrl, lang: language !== "ja" ? language : undefined }),
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error ?? "エラーが発生しました");
+        throw new Error(data.error ?? t.common.genericError);
       }
       setResult(data as SummarizeResponse);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "エラーが発生しました");
+      setError(err instanceof Error ? err.message : t.common.genericError);
     } finally {
       setLoading(false);
     }
@@ -77,7 +81,7 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
     <div className="w-full max-w-3xl mx-auto flex flex-col gap-6 px-4 pb-24 pt-6 md:pb-6">
       {!apiKey && (
         <p className="rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-4 py-3 text-amber-800 dark:text-amber-400 text-sm print:hidden">
-          右上の「APIキー設定」から自分のGemini APIキーを登録してください（未登録の場合は生成に失敗します）。
+          {t.urlSummarizer.apiKeyWarning}
         </p>
       )}
 
@@ -85,7 +89,7 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
         <input
           type="url"
           required
-          placeholder="記事のURLを貼り付け"
+          placeholder={t.urlSummarizer.urlPlaceholder}
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           className="flex-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
@@ -95,7 +99,7 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
           disabled={loading}
           className="rounded-lg brand-gradient px-5 py-3 font-semibold text-white shadow-sm shadow-indigo-900/20 disabled:opacity-50 active:scale-[0.98] transition"
         >
-          {loading ? "生成中..." : "要約する"}
+          {loading ? t.common.generating : t.urlSummarizer.summarizeButton}
         </button>
       </form>
 
@@ -135,7 +139,7 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
                   </span>
                 )}
               </div>
-              <h2 className="text-lg font-bold">{result.article.title ?? "無題の記事"}</h2>
+              <h2 className="text-lg font-bold">{result.article.title ?? t.urlSummarizer.untitledArticle}</h2>
               <div className="flex items-center gap-1 mt-1">
                 <a
                   href={result.article.url}
@@ -143,7 +147,7 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
                   rel="noopener noreferrer"
                   className="inline-block text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
                 >
-                  元記事を読む ↗
+                  {t.urlSummarizer.readOriginal}
                 </a>
                 <ShareButton
                   title={result.article.title ?? result.article.url}
@@ -155,7 +159,7 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
             <div className="flex items-center gap-1.5 shrink-0 print:hidden">
               {result.cached && (
                 <span className="text-xs rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-400 px-2 py-1">
-                  キャッシュ済み（API節約）
+                  {t.urlSummarizer.cachedBadge}
                 </span>
               )}
               <button
@@ -163,14 +167,14 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
                 onClick={() => downloadTextFile(`${result.article.title ?? "article"}.md`, articleInsightToMarkdown(result))}
                 className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap"
               >
-                <FileText className="w-3 h-3" strokeWidth={2.25} /> MD
+                <FileText className="w-3 h-3" strokeWidth={2.25} /> {t.urlSummarizer.downloadMd}
               </button>
               <button
                 type="button"
                 onClick={() => window.print()}
                 className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap"
               >
-                <Printer className="w-3 h-3" strokeWidth={2.25} /> PDF
+                <Printer className="w-3 h-3" strokeWidth={2.25} /> {t.urlSummarizer.downloadPdf}
               </button>
             </div>
           </div>
@@ -178,7 +182,7 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
           {result.insight.isBreakingChange && (
             <div className="rounded-xl bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 p-4">
               <p className="font-bold text-red-700 dark:text-red-400 flex items-center gap-1.5 mb-1">
-                <TriangleAlert className="w-4 h-4" strokeWidth={2.25} /> 既存コードが動かなくなるかも
+                <TriangleAlert className="w-4 h-4" strokeWidth={2.25} /> {t.urlSummarizer.breakingChangeTitle}
               </p>
               <p className="text-sm text-red-700 dark:text-red-400 leading-relaxed">{result.insight.breakingChangeSummary}</p>
             </div>
@@ -189,13 +193,13 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
           {result.insight.debateMatrix && (result.insight.debateMatrix.pro.length > 0 || result.insight.debateMatrix.con.length > 0) && (
             <section className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-5">
               <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-1 flex items-center gap-1.5">
-                <Swords className="w-4 h-4" strokeWidth={2.25} /> 技術論争サマライザー
+                <Swords className="w-4 h-4" strokeWidth={2.25} /> {t.urlSummarizer.debateMatrixTitle}
               </h3>
-              <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-3">Hacker Newsのコメント欄をもとにAIが分類</p>
+              <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-3">{t.urlSummarizer.debateMatrixSubtitle}</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="inline-flex items-center gap-1.5 text-xs font-bold text-green-700 dark:text-green-400 mb-2">
-                    <ThumbsUp className="w-3.5 h-3.5" strokeWidth={2.25} /> 導入推奨派
+                    <ThumbsUp className="w-3.5 h-3.5" strokeWidth={2.25} /> {t.urlSummarizer.proLabel}
                   </p>
                   <ul className="list-disc list-inside space-y-1.5 text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
                     {result.insight.debateMatrix.pro.map((p, i) => (
@@ -205,7 +209,7 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
                 </div>
                 <div>
                   <p className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400 mb-2">
-                    <ThumbsDown className="w-3.5 h-3.5" strokeWidth={2.25} /> 懸念派
+                    <ThumbsDown className="w-3.5 h-3.5" strokeWidth={2.25} /> {t.urlSummarizer.conLabel}
                   </p>
                   <ul className="list-disc list-inside space-y-1.5 text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
                     {result.insight.debateMatrix.con.map((c, i) => (
@@ -223,7 +227,7 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
 
           <section className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 border-l-4 border-l-indigo-500 p-5">
             <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-1.5">
-              <FileText className="w-4 h-4" strokeWidth={2.25} /> 要約
+              <FileText className="w-4 h-4" strokeWidth={2.25} /> {t.urlSummarizer.summaryTitle}
             </h3>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">{result.insight.summary}</p>
           </section>
@@ -231,7 +235,7 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
           <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 border-l-4 border-l-green-500 p-5">
               <h3 className="font-bold text-green-700 dark:text-green-400 mb-2 flex items-center gap-1.5">
-                <CircleCheckBig className="w-4 h-4" strokeWidth={2.25} /> メリット
+                <CircleCheckBig className="w-4 h-4" strokeWidth={2.25} /> {t.urlSummarizer.prosTitle}
               </h3>
               <ul className="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
                 {result.insight.pros.map((p, i) => (
@@ -241,7 +245,7 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
             </div>
             <div className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 border-l-4 border-l-amber-500 p-5">
               <h3 className="font-bold text-amber-700 dark:text-amber-400 mb-2 flex items-center gap-1.5">
-                <TriangleAlert className="w-4 h-4" strokeWidth={2.25} /> 懸念点
+                <TriangleAlert className="w-4 h-4" strokeWidth={2.25} /> {t.urlSummarizer.consTitle}
               </h3>
               <ul className="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
                 {result.insight.cons.map((c, i) => (
@@ -253,14 +257,14 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
 
           <section className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 border-l-4 border-l-indigo-500 p-5">
             <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-1.5">
-              <Telescope className="w-4 h-4" strokeWidth={2.25} /> 今後の展望
+              <Telescope className="w-4 h-4" strokeWidth={2.25} /> {t.urlSummarizer.outlookTitle}
             </h3>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm whitespace-pre-line">{result.insight.outlook}</p>
           </section>
 
           <section className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-5">
             <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-1.5">
-              <BookOpen className="w-4 h-4" strokeWidth={2.25} /> 用語解説（タップで表示）
+              <BookOpen className="w-4 h-4" strokeWidth={2.25} /> {t.urlSummarizer.glossaryTitle}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {result.insight.glossary.map((g, i) => (

@@ -3,6 +3,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Bell, BellOff } from "lucide-react";
 import { getExistingSubscription, isPushSupported, subscribeToPush, unsubscribeFromPush } from "@/lib/pushClient";
+import { useT } from "@/lib/i18n/useT";
 
 const noopSubscribe = () => () => {};
 const getServerSnapshot = () => false;
@@ -14,6 +15,7 @@ export function NotificationSubscribe() {
   const [subscribed, setSubscribed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const t = useT();
 
   useEffect(() => {
     if (!supported) return;
@@ -34,7 +36,7 @@ export function NotificationSubscribe() {
         setSubscribed(true);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "通知設定に失敗しました");
+      setError(err instanceof Error ? err.message : t.notificationSubscribe.error);
     } finally {
       setBusy(false);
     }
@@ -48,19 +50,19 @@ export function NotificationSubscribe() {
         type="button"
         onClick={toggle}
         disabled={busy}
-        title={subscribed ? "注目記事のプッシュ通知: ON" : "注目記事のプッシュ通知を受け取る"}
-        aria-label={subscribed ? "通知ON" : "通知OFF"}
+        title={subscribed ? t.notificationSubscribe.onTitle : t.notificationSubscribe.onPrompt}
+        aria-label={subscribed ? t.notificationSubscribe.onAriaLabel : t.notificationSubscribe.offAriaLabel}
         className={`flex items-center gap-1 rounded-full border px-2 sm:px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${
           subscribed ? "border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-400" : "border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-indigo-300 dark:hover:border-indigo-600"
         }`}
       >
         {subscribed ? (
           <>
-            <Bell className="w-3.5 h-3.5" strokeWidth={2.25} /> <span className="hidden sm:inline">通知ON</span>
+            <Bell className="w-3.5 h-3.5" strokeWidth={2.25} /> <span className="hidden sm:inline">{t.notificationSubscribe.onLabel}</span>
           </>
         ) : (
           <>
-            <BellOff className="w-3.5 h-3.5" strokeWidth={2.25} /> <span className="hidden sm:inline">通知OFF</span>
+            <BellOff className="w-3.5 h-3.5" strokeWidth={2.25} /> <span className="hidden sm:inline">{t.notificationSubscribe.offLabel}</span>
           </>
         )}
       </button>
