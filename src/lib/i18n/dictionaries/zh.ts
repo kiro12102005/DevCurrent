@@ -225,7 +225,7 @@ const dict: Dictionary = {
     themeDark: "深色",
     openApiKeySettings: "设置API密钥",
     notificationsUnsupported: "此浏览器不支持推送通知。",
-    notificationTypesHint: "登录后可分别开关各类通知（精选推荐／重大变更），详见“账户”标签页。",
+    notificationTypesHint: "登录后可分别开关各类通知，并按兴趣标签、技术栈进行筛选。",
     accountLoginPrompt: "登录后可在此管理账户相关设置，如通知类型、感兴趣的标签、关注的技术栈等。请通过右上角的“登录”登录。",
   },
   shareButton: {

@@ -230,7 +230,7 @@ const dict: Dictionary = {
     themeDark: "Dark",
     openApiKeySettings: "Set up API key",
     notificationsUnsupported: "Push notifications aren't supported in this browser.",
-    notificationTypesHint: "Log in to turn each notification type (featured picks / breaking changes) on or off individually (see the \"Account\" tab).",
+    notificationTypesHint: "Log in to turn each notification type on or off individually, and to filter them by interest tags or tech stack.",
     accountLoginPrompt:
       "Log in to manage account-level settings here - notification types, interest tags, tech stack, and more. Use \"Log In\" at the top right.",
   },

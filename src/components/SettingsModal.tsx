@@ -243,7 +243,7 @@ const getServerSnapshotFalse = () => false;
 
 function NotificationsSection() {
   const t = useT();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   // isPushSupported() reads browser-only APIs, so it must render `false` on
   // the server snapshot and only reveal the real state after client checks.
   const supported = useSyncExternalStore(noopSubscribe, isPushSupported, getServerSnapshotFalse);
@@ -301,11 +301,15 @@ function NotificationsSection() {
         </span>
       </button>
       {error && <p className="text-[11px] text-red-600 dark:text-red-400">{error}</p>}
-      {/* wantsFeaturedPush/wantsBreakingChangePush live on User, so per-type
-          control only exists once there's an account to store it against -
-          anonymous subscribers keep the "wants everything" broadcast
-          behavior (see sendPersonalizedPush in lib/push.ts). */}
-      {!user && <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500 leading-relaxed">{t.settingsModal.notificationTypesHint}</p>}
+
+      {/* wantsFeaturedPush/wantsBreakingChangePush/interestTags/stackKeywords
+          all live on User, so per-type/topic control only exists once
+          there's an account to store it against - anonymous subscribers
+          keep the "wants everything" broadcast behavior (see
+          sendPersonalizedPush in lib/push.ts). Lives in this tab (not
+          Account) since it's still fundamentally "what notifications do I
+          get", grouped with the master on/off switch above. */}
+      {!authLoading && (user ? <AccountPreferences /> : <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500 leading-relaxed">{t.settingsModal.notificationTypesHint}</p>)}
     </div>
   );
 }
@@ -317,8 +321,9 @@ function AccountSection() {
   if (loading) return <div className="skeleton h-32 w-full rounded-lg" />;
 
   // Login/signup itself stays in the header's AuthMenu (it's the entry point
-  // when there's no account yet) - this tab only covers what an already
-  // logged-in user manages, plus logging out.
+  // when there's no account yet). Notification-targeting preferences
+  // (types/tags/keywords/digest) live in the Notifications tab instead of
+  // here - this tab is just session identity + signing out.
   if (!user) {
     return <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{t.settingsModal.accountLoginPrompt}</p>;
   }
@@ -326,7 +331,6 @@ function AccountSection() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
-      <AccountPreferences />
       <button
         type="button"
         onClick={async () => {

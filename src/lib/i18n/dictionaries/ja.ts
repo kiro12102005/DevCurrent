@@ -233,7 +233,7 @@ const dict = {
     themeDark: "ダーク",
     openApiKeySettings: "APIキーを設定する",
     notificationsUnsupported: "このブラウザはプッシュ通知に対応していません。",
-    notificationTypesHint: "ログインすると、通知の種類（注目ピックアップ／動かなくなる変更）ごとにON/OFFを選べます（「アカウント」タブ）。",
+    notificationTypesHint: "ログインすると、通知の種類ごとのON/OFFや興味のあるタグ・技術スタックによる絞り込みを設定できるようになります。",
     accountLoginPrompt:
       "ログインすると、通知の種類・興味のあるタグ・気になる技術スタックなどアカウント単位の設定をここで管理できます。画面右上の「ログイン」からログインしてください。",
   },
