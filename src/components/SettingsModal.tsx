@@ -243,6 +243,7 @@ const getServerSnapshotFalse = () => false;
 
 function NotificationsSection() {
   const t = useT();
+  const { user } = useAuth();
   // isPushSupported() reads browser-only APIs, so it must render `false` on
   // the server snapshot and only reveal the real state after client checks.
   const supported = useSyncExternalStore(noopSubscribe, isPushSupported, getServerSnapshotFalse);
@@ -300,6 +301,11 @@ function NotificationsSection() {
         </span>
       </button>
       {error && <p className="text-[11px] text-red-600 dark:text-red-400">{error}</p>}
+      {/* wantsFeaturedPush/wantsBreakingChangePush live on User, so per-type
+          control only exists once there's an account to store it against -
+          anonymous subscribers keep the "wants everything" broadcast
+          behavior (see sendPersonalizedPush in lib/push.ts). */}
+      {!user && <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500 leading-relaxed">{t.settingsModal.notificationTypesHint}</p>}
     </div>
   );
 }

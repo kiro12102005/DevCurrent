@@ -36,6 +36,8 @@ const dict = {
     tabMyPage: "マイページ",
   },
   announcements: {
+    toggleLabel: "お知らせ",
+    panelTitle: "お知らせ",
     emptyState: "まだお知らせはありません。",
   },
   apiKeySettings: {
@@ -151,7 +153,6 @@ const dict = {
     shareTitle: "技術トレンド キャッチアップ 月間サマリー",
   },
   myPage: {
-    sectionAnnouncements: "お知らせ",
     sectionSaved: "保存済み",
     sectionMap: "学習マップ",
     sectionInterview: "模擬面接",
@@ -232,6 +233,7 @@ const dict = {
     themeDark: "ダーク",
     openApiKeySettings: "APIキーを設定する",
     notificationsUnsupported: "このブラウザはプッシュ通知に対応していません。",
+    notificationTypesHint: "ログインすると、通知の種類（注目ピックアップ／動かなくなる変更）ごとにON/OFFを選べます（「アカウント」タブ）。",
     accountLoginPrompt:
       "ログインすると、通知の種類・興味のあるタグ・気になる技術スタックなどアカウント単位の設定をここで管理できます。画面右上の「ログイン」からログインしてください。",
   },

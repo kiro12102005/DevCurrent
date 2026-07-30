@@ -33,6 +33,8 @@ const dict: Dictionary = {
     tabMyPage: "My Page",
   },
   announcements: {
+    toggleLabel: "Announcements",
+    panelTitle: "Announcements",
     emptyState: "No announcements yet.",
   },
   apiKeySettings: {
@@ -148,7 +150,6 @@ const dict: Dictionary = {
     shareTitle: "Tech Trend Catchup Monthly Summary",
   },
   myPage: {
-    sectionAnnouncements: "Announcements",
     sectionSaved: "Saved",
     sectionMap: "Learning Map",
     sectionInterview: "Mock Interview",
@@ -229,6 +230,7 @@ const dict: Dictionary = {
     themeDark: "Dark",
     openApiKeySettings: "Set up API key",
     notificationsUnsupported: "Push notifications aren't supported in this browser.",
+    notificationTypesHint: "Log in to turn each notification type (featured picks / breaking changes) on or off individually (see the \"Account\" tab).",
     accountLoginPrompt:
       "Log in to manage account-level settings here - notification types, interest tags, tech stack, and more. Use \"Log In\" at the top right.",
   },

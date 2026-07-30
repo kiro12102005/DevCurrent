@@ -43,9 +43,19 @@ export async function subscribeToPush(): Promise<void> {
     );
   }
 
+  // Once a user (or their browser) has blocked notifications for this site,
+  // requestPermission() silently resolves "denied" without ever showing the
+  // native prompt again - there's no way to re-trigger that prompt from JS,
+  // so this needs a pointed instruction rather than a generic failure message.
+  if (Notification.permission === "denied") {
+    throw new Error(
+      "通知がブロックされています。ブラウザのアドレスバー付近のサイト設定（鍵/i アイコンなど）で「通知」を許可に変更してから、もう一度お試しください。"
+    );
+  }
+
   const permission = await Notification.requestPermission();
   if (permission !== "granted") {
-    throw new Error("通知が許可されませんでした");
+    throw new Error("通知が許可されませんでした。表示されたダイアログで「許可」を選択してください。");
   }
 
   const subscription = await registration.pushManager.subscribe({

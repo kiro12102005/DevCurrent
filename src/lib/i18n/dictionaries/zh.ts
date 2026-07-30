@@ -33,6 +33,8 @@ const dict: Dictionary = {
     tabMyPage: "我的页面",
   },
   announcements: {
+    toggleLabel: "公告",
+    panelTitle: "公告",
     emptyState: "暂无公告。",
   },
   apiKeySettings: {
@@ -145,7 +147,6 @@ const dict: Dictionary = {
     shareTitle: "技术趋势速览 月度总结",
   },
   myPage: {
-    sectionAnnouncements: "公告",
     sectionSaved: "已保存",
     sectionMap: "学习地图",
     sectionInterview: "模拟面试",
@@ -224,6 +225,7 @@ const dict: Dictionary = {
     themeDark: "深色",
     openApiKeySettings: "设置API密钥",
     notificationsUnsupported: "此浏览器不支持推送通知。",
+    notificationTypesHint: "登录后可分别开关各类通知（精选推荐／重大变更），详见“账户”标签页。",
     accountLoginPrompt: "登录后可在此管理账户相关设置，如通知类型、感兴趣的标签、关注的技术栈等。请通过右上角的“登录”登录。",
   },
   shareButton: {

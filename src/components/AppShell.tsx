@@ -8,11 +8,11 @@ import { FeedList } from "./FeedList";
 import { AiToolPicks } from "./AiToolPicks";
 import { MyPage } from "./MyPage";
 import { SettingsModal } from "./SettingsModal";
+import { AnnouncementsButton } from "./AnnouncementsButton";
 import { AuthMenu } from "./AuthMenu";
 import { OnboardingModal } from "./OnboardingModal";
 import { useStoredApiKey } from "@/lib/apiKeyStorage";
 import { openSettingsPanel } from "@/lib/settingsPanel";
-import { useUnreadAnnouncementCount } from "@/lib/announcements";
 import { useLanguage } from "@/lib/i18n/language";
 import { useT } from "@/lib/i18n/useT";
 
@@ -35,7 +35,6 @@ export function AppShell() {
   const [externalRequest, setExternalRequest] = useState<{ url: string; token: number } | undefined>();
   const language = useLanguage();
   const apiKey = useStoredApiKey();
-  const hasUnreadAnnouncements = useUnreadAnnouncementCount() > 0;
   const t = useT();
 
   useEffect(() => {
@@ -74,6 +73,7 @@ export function AppShell() {
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            <AnnouncementsButton />
             <button
               type="button"
               onClick={() => openSettingsPanel()}
@@ -96,12 +96,7 @@ export function AppShell() {
           {TAB_ORDER.map((tabKey) => {
             const Icon = TAB_ICON[tabKey];
             return (
-              <TabButton
-                key={tabKey}
-                active={tab === tabKey}
-                onClick={() => setTab(tabKey)}
-                badge={tabKey === "mypage" && hasUnreadAnnouncements}
-              >
+              <TabButton key={tabKey} active={tab === tabKey} onClick={() => setTab(tabKey)}>
                 <Icon className="w-4 h-4" strokeWidth={2.25} /> {TAB_LABEL[tabKey]}
               </TabButton>
             );
@@ -125,13 +120,10 @@ export function AppShell() {
               key={tabKey}
               type="button"
               onClick={() => setTab(tabKey)}
-              className={`relative flex flex-col items-center gap-0.5 text-xs transition-colors ${tab === tabKey ? "text-indigo-600 dark:text-indigo-400 font-semibold" : "text-gray-400 dark:text-gray-500"}`}
+              className={`flex flex-col items-center gap-0.5 text-xs transition-colors ${tab === tabKey ? "text-indigo-600 dark:text-indigo-400 font-semibold" : "text-gray-400 dark:text-gray-500"}`}
             >
               <Icon className="w-5 h-5" strokeWidth={tab === tabKey ? 2.5 : 2} />
               {tabKey === "summarize" ? t.appShell.tabSummarizeMobile : TAB_LABEL[tabKey]}
-              {tabKey === "mypage" && hasUnreadAnnouncements && (
-                <span className="absolute top-0 right-[calc(50%-14px)] w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-              )}
             </button>
           );
         })}
@@ -140,27 +132,16 @@ export function AppShell() {
   );
 }
 
-function TabButton({
-  active,
-  onClick,
-  badge,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  badge?: boolean;
-  children: React.ReactNode;
-}) {
+function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`relative inline-flex items-center gap-1.5 shrink-0 px-3 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap ${
+      className={`inline-flex items-center gap-1.5 shrink-0 px-3 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap ${
         active ? "border-indigo-600 text-indigo-700 dark:text-indigo-400" : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
       }`}
     >
       {children}
-      {badge && <span className="absolute top-1.5 right-1 w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />}
     </button>
   );
 }
