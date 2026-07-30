@@ -32,6 +32,9 @@ const dict: Dictionary = {
     tabTools: "AI工具",
     tabMyPage: "我的页面",
   },
+  announcements: {
+    emptyState: "暂无公告。",
+  },
   apiKeySettings: {
     panelTitle: "你的Gemini API密钥",
     description: "本应用不与所有人共用一个API密钥，而是每位用户使用自己的密钥生成内容。密钥仅保存在本机浏览器中，不会保存到服务器数据库。",
@@ -142,6 +145,7 @@ const dict: Dictionary = {
     shareTitle: "技术趋势速览 月度总结",
   },
   myPage: {
+    sectionAnnouncements: "公告",
     sectionSaved: "已保存",
     sectionMap: "学习地图",
     sectionInterview: "模拟面试",

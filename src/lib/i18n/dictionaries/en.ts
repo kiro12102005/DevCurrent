@@ -32,6 +32,9 @@ const dict: Dictionary = {
     tabTools: "AI Tools",
     tabMyPage: "My Page",
   },
+  announcements: {
+    emptyState: "No announcements yet.",
+  },
   apiKeySettings: {
     panelTitle: "Your Gemini API Key",
     description:
@@ -145,6 +148,7 @@ const dict: Dictionary = {
     shareTitle: "Tech Trend Catchup Monthly Summary",
   },
   myPage: {
+    sectionAnnouncements: "Announcements",
     sectionSaved: "Saved",
     sectionMap: "Learning Map",
     sectionInterview: "Mock Interview",

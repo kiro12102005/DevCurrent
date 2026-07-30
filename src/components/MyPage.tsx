@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Bookmark, BarChart3, GraduationCap, Search, Share2, MessageSquareText, Info, Lock } from "lucide-react";
+import { Bookmark, BarChart3, GraduationCap, Search, Share2, MessageSquareText, Megaphone, Info, Lock } from "lucide-react";
 import { SavedList } from "./SavedList";
 import { LearningMap } from "./LearningMap";
 import { InterviewPractice } from "./InterviewPractice";
@@ -11,11 +11,14 @@ import { RepoBreakingChangeCheck } from "./RepoBreakingChangeCheck";
 import { FeedbackForm } from "./FeedbackForm";
 import { ContactCard } from "./ContactCard";
 import { MonthlySummaryShare } from "./MonthlySummaryShare";
+import { AnnouncementsSection } from "./AnnouncementsSection";
+import { useUnreadAnnouncementCount } from "@/lib/announcements";
 import { hapticTap } from "@/lib/haptics";
 import { useT } from "@/lib/i18n/useT";
 
-const SECTION_KEYS = ["saved", "map", "interview", "repo", "share", "feedback"] as const;
+const SECTION_KEYS = ["announcements", "saved", "map", "interview", "repo", "share", "feedback"] as const;
 const SECTION_ICON = {
+  announcements: Megaphone,
   saved: Bookmark,
   map: BarChart3,
   interview: GraduationCap,
@@ -32,8 +35,10 @@ type SectionKey = (typeof SECTION_KEYS)[number];
 export function MyPage({ onSelectArticle }: { onSelectArticle: (url: string) => void }) {
   const [section, setSection] = useState<SectionKey>("saved");
   const t = useT();
+  const unreadAnnouncements = useUnreadAnnouncementCount();
 
   const SECTION_LABEL: Record<SectionKey, string> = {
+    announcements: t.myPage.sectionAnnouncements,
     saved: t.myPage.sectionSaved,
     map: t.myPage.sectionMap,
     interview: t.myPage.sectionInterview,
@@ -59,11 +64,14 @@ export function MyPage({ onSelectArticle }: { onSelectArticle: (url: string) => 
                 hapticTap();
                 setSection(key);
               }}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
+              className={`relative inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
                 section === key ? "brand-gradient text-white shadow-sm shadow-indigo-900/20" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
               }`}
             >
               <Icon className="w-3.5 h-3.5 shrink-0" strokeWidth={2.25} /> {SECTION_LABEL[key]}
+              {key === "announcements" && unreadAnnouncements > 0 && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+              )}
             </button>
           );
         })}
@@ -84,6 +92,7 @@ export function MyPage({ onSelectArticle }: { onSelectArticle: (url: string) => 
         </Link>
       </div>
 
+      {section === "announcements" && <AnnouncementsSection />}
       {section === "saved" && <SavedList onSelectArticle={onSelectArticle} />}
       {section === "map" && (
         <div className="flex flex-col gap-4">

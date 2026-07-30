@@ -246,3 +246,21 @@ model Feedback {
 
   @@index([userId])
 }
+
+// --- Operator announcements -------------------------------------------------
+
+// Manually authored by the operator (see /admin/announcements, gated the same
+// way as /admin/usage - logged-in user's email must match ADMIN_EMAIL) to
+// broadcast system changes, maintenance notices, new features, etc. to every
+// user. Distinct from Article/AiToolPick, which are auto-crawled/generated -
+// this is the one piece of content the operator writes by hand. Publishing
+// one also fires sendPushToAllSubscribers (see lib/push.ts), so it reaches
+// subscribers immediately instead of only whoever happens to open the app.
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

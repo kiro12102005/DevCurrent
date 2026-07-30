@@ -35,6 +35,9 @@ const dict = {
     tabTools: "AIツール",
     tabMyPage: "マイページ",
   },
+  announcements: {
+    emptyState: "まだお知らせはありません。",
+  },
   apiKeySettings: {
     panelTitle: "あなたのGemini APIキー",
     description:
@@ -148,6 +151,7 @@ const dict = {
     shareTitle: "技術トレンド キャッチアップ 月間サマリー",
   },
   myPage: {
+    sectionAnnouncements: "お知らせ",
     sectionSaved: "保存済み",
     sectionMap: "学習マップ",
     sectionInterview: "模擬面接",
