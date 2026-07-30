@@ -1,6 +1,7 @@
 {
   "crons": [
     { "path": "/api/tools/refresh", "schedule": "0 0 * * 1" },
-    { "path": "/api/digest/send", "schedule": "0 0 * * 1" }
+    { "path": "/api/digest/send", "schedule": "0 0 * * 1" },
+    { "path": "/api/admin/usage-digest/send", "schedule": "0 0 * * 1" }
   ]
 }

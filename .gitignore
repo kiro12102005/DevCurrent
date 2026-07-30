@@ -64,3 +64,6 @@ next-env.d.ts
 
 # local Claude Code session state (permissions, scheduled task locks)
 /.claude/
+
+# personal interview-prep notes, not for the public repo
+/docs/INTERVIEW_PREP.md

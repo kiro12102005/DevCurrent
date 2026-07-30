@@ -82,15 +82,16 @@ npx vercel --prod # 本番デプロイ
 | `BLOB_READ_WRITE_TOKEN` | 音声ポッドキャストを使うなら必須。`vercel blob create-store <name> --access public --yes`で作成すると自動的にVercelプロジェクトの環境変数へ注入される（`.env.local`にも自動反映）。未設定でも他機能に影響なし（ポッドキャスト生成だけスキップ） |
 | `NEXT_PUBLIC_SENTRY_DSN` / `SENTRY_DSN` | Sentryエラートラッキング用DSN（[sentry.io](https://sentry.io)の Settings > Projects > Client Keys で取得）。同じ値を両方に設定。未設定でもビルド・起動は通るがエラーが送信されない |
 | `SENTRY_ORG` / `SENTRY_PROJECT` / `SENTRY_AUTH_TOKEN` | 任意。本番スタックトレースをソースマップ付きで見たい場合に設定（`SENTRY_AUTH_TOKEN`は`project:releases`スコープが必要）。未設定だとアップロードが静かにスキップされ、Sentry上のスタックトレースはminifyされたコードのまま |
+| `ADMIN_EMAIL` | 任意。毎週月曜0時に新規/アクティブユーザー数・今週の人気記事などをまとめた週次利用状況サマリーメールを送る宛先（`RESEND_API_KEY`も必要）。**かつ**、`/admin/usage`ページ（同じ内容をアプリ内で見られる詳細ページ）は、ログイン中のアカウントのメールアドレスがこの値と一致する場合のみ表示される（一致しない場合・未ログインの場合は404）。訪問者数・ページビューはこのアプリのDBには無いため、メール本文・`/admin/usage`ページのどちらにもVercelダッシュボードのAnalyticsタブへの案内を載せている |
 
 ## 5. 定期実行（自動クロール・自動キュレーション・週次ダイジェスト）
 
 `instrumentation.ts`のインプロセスタイマーはVercel（サーバーレス）では動作しません。代わりに:
 
-- **`vercel.json`**（このリポジトリに含み済み）: `/api/tools/refresh`と`/api/digest/send`を毎週月曜0時に実行するVercel Cronを設定済み（`/api/digest/send`は`CRON_SECRET`未設定だと誰でも叩けてしまうため、本番では`CRON_SECRET`の設定を強く推奨）。
+- **`vercel.json`**（このリポジトリに含み済み）: `/api/tools/refresh`・`/api/digest/send`・`/api/admin/usage-digest/send`を毎週月曜0時に実行するVercel Cronを設定済み（これらは`CRON_SECRET`未設定だと誰でも叩けてしまうため、本番では`CRON_SECRET`の設定を強く推奨）。
   Vercelは`CRON_SECRET`という名前の環境変数が設定されていれば、Cron実行時に自動で`Authorization: Bearer $CRON_SECRET`ヘッダーを付けてくれます。
   **Vercel Hobbyプランはcronの実行頻度が1日1回までの制限があるため**、3時間おきが必要な`/api/feed/refresh`はここに含めていません。
-- **`.github/workflows/cron-refresh.yml`**（このリポジトリに含み済み）: `/api/feed/refresh`を3時間おき、`/api/tools/refresh`と週次ダイジェストを毎週月曜、**`/api/podcast/generate`を毎日6時JST（21:00 UTC）**に実行するGitHub Actionsワークフロー。
+- **`.github/workflows/cron-refresh.yml`**（このリポジトリに含み済み）: `/api/feed/refresh`を3時間おき、`/api/tools/refresh`・週次ダイジェスト・週次利用状況サマリーを毎週月曜、**`/api/podcast/generate`を毎日6時JST（21:00 UTC）**に実行するGitHub Actionsワークフロー。
   GitHubリポジトリの `Settings > Secrets and variables > Actions` で以下を設定してください:
   - `APP_URL`: デプロイ先のURL（例: `https://your-app.vercel.app`）
   - `CRON_SECRET`: 設定するならVercelと同じ値（未設定でも動く。下記参照）

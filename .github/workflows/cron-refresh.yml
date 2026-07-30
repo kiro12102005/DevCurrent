@@ -43,6 +43,14 @@ jobs:
           APP_URL: ${{ secrets.APP_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
 
+      - name: Send weekly usage summary email (operator only)
+        if: github.event.schedule == '0 0 * * 1' || github.event_name == 'workflow_dispatch'
+        run: |
+          curl -sf "$APP_URL/api/admin/usage-digest/send" -H "x-cron-secret: $CRON_SECRET"
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+
       - name: Generate daily podcast episode
         if: github.event.schedule == '0 21 * * *' || github.event_name == 'workflow_dispatch'
         run: |
