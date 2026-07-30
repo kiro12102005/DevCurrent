@@ -33,7 +33,6 @@ const dict: Dictionary = {
     tabMyPage: "My Page",
   },
   apiKeySettings: {
-    toggleLabel: "API Key Settings",
     panelTitle: "Your Gemini API Key",
     description:
       "This app doesn't share one API key across everyone - each user generates content with their own key. Your key is stored only in this browser and never saved to the server database.",
@@ -115,7 +114,7 @@ const dict: Dictionary = {
     title: "Mock Interview AI",
     description:
       "Based on the articles in your \"Saved\" list, Gemini generates questions you might get asked in a technical interview. Think through your own answer first, then check the answer points.",
-    apiKeyWarning: "Register your own Gemini API key from \"API Key Settings\" at the top right (generation will fail without one).",
+    apiKeyWarning: "No Gemini API key registered yet (generation will fail without one).",
     generateButton: "Generate Questions",
     regenerateButton: "Regenerate Questions",
     basedOnLabel: "Based on: ",
@@ -175,6 +174,10 @@ const dict: Dictionary = {
     stepToolsDesc: "Browse trending AI services and apps by category.",
     stepMyPageTitle: "My Page",
     stepMyPageDesc: "Your saved articles, learning map, mock interviews, and share page all live here.",
+    apiKeyNoticeTitle: "You'll need to register a Gemini API key",
+    apiKeyNoticeDesc:
+      "AI features (summaries, mock interviews, etc.) generate with your own Gemini API key rather than a key shared across everyone. They won't work until you register one (it's free to get).",
+    apiKeyNoticeButton: "Set up your API key",
     startButton: "Get Started",
   },
   podcastPlayer: {
@@ -205,6 +208,25 @@ const dict: Dictionary = {
     emptyState: "No saved articles yet. Save one using the save button in the feed.",
     addNotePrompt: "+ Add a note",
     notePlaceholder: "Write a note...",
+  },
+  settingsModal: {
+    toggleLabel: "Settings",
+    apiKeyMissingHint: "Gemini API key not set (open Settings)",
+    title: "Settings",
+    closeLabel: "Close",
+    tabDisplay: "Display",
+    tabApiKey: "API Key",
+    tabNotifications: "Notifications",
+    tabAccount: "Account",
+    languageLabel: "Language",
+    themeLabel: "Theme",
+    themeSystem: "Auto",
+    themeLight: "Light",
+    themeDark: "Dark",
+    openApiKeySettings: "Set up API key",
+    notificationsUnsupported: "Push notifications aren't supported in this browser.",
+    accountLoginPrompt:
+      "Log in to manage account-level settings here - notification types, interest tags, tech stack, and more. Use \"Log In\" at the top right.",
   },
   shareButton: {
     ariaLabel: "Share",
@@ -243,7 +265,7 @@ const dict: Dictionary = {
     refreshFailed: "Refresh failed",
   },
   urlSummarizer: {
-    apiKeyWarning: "Register your own Gemini API key from \"API Key Settings\" at the top right (generation will fail without one).",
+    apiKeyWarning: "No Gemini API key registered yet (generation will fail without one).",
     urlPlaceholder: "Paste an article URL",
     summarizeButton: "Summarize",
     untitledArticle: "Untitled article",

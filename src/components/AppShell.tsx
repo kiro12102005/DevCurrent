@@ -2,17 +2,16 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Newspaper, Search, Bot, User, type LucideIcon } from "lucide-react";
+import { Newspaper, Search, Bot, User, Settings as SettingsIcon, type LucideIcon } from "lucide-react";
 import { UrlSummarizer } from "./UrlSummarizer";
 import { FeedList } from "./FeedList";
 import { AiToolPicks } from "./AiToolPicks";
 import { MyPage } from "./MyPage";
-import { ApiKeySettings } from "./ApiKeySettings";
-import { NotificationSubscribe } from "./NotificationSubscribe";
+import { SettingsModal } from "./SettingsModal";
 import { AuthMenu } from "./AuthMenu";
 import { OnboardingModal } from "./OnboardingModal";
-import { ThemeToggle } from "./ThemeToggle";
-import { LanguageToggle } from "./LanguageToggle";
+import { useStoredApiKey } from "@/lib/apiKeyStorage";
+import { openSettingsPanel } from "@/lib/settingsPanel";
 import { useLanguage } from "@/lib/i18n/language";
 import { useT } from "@/lib/i18n/useT";
 
@@ -34,6 +33,7 @@ export function AppShell() {
   const [tab, setTab] = useState<Tab>("feed");
   const [externalRequest, setExternalRequest] = useState<{ url: string; token: number } | undefined>();
   const language = useLanguage();
+  const apiKey = useStoredApiKey();
   const t = useT();
 
   useEffect(() => {
@@ -55,6 +55,7 @@ export function AppShell() {
   return (
     <div className="flex flex-col flex-1">
       <OnboardingModal />
+      <SettingsModal />
       <header className="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200/80 dark:border-gray-800/80 print:hidden">
         <div className="max-w-5xl mx-auto px-4 py-3.5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -71,10 +72,19 @@ export function AppShell() {
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <LanguageToggle />
-            <ThemeToggle />
-            <NotificationSubscribe />
-            <ApiKeySettings />
+            <button
+              type="button"
+              onClick={() => openSettingsPanel()}
+              aria-label={t.settingsModal.toggleLabel}
+              title={apiKey ? t.settingsModal.toggleLabel : t.settingsModal.apiKeyMissingHint}
+              className="relative flex items-center gap-1 rounded-full border border-gray-300 dark:border-gray-700 px-2 sm:px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors"
+            >
+              <SettingsIcon className="w-3.5 h-3.5" strokeWidth={2.25} /> <span className="hidden sm:inline">{t.settingsModal.toggleLabel}</span>
+              {/* Nudges new users toward the API key tab - BYOK generation
+                  silently fails without one, and the setting used to live in
+                  its own easy-to-miss header icon. */}
+              {!apiKey && <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-500 animate-pulse" />}
+            </button>
             <AuthMenu />
           </div>
         </div>

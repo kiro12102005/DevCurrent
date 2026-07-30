@@ -36,7 +36,6 @@ const dict = {
     tabMyPage: "マイページ",
   },
   apiKeySettings: {
-    toggleLabel: "APIキー設定",
     panelTitle: "あなたのGemini APIキー",
     description:
       "このアプリはみんなで1つのAPIキーを共有せず、各自のキーで生成します。 キーはこの端末のブラウザ内にのみ保存され、サーバーのデータベースには保存されません。",
@@ -118,7 +117,7 @@ const dict = {
     title: "模擬面接AI",
     description:
       "「保存済み」に入れた記事をもとに、Geminiが技術面接で聞かれそうな質問を作成します。まず自分の言葉で考えてから、回答のポイントを確認しましょう。",
-    apiKeyWarning: "右上の「APIキー設定」から自分のGemini APIキーを登録してください（未登録の場合は生成に失敗します）。",
+    apiKeyWarning: "Gemini APIキーが未登録です（未登録の場合は生成に失敗します）。",
     generateButton: "質問を生成する",
     regenerateButton: "質問を作り直す",
     basedOnLabel: "元記事: ",
@@ -178,6 +177,10 @@ const dict = {
     stepToolsDesc: "今話題のAIサービス・アプリをカテゴリ別にチェック。",
     stepMyPageTitle: "マイページ",
     stepMyPageDesc: "保存した記事・学習マップ・模擬面接・共有ページはここに集約されています。",
+    apiKeyNoticeTitle: "Gemini APIキーの登録が必要です",
+    apiKeyNoticeDesc:
+      "要約や模擬面接などAI機能は、みんなで1つのキーを共有せず各自のGemini APIキーで生成します。キーを登録するまでAI機能は使えません（無料で発行できます）。",
+    apiKeyNoticeButton: "APIキーを設定する",
     startButton: "はじめる",
   },
   podcastPlayer: {
@@ -208,6 +211,25 @@ const dict = {
     emptyState: "まだ保存した記事がありません。フィードの保存ボタンから保存できます。",
     addNotePrompt: "+ メモを追加",
     notePlaceholder: "メモを書く...",
+  },
+  settingsModal: {
+    toggleLabel: "設定",
+    apiKeyMissingHint: "Gemini APIキーが未設定です（設定を開く）",
+    title: "設定",
+    closeLabel: "閉じる",
+    tabDisplay: "表示",
+    tabApiKey: "APIキー",
+    tabNotifications: "通知",
+    tabAccount: "アカウント",
+    languageLabel: "言語",
+    themeLabel: "テーマ",
+    themeSystem: "自動",
+    themeLight: "ライト",
+    themeDark: "ダーク",
+    openApiKeySettings: "APIキーを設定する",
+    notificationsUnsupported: "このブラウザはプッシュ通知に対応していません。",
+    accountLoginPrompt:
+      "ログインすると、通知の種類・興味のあるタグ・気になる技術スタックなどアカウント単位の設定をここで管理できます。画面右上の「ログイン」からログインしてください。",
   },
   shareButton: {
     ariaLabel: "共有",
@@ -246,7 +268,7 @@ const dict = {
     refreshFailed: "更新に失敗しました",
   },
   urlSummarizer: {
-    apiKeyWarning: "右上の「APIキー設定」から自分のGemini APIキーを登録してください（未登録の場合は生成に失敗します）。",
+    apiKeyWarning: "Gemini APIキーが未登録です（未登録の場合は生成に失敗します）。",
     urlPlaceholder: "記事のURLを貼り付け",
     summarizeButton: "要約する",
     untitledArticle: "無題の記事",

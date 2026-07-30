@@ -40,7 +40,7 @@ function resolveApiKey(userProvidedKey?: string): string {
   const apiKey = userProvidedKey?.trim() || process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error(
-      "Gemini APIキーが設定されていません。画面右上の「APIキー設定」から自分のAPIキーを登録してください。"
+      "Gemini APIキーが設定されていません。画面右上の「設定」→「APIキー」から自分のAPIキーを登録してください。"
     );
   }
   return apiKey;

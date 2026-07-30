@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Newspaper, Search, Bot, User } from "lucide-react";
+import { Newspaper, Search, Bot, User, KeyRound } from "lucide-react";
+import { openSettingsPanel } from "@/lib/settingsPanel";
 import { useT } from "@/lib/i18n/useT";
 
 const STORAGE_KEY = "onboarding_dismissed_v1";
@@ -37,6 +38,11 @@ export function OnboardingModal() {
     setShow(false);
   }
 
+  function openApiKeySettings() {
+    dismiss();
+    openSettingsPanel("apikey");
+  }
+
   if (!show) return null;
 
   return (
@@ -58,6 +64,25 @@ export function OnboardingModal() {
             </li>
           ))}
         </ul>
+
+        {/* AI features are BYOK (each user supplies their own Gemini key) -
+            the setting used to live in an easy-to-miss header icon, so new
+            users would hit a silent generation failure before ever finding
+            it. Surface it up front, with a direct link into Settings. */}
+        <div className="mb-4 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 p-3">
+          <p className="flex items-start gap-2 text-xs font-semibold text-amber-800 dark:text-amber-400">
+            <KeyRound className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={2.25} />
+            {t.onboardingModal.apiKeyNoticeTitle}
+          </p>
+          <p className="mt-1 text-[11px] text-amber-700/90 dark:text-amber-400/80 leading-relaxed">{t.onboardingModal.apiKeyNoticeDesc}</p>
+          <button
+            type="button"
+            onClick={openApiKeySettings}
+            className="mt-2 w-full rounded-lg bg-amber-600 hover:bg-amber-700 px-3 py-2 text-xs font-semibold text-white transition-colors"
+          >
+            {t.onboardingModal.apiKeyNoticeButton}
+          </button>
+        </div>
 
         <button
           type="button"

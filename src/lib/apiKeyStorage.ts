@@ -33,7 +33,7 @@ function getServerSnapshot(): string {
 }
 
 // Reactively reflects the stored key, including changes made by other
-// components (e.g. ApiKeySettings) via the CHANGE_EVENT.
+// components (e.g. SettingsModal) via the CHANGE_EVENT.
 export function useStoredApiKey(): string {
   return useSyncExternalStore(subscribe, getStoredApiKey, getServerSnapshot);
 }

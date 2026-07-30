@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Lock, GraduationCap } from "lucide-react";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useStoredApiKey } from "@/lib/apiKeyStorage";
+import { openSettingsPanel } from "@/lib/settingsPanel";
 import type { InterviewQuestionDto } from "@/types/interview";
 import { useT } from "@/lib/i18n/useT";
 
@@ -66,8 +67,15 @@ export function InterviewPractice() {
         </h3>
         <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-3">{t.interviewPractice.description}</p>
         {!apiKey && (
-          <p className="rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-3 py-2 text-amber-800 dark:text-amber-400 text-xs mb-3">
-            {t.interviewPractice.apiKeyWarning}
+          <p className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-3 py-2 text-amber-800 dark:text-amber-400 text-xs mb-3">
+            <span>{t.interviewPractice.apiKeyWarning}</span>
+            <button
+              type="button"
+              onClick={() => openSettingsPanel("apikey")}
+              className="shrink-0 rounded-lg bg-amber-600 hover:bg-amber-700 px-2.5 py-1 text-[11px] font-semibold text-white transition-colors"
+            >
+              {t.settingsModal.openApiKeySettings}
+            </button>
           </p>
         )}
         <button

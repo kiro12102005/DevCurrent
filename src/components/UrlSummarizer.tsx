@@ -10,6 +10,7 @@ import { HandsOnGenerator } from "./HandsOnGenerator";
 import { EditorConfigGenerator } from "./EditorConfigGenerator";
 import { ShareButton } from "./ShareButton";
 import { useStoredApiKey } from "@/lib/apiKeyStorage";
+import { openSettingsPanel } from "@/lib/settingsPanel";
 import { SOURCE_BADGE_CLASS, SOURCE_LABEL } from "@/lib/sourceLabels";
 import { formatArticleDate } from "@/lib/formatDate";
 import { countryFlag } from "@/lib/countryLabels";
@@ -80,8 +81,15 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
   return (
     <div className="w-full max-w-3xl mx-auto flex flex-col gap-6 px-4 pb-24 pt-6 md:pb-6">
       {!apiKey && (
-        <p className="rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-4 py-3 text-amber-800 dark:text-amber-400 text-sm print:hidden">
-          {t.urlSummarizer.apiKeyWarning}
+        <p className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 px-4 py-3 text-amber-800 dark:text-amber-400 text-sm print:hidden">
+          <span>{t.urlSummarizer.apiKeyWarning}</span>
+          <button
+            type="button"
+            onClick={() => openSettingsPanel("apikey")}
+            className="shrink-0 rounded-lg bg-amber-600 hover:bg-amber-700 px-3 py-1.5 text-xs font-semibold text-white transition-colors"
+          >
+            {t.settingsModal.openApiKeySettings}
+          </button>
         </p>
       )}
 

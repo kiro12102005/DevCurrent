@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/lib/auth/AuthContext";
-import { TAG_OPTIONS, type Tag } from "@/lib/tags";
+import { openSettingsPanel } from "@/lib/settingsPanel";
 import { useT } from "@/lib/i18n/useT";
 
 type Mode = "login" | "signup";
 
 export function AuthMenu() {
-  const { user, loading, refresh, logout } = useAuth();
+  const { user, loading, refresh } = useAuth();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
@@ -47,38 +47,22 @@ export function AuthMenu() {
 
   if (loading) return null;
 
+  // Account preferences (notification types, interest tags, tech stack,
+  // weekly digest) and logout now live in Settings > Account, alongside the
+  // rest of the app's options - this badge is just a quick shortcut there
+  // rather than its own dropdown.
   if (user) {
     return (
-      <div className="relative">
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="flex items-center gap-1.5 rounded-full border border-gray-300 dark:border-gray-700 pl-2.5 pr-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors"
-        >
-          <span className="w-5 h-5 rounded-full brand-gradient text-white flex items-center justify-center text-[10px] font-bold">
-            {user.email[0]?.toUpperCase()}
-          </span>
-          <span className="max-w-[4.5rem] sm:max-w-[8rem] truncate">{user.email}</span>
-        </button>
-        {open && (
-          <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:left-auto sm:mt-2 sm:w-80 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-3 shadow-xl shadow-indigo-900/10 z-20 max-h-[80vh] overflow-y-auto">
-            <p className="px-1 text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
-
-            <PreferencesPanel />
-
-            <button
-              type="button"
-              onClick={async () => {
-                await logout();
-                setOpen(false);
-              }}
-              className="mt-3 w-full rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-            >
-              {t.authMenu.logout}
-            </button>
-          </div>
-        )}
-      </div>
+      <button
+        type="button"
+        onClick={() => openSettingsPanel("account")}
+        className="flex items-center gap-1.5 rounded-full border border-gray-300 dark:border-gray-700 pl-2.5 pr-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-indigo-300 dark:hover:border-indigo-600 transition-colors"
+      >
+        <span className="w-5 h-5 rounded-full brand-gradient text-white flex items-center justify-center text-[10px] font-bold">
+          {user.email[0]?.toUpperCase()}
+        </span>
+        <span className="max-w-[4.5rem] sm:max-w-[8rem] truncate">{user.email}</span>
+      </button>
     );
   }
 
@@ -146,156 +130,6 @@ export function AuthMenu() {
           <p className="mt-3 text-[11px] text-gray-400 dark:text-gray-500 leading-relaxed">{t.authMenu.disclaimer}</p>
         </div>
       )}
-    </div>
-  );
-}
-
-function PreferencesPanel() {
-  const t = useT();
-  const [interestTags, setInterestTags] = useState<Tag[]>([]);
-  const [stackKeywords, setStackKeywords] = useState<string[]>([]);
-  const [keywordDraft, setKeywordDraft] = useState("");
-  const [wantsWeeklyDigest, setWantsWeeklyDigest] = useState(false);
-  const [wantsFeaturedPush, setWantsFeaturedPush] = useState(true);
-  const [wantsBreakingChangePush, setWantsBreakingChangePush] = useState(true);
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    queueMicrotask(() => {
-      fetch("/api/user/preferences")
-        .then((res) => res.json())
-        .then((data) => {
-          setInterestTags(data.preferences?.interestTags ?? []);
-          setStackKeywords(data.preferences?.stackKeywords ?? []);
-          setWantsWeeklyDigest(data.preferences?.wantsWeeklyDigest ?? false);
-          setWantsFeaturedPush(data.preferences?.wantsFeaturedPush ?? true);
-          setWantsBreakingChangePush(data.preferences?.wantsBreakingChangePush ?? true);
-        })
-        .catch(() => {})
-        .finally(() => setLoaded(true));
-    });
-  }, []);
-
-  function savePreferences(next: {
-    interestTags?: Tag[];
-    stackKeywords?: string[];
-    wantsWeeklyDigest?: boolean;
-    wantsFeaturedPush?: boolean;
-    wantsBreakingChangePush?: boolean;
-  }) {
-    fetch("/api/user/preferences", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(next),
-    }).catch(() => {});
-  }
-
-  function toggleTag(tag: Tag) {
-    const next = interestTags.includes(tag) ? interestTags.filter((t) => t !== tag) : [...interestTags, tag];
-    setInterestTags(next);
-    savePreferences({ interestTags: next });
-  }
-
-  function addKeyword(e: React.FormEvent) {
-    e.preventDefault();
-    const value = keywordDraft.trim();
-    if (!value || stackKeywords.includes(value) || stackKeywords.length >= 15) return;
-    const next = [...stackKeywords, value];
-    setStackKeywords(next);
-    setKeywordDraft("");
-    savePreferences({ stackKeywords: next });
-  }
-
-  function removeKeyword(value: string) {
-    const next = stackKeywords.filter((k) => k !== value);
-    setStackKeywords(next);
-    savePreferences({ stackKeywords: next });
-  }
-
-  function toggleDigest() {
-    const next = !wantsWeeklyDigest;
-    setWantsWeeklyDigest(next);
-    savePreferences({ wantsWeeklyDigest: next });
-  }
-
-  function toggleFeaturedPush() {
-    const next = !wantsFeaturedPush;
-    setWantsFeaturedPush(next);
-    savePreferences({ wantsFeaturedPush: next });
-  }
-
-  function toggleBreakingChangePush() {
-    const next = !wantsBreakingChangePush;
-    setWantsBreakingChangePush(next);
-    savePreferences({ wantsBreakingChangePush: next });
-  }
-
-  if (!loaded) return <div className="skeleton h-16 w-full rounded-lg mt-3" />;
-
-  return (
-    <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-      <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{t.authMenu.notificationTypesTitle}</p>
-      <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-2 leading-relaxed">{t.authMenu.notificationTypesDesc}</p>
-      <div className="flex flex-col gap-1.5 mb-3">
-        <label className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
-          <input type="checkbox" checked={wantsFeaturedPush} onChange={toggleFeaturedPush} className="rounded" />
-          {t.authMenu.featuredPushLabel}
-        </label>
-        <label className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
-          <input type="checkbox" checked={wantsBreakingChangePush} onChange={toggleBreakingChangePush} className="rounded" />
-          {t.authMenu.breakingChangePushLabel}
-        </label>
-      </div>
-
-      <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{t.authMenu.interestTagsTitle}</p>
-      <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-2 leading-relaxed">{t.authMenu.interestTagsDesc}</p>
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        {TAG_OPTIONS.map((tag) => (
-          <button
-            key={tag}
-            type="button"
-            onClick={() => toggleTag(tag)}
-            className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
-              interestTags.includes(tag) ? "brand-gradient text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-            }`}
-          >
-            {tag}
-          </button>
-        ))}
-      </div>
-
-      <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{t.authMenu.stackKeywordsTitle}</p>
-      <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-2 leading-relaxed">{t.authMenu.stackKeywordsDesc}</p>
-      {stackKeywords.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          {stackKeywords.map((kw) => (
-            <span key={kw} className="flex items-center gap-1 rounded-full bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-400 px-2.5 py-1 text-[11px] font-semibold">
-              {kw}
-              <button type="button" onClick={() => removeKeyword(kw)} className="text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">
-                ×
-              </button>
-            </span>
-          ))}
-        </div>
-      )}
-      <form onSubmit={addKeyword} className="flex gap-1.5 mb-3">
-        <input
-          type="text"
-          value={keywordDraft}
-          onChange={(e) => setKeywordDraft(e.target.value)}
-          placeholder={t.authMenu.keywordPlaceholder}
-          maxLength={40}
-          className="flex-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
-        />
-        <button type="submit" className="rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 px-3 py-1.5 text-xs font-semibold">
-          {t.common.add}
-        </button>
-      </form>
-
-      <label className="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
-        <input type="checkbox" checked={wantsWeeklyDigest} onChange={toggleDigest} className="rounded" />
-        {t.authMenu.weeklyDigestLabel}
-      </label>
     </div>
   );
 }
