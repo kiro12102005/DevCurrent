@@ -230,11 +230,6 @@ const dict: Dictionary = {
     footerSuffix: " - visualize your own learning achievements too",
     defaultName: "User",
   },
-  supportLink: {
-    title: "Support Development",
-    description: "This app is an independent, free personal project. If you find it useful, your support would mean a lot for keeping development going.",
-    button: "Support via GitHub Sponsors",
-  },
   aiToolPicks: {
     description: "AI services and apps worth knowing about right now, picked by Gemini",
     refreshButton: "Refresh",

@@ -225,11 +225,6 @@ const dict: Dictionary = {
     footerSuffix: " 也能可视化你自己的学习成果",
     defaultName: "用户",
   },
-  supportLink: {
-    title: "支持开发",
-    description: "本应用为个人独立开发、免费运营的项目。如果您觉得好用，欢迎支持以帮助项目持续维护。",
-    button: "通过GitHub Sponsors支持",
-  },
   aiToolPicks: {
     description: "由Gemini精选的、当下值得了解的AI工具与应用",
     refreshButton: "刷新",

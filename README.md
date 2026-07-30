@@ -40,7 +40,6 @@
 - **ハプティックフィードバック**: 記事の既読/保存トグル・フィードバック送信・テーマ切り替えなどの操作時に、対応端末（主にAndroid）でVibration APIによる短い振動フィードバックを付与。未対応環境では何も起きない（機能検出のみ、フォールバックなし）。
 - **プライバシーポリシー**: マイページから`/privacy`へ遷移すると、収集する情報・利用している外部サービス（Supabase / Vercel / Resend / Google Gemini API等）・データの削除方法を開発者向けではなく利用者向けにまとめたページを閲覧できる。
 - **SEO対応**: `robots.ts`（`/api/`配下をcrawl対象外に）・`sitemap.ts`（トップ/about/privacyのみ、`/u/[slug]`はユーザーの共有オプトインと検索エンジンへの掲載オプトインは別物と考え意図的に除外）・ルート直下の`opengraph-image.tsx`（X/LINE/Slack/Qiita等でリンクを共有した際のカード画像）を実装。
-- **開発支援リンク**: マイページ＞フィードバックに、`NEXT_PUBLIC_SPONSOR_URL`を設定すると表示される「開発を応援する」リンク（デフォルトはGitHub Sponsors想定）。未設定時はリンク自体が非表示。
 - **多言語対応（日本語/English/中文）**: 画面右上の地球アイコンでUI表示言語をタップ切り替え（`localStorage`保存・サーバー不要）。2階層構成: (1) ボタン・見出しなどのUI文言はビルド時に用意した固定辞書（`src/lib/i18n/`）を参照するだけで追加コストゼロ。(2) URL要約結果（要約・メリデメ・今後の展望・用語解説・技術論争サマライザー）は、日本語以外が選択されている時だけその記事について初回リクエスト時にGemini（運営者キー）で翻訳し`AIGenerationTranslation`テーブルにキャッシュ、以降は同じ記事×言語なら再翻訳しない（`src/lib/translate.ts`）。記事タイトルや発信国バッジ、模擬面接・3分ハンズオン・AIエディタ設定生成（いずれもBYOK）は現状日本語のみ。
 
 ## セットアップ
@@ -204,7 +203,6 @@ src/
     RepoBreakingChangeCheck.tsx             # リポジトリチェック（マイページ内）
     FeedbackForm.tsx                          # フィードバック送信フォーム（マイページ内）
     ContactCard.tsx                            # 開発者への連絡カード（マイページ＞フィードバック内）
-    SupportLink.tsx                             # 開発支援リンク（NEXT_PUBLIC_SPONSOR_URL未設定時は非表示）
     MonthlyRanking.tsx                          # 月間ランキング（フィード内、期間チップで切替）
     MonthlySummaryShare.tsx                      # 月間サマリー画像の生成・保存・共有（マイページ＞学習マップ内）
     ThemeToggle.tsx                               # ライト/ダーク/自動切り替えボタン（ヘッダー）

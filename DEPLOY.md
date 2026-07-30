@@ -79,7 +79,6 @@ npx vercel --prod # 本番デプロイ
 | `RESEND_API_KEY` / `RESEND_FROM` | 任意。週次ダイジェストメール用（[resend.com](https://resend.com)で取得）。未設定でも他機能に影響なし |
 | `FEEDBACK_NOTIFY_EMAIL` | 任意。マイページ＞フィードバックの送信内容を通知するメール送信先。`RESEND_API_KEY`未設定時は通知メールだけスキップされ、投稿自体はDBに保存される |
 | `BLOB_READ_WRITE_TOKEN` | 音声ポッドキャストを使うなら必須。`vercel blob create-store <name> --access public --yes`で作成すると自動的にVercelプロジェクトの環境変数へ注入される（`.env.local`にも自動反映）。未設定でも他機能に影響なし（ポッドキャスト生成だけスキップ） |
-| `NEXT_PUBLIC_SPONSOR_URL` | 任意。マイページ＞フィードバックに表示される「開発を応援する」リンクの遷移先。GitHub Sponsors（[github.com/sponsors](https://github.com/sponsors)、無料で有効化可能・自分のGitHubアカウントに紐づけるだけ）を有効化して`https://github.com/sponsors/<自分のユーザー名>`を設定するか、他の投げ銭サービスのURLでも可。未設定ならリンク自体が非表示になる（死んだリンクを出さないため） |
 
 ## 5. 定期実行（自動クロール・自動キュレーション・週次ダイジェスト）
 

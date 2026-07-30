@@ -10,7 +10,6 @@ import { SharePageSettings } from "./SharePageSettings";
 import { RepoBreakingChangeCheck } from "./RepoBreakingChangeCheck";
 import { FeedbackForm } from "./FeedbackForm";
 import { ContactCard } from "./ContactCard";
-import { SupportLink } from "./SupportLink";
 import { MonthlySummaryShare } from "./MonthlySummaryShare";
 import { hapticTap } from "@/lib/haptics";
 import { useT } from "@/lib/i18n/useT";
@@ -98,7 +97,6 @@ export function MyPage({ onSelectArticle }: { onSelectArticle: (url: string) => 
       {section === "feedback" && (
         <div className="flex flex-col gap-4">
           <ContactCard />
-          <SupportLink />
           <FeedbackForm />
         </div>
       )}

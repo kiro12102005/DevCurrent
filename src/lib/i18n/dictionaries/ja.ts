@@ -233,11 +233,6 @@ const dict = {
     footerSuffix: "で自分の学習実績も可視化できます",
     defaultName: "ユーザー",
   },
-  supportLink: {
-    title: "開発を応援する",
-    description: "このアプリは個人開発・無料運営です。よければ開発の継続を応援していただけると励みになります。",
-    button: "GitHub Sponsorsで応援する",
-  },
   aiToolPicks: {
     description: "Geminiが選ぶ、今知っておきたいAIツール・アプリのピックアップ",
     refreshButton: "更新する",
