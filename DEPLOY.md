@@ -101,6 +101,12 @@ npx vercel --prod # 本番デプロイ
 
 **`CRON_SECRET`が実際に保護するのはGETだけ**: 両ルートとも `POST` は認証なしで受け付けます（アプリ内の「今すぐ更新」「更新する」ボタンがブラウザから直接この同じURLをPOSTで叩くため、サーバー専用シークレットを要求できません）。`GET`（Vercel Cronが自動送信するBearerヘッダー付きの呼び出し）だけ`CRON_SECRET`で保護されます。GitHub Actionsは`POST`を使うので、`CRON_SECRET`のヘッダーを付けていますが実際には未設定でも動作します。
 
+## 5.5 Vercel Analyticsの有効化
+
+`@vercel/analytics`を組み込み済み（`src/app/layout.tsx`の`<Analytics />`）。環境変数の設定は不要で、Vercelダッシュボードの
+プロジェクト > `Analytics`タブで有効化するだけでページビュー・訪問者数の計測が始まる（Hobbyプランは無料枠あり）。
+有効化を忘れるとコードは動いていてもダッシュボードにデータが出ない点に注意。
+
 ## 6. デプロイ後の確認
 
 - トップページが開けるか

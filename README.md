@@ -2,6 +2,16 @@
 
 就活生・エンジニア未経験者向けに、技術記事URLを深掘りした「要約」「メリット・懸念点」「今後の展望」「用語解説」に変換するアプリ。PC(Web) / iOS(PWA) 両対応。
 
+**🔗 本番デプロイ: https://dev-current.vercel.app**
+
+| フィード | URLで要約 |
+|---|---|
+| ![フィード画面](docs/screenshots/feed.png) | ![URL要約画面](docs/screenshots/summarize.png) |
+
+| AIツールピックアップ | マイページ |
+|---|---|
+| ![AIツール画面](docs/screenshots/ai-tools.png) | ![マイページ画面](docs/screenshots/mypage.png) |
+
 ## できること
 
 - **自動収集フィード**: Qiita / Zenn / Hacker News / ArXiv から過去1週間分の記事を自動クロール。**日別／週間まとめの切り替え**ができ、注目ピックアップ（エンゲージメント上位）はその期間内で動的に再計算されるので、今日だけでなく数日前の重要記事も見逃さない。記事カードは2列グリッド表示（スマホでは自動的に1列）、スクロールで追加読み込み。
@@ -141,7 +151,8 @@ const browser = await chromium.launch({
 Next.js 16 (App Router) / TypeScript / React 19 / Tailwind CSS v4 / Prisma ORM (SQLite → PostgreSQL) /
 Google Gemini API (`@google/genai`) / Web Push (`web-push`) / bcryptjs + jose（自前認証） / next-pwa /
 lucide-react（アプリ内アイコン・アプリアイコン共通のストロークベースのアイコン言語で統一） /
-mcp-handler + @modelcontextprotocol/sdk（Claude向けMCPサーバー）
+mcp-handler + @modelcontextprotocol/sdk（Claude向けMCPサーバー） /
+Sentry（エラートラッキング） / Vercel Analytics（ページビュー・利用状況の可視化）
 
 ## ディレクトリ構成
 

@@ -2,6 +2,7 @@
   "name": "tech-trend-catchup",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "dev": "next dev --webpack",
     "build": "prisma generate && next build --webpack",
@@ -19,6 +20,7 @@
     "@modelcontextprotocol/sdk": "1.26.0",
     "@prisma/client": "^6.19.3",
     "@sentry/nextjs": "^10.69.0",
+    "@vercel/analytics": "^2.0.1",
     "@vercel/blob": "^2.6.1",
     "bcryptjs": "^3.0.3",
     "cheerio": "^1.2.0",
