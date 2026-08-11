@@ -14,6 +14,9 @@ on:
     - cron: "0 0 * * 1"
     # daily podcast episode - 21:00 UTC = 6:00 JST, ready before the morning commute
     - cron: "0 21 * * *"
+    # operator usage summary - monthly on the 1st (see vercel.json), separate
+    # from the weekly jobs above
+    - cron: "0 0 1 * *"
 
 jobs:
   refresh:
@@ -43,8 +46,8 @@ jobs:
           APP_URL: ${{ secrets.APP_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
 
-      - name: Send weekly usage summary email (operator only)
-        if: github.event.schedule == '0 0 * * 1' || github.event_name == 'workflow_dispatch'
+      - name: Send monthly usage summary email (operator only)
+        if: github.event.schedule == '0 0 1 * *' || github.event_name == 'workflow_dispatch'
         run: |
           curl -sf "$APP_URL/api/admin/usage-digest/send" -H "x-cron-secret: $CRON_SECRET"
         env:

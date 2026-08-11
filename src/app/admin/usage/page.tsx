@@ -52,7 +52,7 @@ export default async function AdminUsagePage() {
         <div>
           <h1 className="text-2xl font-bold brand-gradient-text leading-tight">週次利用状況</h1>
           <p className="mt-1.5 text-sm text-gray-600 dark:text-gray-400">
-            {formatDateJst(stats.windowStart)} 〜 {formatDateJst(stats.windowEnd)}（直近7日間・毎週月曜0時にメールでも同じ内容が届きます）
+            {formatDateJst(stats.windowStart)} 〜 {formatDateJst(stats.windowEnd)}（直近7日間のライブ表示。月初にはこの1ヶ月を週ごとに分けたサマリーがメールでも届きます）
           </p>
         </div>
 

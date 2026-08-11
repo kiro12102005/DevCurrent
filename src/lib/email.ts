@@ -1,7 +1,7 @@
 import nodemailer, { type Transporter } from "nodemailer";
 import { prisma } from "@/lib/prisma";
 import { getWeeklyPicks, type WeeklyPick } from "@/lib/weeklyPicks";
-import { computeWeeklyUsageStats, type WeeklyUsageStats } from "@/lib/usageDigestStats";
+import { computeMonthlyUsageStats, type MonthlyUsageStats } from "@/lib/usageDigestStats";
 import { SOURCE_LABEL } from "@/lib/sourceLabels";
 
 const PICKS_PER_SOURCE = 3;
@@ -174,7 +174,7 @@ function formatDateJst(d: Date): string {
   return d.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "long", day: "numeric" });
 }
 
-function renderUsageDigestHtml(stats: WeeklyUsageStats, appUrl: string): string {
+function renderUsageDigestHtml(stats: MonthlyUsageStats, appUrl: string): string {
   const topArticlesHtml = stats.topArticles.length
     ? stats.topArticles
         .map(
@@ -185,14 +185,26 @@ function renderUsageDigestHtml(stats: WeeklyUsageStats, appUrl: string): string 
             </li>`
         )
         .join("")
-    : `<li style="color:#999;">今週は対象記事がありませんでした。</li>`;
+    : `<li style="color:#999;">今月は対象記事がありませんでした。</li>`;
+
+  const weeklyRowsHtml = stats.weeks
+    .map(
+      (w) => `
+        <tr>
+          <td style="padding:6px 0;color:#555;">${w.weekLabel}（${formatDateJst(w.weekStart)}〜${formatDateJst(w.weekEnd)}）</td>
+          <td style="text-align:right;font-weight:600;">新規${w.newUsers}人</td>
+          <td style="text-align:right;font-weight:600;">アクティブ${w.activeUsers}人</td>
+        </tr>`
+    )
+    .join("");
 
   return `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
-      <h1 style="font-size:18px;background:linear-gradient(135deg,#6d5bf5,#3730a3);-webkit-background-clip:text;background-clip:text;color:transparent;">週次利用状況サマリー</h1>
-      <p style="color:#555;font-size:13px;">${formatDateJst(stats.windowStart)} 〜 ${formatDateJst(stats.windowEnd)}</p>
+      <h1 style="font-size:18px;background:linear-gradient(135deg,#6d5bf5,#3730a3);-webkit-background-clip:text;background-clip:text;color:transparent;">月次利用状況サマリー</h1>
+      <p style="color:#555;font-size:13px;">${formatDateJst(stats.monthStart)} 〜 ${formatDateJst(stats.monthEnd)}</p>
 
-      <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0;">
+      <h2 style="font-size:14px;color:#333;margin-top:20px;">月合計</h2>
+      <table style="width:100%;border-collapse:collapse;font-size:14px;margin:8px 0 16px;">
         <tr><td style="padding:6px 0;color:#555;">新規登録ユーザー</td><td style="text-align:right;font-weight:600;">${stats.newUsers}人</td></tr>
         <tr><td style="padding:6px 0;color:#555;">アクティブユーザー（既読/保存操作）</td><td style="text-align:right;font-weight:600;">${stats.activeUsers}人</td></tr>
         <tr><td style="padding:6px 0;color:#555;">累計ユーザー数</td><td style="text-align:right;font-weight:600;">${stats.totalUsers}人</td></tr>
@@ -201,7 +213,10 @@ function renderUsageDigestHtml(stats: WeeklyUsageStats, appUrl: string): string 
         <tr><td style="padding:6px 0;color:#555;">フィードバック件数</td><td style="text-align:right;font-weight:600;">${stats.feedbackCount}件</td></tr>
       </table>
 
-      <h2 style="font-size:14px;color:#333;">今週のエンゲージメント上位記事</h2>
+      <h2 style="font-size:14px;color:#333;">週ごとの内訳</h2>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;margin:8px 0 16px;">${weeklyRowsHtml}</table>
+
+      <h2 style="font-size:14px;color:#333;">今月のエンゲージメント上位記事</h2>
       <ul style="padding-left:20px;font-size:13px;">${topArticlesHtml}</ul>
 
       <div style="margin-top:24px;padding:12px;background:#f5f5f7;border-radius:8px;font-size:12px;color:#555;">
@@ -212,7 +227,7 @@ function renderUsageDigestHtml(stats: WeeklyUsageStats, appUrl: string): string 
           （このメールの数字はアプリ自身のDBから集計したもので、Vercel Analyticsのデータとは別物です）。
         </p>
         <p style="margin:0;">
-          ユーザー・記事単位のより詳細な内訳は <a href="${appUrl}/admin/usage" style="color:#4f46e5;">${appUrl}/admin/usage</a>
+          ユーザー・記事単位のより詳細な内訳（直近7日間のライブ表示）は <a href="${appUrl}/admin/usage" style="color:#4f46e5;">${appUrl}/admin/usage</a>
           （運営者アカウントでログイン後にアクセス可能）で確認できます。
         </p>
       </div>
@@ -220,28 +235,28 @@ function renderUsageDigestHtml(stats: WeeklyUsageStats, appUrl: string): string 
   `;
 }
 
-// Weekly operator-only summary of the app's own usage, sent to
-// ADMIN_EMAIL - separate concern from sendWeeklyDigest (which goes to
-// opted-in end users with article picks, not operator metrics). Computed
-// from our own Postgres data since Vercel Web Analytics has no read API on
-// the Hobby plan (see computeWeeklyUsageStats). Same degrade-gracefully
-// pattern as the rest of this file: no-ops if GMAIL_USER/GMAIL_APP_PASSWORD
-// or ADMIN_EMAIL isn't configured.
+// Monthly operator-only summary of the app's own usage, sent to ADMIN_EMAIL -
+// separate concern from sendWeeklyDigest (which goes to opted-in end users
+// with article picks, not operator metrics). Computed from our own Postgres
+// data since Vercel Web Analytics has no read API on the Hobby plan (see
+// computeMonthlyUsageStats). Same degrade-gracefully pattern as the rest of
+// this file: no-ops if GMAIL_USER/GMAIL_APP_PASSWORD or ADMIN_EMAIL isn't
+// configured.
 export async function sendUsageDigest(): Promise<{ sent: boolean; skipped: string }> {
   const client = gmailTransport();
   const notifyTo = process.env.ADMIN_EMAIL;
   if (!client || !notifyTo) {
-    return { sent: false, skipped: "GMAIL_USER/GMAIL_APP_PASSWORDまたはADMIN_EMAIL未設定のため週次利用状況サマリーはスキップされました" };
+    return { sent: false, skipped: "GMAIL_USER/GMAIL_APP_PASSWORDまたはADMIN_EMAIL未設定のため月次利用状況サマリーはスキップされました" };
   }
 
-  const stats = await computeWeeklyUsageStats();
+  const stats = await computeMonthlyUsageStats();
   const appUrl = "https://dev-current.vercel.app"; // matches metadataBase in src/app/layout.tsx
 
   try {
     await client.sendMail({
       from: gmailFrom(),
       to: notifyTo,
-      subject: `[週次サマリー] 新規${stats.newUsers}人・アクティブ${stats.activeUsers}人（${formatDateJst(stats.windowStart)}〜${formatDateJst(stats.windowEnd)}）`,
+      subject: `[月次サマリー] 新規${stats.newUsers}人・アクティブ${stats.activeUsers}人（${formatDateJst(stats.monthStart)}〜${formatDateJst(stats.monthEnd)}）`,
       html: renderUsageDigestHtml(stats, appUrl),
     });
     return { sent: true, skipped: "" };
