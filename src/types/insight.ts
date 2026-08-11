@@ -10,7 +10,15 @@ export interface Insight {
   debateMatrix: { pro: string[]; con: string[] } | null;
 }
 
-export type SourceType = "QIITA" | "ZENN" | "HACKER_NEWS" | "ARXIV" | "AI_TOOL_PICK" | "USER_SUBMITTED";
+export type SourceType =
+  | "QIITA"
+  | "ZENN"
+  | "HACKER_NEWS"
+  | "ARXIV"
+  | "AI_TOOL_PICK"
+  | "USER_SUBMITTED"
+  | "GITHUB_TRENDING"
+  | "RELEASE_NOTES";
 
 export interface SummarizeResponse {
   cached: boolean;

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { Prisma } from "@/generated/prisma";
+import { SourceType, type Prisma } from "@/generated/prisma";
 import { jstTodayString } from "@/lib/dateRange";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getFeedPage, DATE_PATTERN } from "@/lib/feedQuery";
@@ -19,6 +19,12 @@ export async function GET(req: Request) {
   const unreadOnly = searchParams.get("unreadOnly") === "1";
   const bookmarkedOnly = searchParams.get("bookmarkedOnly") === "1";
   const country = searchParams.get("country");
+  const rawSources = searchParams.get("sources");
+  // Ignores unrecognized values instead of erroring - a stale client sending
+  // a since-removed SourceType shouldn't break the whole request.
+  const sourceTypes = rawSources
+    ? rawSources.split(",").filter((s): s is SourceType => (Object.values(SourceType) as string[]).includes(s))
+    : null;
 
   // read/bookmark filters are per-user, so they're a no-op for logged-out
   // requests (nothing to filter against) rather than an error.
@@ -30,6 +36,6 @@ export async function GET(req: Request) {
       }
     : {};
 
-  const result = await getFeedPage({ period, date, regularOffset, country, stateFilter });
+  const result = await getFeedPage({ period, date, regularOffset, country, sourceTypes, stateFilter });
   return NextResponse.json(result);
 }

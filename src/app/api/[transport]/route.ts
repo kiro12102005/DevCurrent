@@ -29,18 +29,23 @@ const handler = createMcpHandler(
       {
         title: "技術トレンドフィードを取得",
         description:
-          "Qiita/Zenn/Hacker News/ArXivから自動収集した技術記事フィードを取得します。日別または週間（直近7日間、JST基準）で注目ピックアップと通常記事一覧を返します。",
+          "Qiita/Zenn/Hacker News/ArXiv/GitHub Trending/リリースノートから自動収集した技術記事フィードを取得します。日別または週間（直近7日間、JST基準）で注目ピックアップと通常記事一覧を返します。",
         inputSchema: {
           period: z.enum(["day", "week"]).optional().describe("day=指定日のみ, week=直近7日間（デフォルト）"),
           date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe("YYYY-MM-DD形式（JST）。未指定なら今日"),
           country: z.string().optional().describe("発信国で絞り込む（例: 'アメリカ'）。未指定なら全件"),
+          sources: z
+            .array(z.enum(["QIITA", "ZENN", "HACKER_NEWS", "ARXIV", "GITHUB_TRENDING", "RELEASE_NOTES"]))
+            .optional()
+            .describe("sourceTypeで絞り込む。未指定なら全ソース"),
         },
       },
-      async ({ period, date, country }) => {
+      async ({ period, date, country, sources }) => {
         const result = await getFeedPage({
           period: period ?? "week",
           date: date ?? jstTodayString(),
           country,
+          sourceTypes: sources,
         });
         return jsonResult(result);
       }

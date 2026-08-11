@@ -50,6 +50,8 @@ enum SourceType {
   ARXIV
   AI_TOOL_PICK
   USER_SUBMITTED
+  GITHUB_TRENDING
+  RELEASE_NOTES
 }
 
 // Cached Gemini output for an Article. 1:1 with Article - this IS the cache layer:

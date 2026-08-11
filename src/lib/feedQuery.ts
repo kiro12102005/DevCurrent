@@ -10,7 +10,8 @@ const FEATURED_PER_SOURCE_DAY = 2;
 const FEATURED_PER_SOURCE_WEEK = 3;
 // ArXiv has no engagement signal (always 0), so it never meaningfully "wins" a
 // top-N-by-engagement pick - leave it out of the featured computation.
-const FEATURED_SOURCES = [SourceType.QIITA, SourceType.ZENN, SourceType.HACKER_NEWS] as const;
+// GITHUB_TRENDING is browsing-only (see refresh.ts), not featured here either.
+const FEATURED_SOURCES = [SourceType.QIITA, SourceType.ZENN, SourceType.HACKER_NEWS, SourceType.RELEASE_NOTES] as const;
 
 // Qiita/Zenn (dedicated Japanese blogging platforms) crawl far more raw
 // volume per week than Hacker News' quality-filtered output or ArXiv's
@@ -23,7 +24,14 @@ const FEATURED_SOURCES = [SourceType.QIITA, SourceType.ZENN, SourceType.HACKER_N
 // are built by round-robin interleaving those pools (see interleaveBySource)
 // rather than a flat chronological merge, so every page is actually
 // balanced across sources, not just the total across all pages.
-const REGULAR_SOURCES = [SourceType.QIITA, SourceType.ZENN, SourceType.HACKER_NEWS, SourceType.ARXIV] as const;
+const REGULAR_SOURCES = [
+  SourceType.QIITA,
+  SourceType.ZENN,
+  SourceType.HACKER_NEWS,
+  SourceType.ARXIV,
+  SourceType.GITHUB_TRENDING,
+  SourceType.RELEASE_NOTES,
+] as const;
 const REGULAR_POOL_PER_SOURCE_DAY = 15;
 const REGULAR_POOL_PER_SOURCE_WEEK = 60;
 
@@ -48,6 +56,7 @@ export interface FeedPageParams {
   date: string;
   regularOffset?: number;
   country?: string | null;
+  sourceTypes?: SourceType[] | null;
   stateFilter?: Prisma.ArticleWhereInput;
 }
 
@@ -77,14 +86,18 @@ export async function getFeedPage(params: FeedPageParams): Promise<FeedPageResul
   const regularOffset = Math.max(0, params.regularOffset ?? 0);
   const stateFilter = params.stateFilter ?? {};
   const countryFilter: Prisma.ArticleWhereInput = params.country ? { country: params.country } : {};
+  // No filter (undefined/null) means "all sources" - an empty array is treated
+  // the same way (nothing to narrow down to) rather than matching zero sources.
+  const sourceTypeSet = params.sourceTypes && params.sourceTypes.length > 0 ? new Set(params.sourceTypes) : null;
 
   const [rangeStart, rangeEnd] = period === "day" ? jstDayRange(date) : jstWeekRange(date);
   const perSource = period === "day" ? FEATURED_PER_SOURCE_DAY : FEATURED_PER_SOURCE_WEEK;
 
+  const activeFeaturedSources = sourceTypeSet ? FEATURED_SOURCES.filter((s) => sourceTypeSet.has(s)) : FEATURED_SOURCES;
   const featuredBySource =
     regularOffset === 0
       ? await Promise.all(
-          FEATURED_SOURCES.map((sourceType) =>
+          activeFeaturedSources.map((sourceType) =>
             prisma.article.findMany({
               where: { sourceType, sourcePublishedAt: { gte: rangeStart, lt: rangeEnd }, ...stateFilter, ...countryFilter },
               orderBy: { engagementScore: "desc" },
@@ -97,9 +110,10 @@ export async function getFeedPage(params: FeedPageParams): Promise<FeedPageResul
   const featured = featuredBySource.flat();
   const featuredIds = featured.map((a) => a.id);
 
+  const activeRegularSources = sourceTypeSet ? REGULAR_SOURCES.filter((s) => sourceTypeSet.has(s)) : REGULAR_SOURCES;
   const poolCap = period === "day" ? REGULAR_POOL_PER_SOURCE_DAY : REGULAR_POOL_PER_SOURCE_WEEK;
   const regularBySource = await Promise.all(
-    REGULAR_SOURCES.map((sourceType) =>
+    activeRegularSources.map((sourceType) =>
       prisma.article.findMany({
         where: {
           sourceType,

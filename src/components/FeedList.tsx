@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { RefreshCw, Search, Calendar, Bookmark, Star, Sprout, CircleCheckBig, Square, Trophy } from "lucide-react";
 import type { FeedArticle, FeedPeriod, FeedResponse } from "@/types/feed";
 import type { SearchResponse } from "@/types/search";
-import { SOURCE_BADGE_CLASS, SOURCE_LABEL } from "@/lib/sourceLabels";
+import type { SourceType } from "@/types/insight";
+import { SOURCE_BADGE_CLASS, SOURCE_LABEL, FEED_SOURCE_TYPES } from "@/lib/sourceLabels";
 import { formatArticleDate } from "@/lib/formatDate";
 import { formatShortDateWithWeekday, jstDateStringDaysAgo, jstTodayString } from "@/lib/dateRange";
 import { countryFlag } from "@/lib/countryLabels";
@@ -32,6 +33,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
   const [bookmarkedOnly, setBookmarkedOnly] = useState(false);
   const [country, setCountry] = useState<string | null>(null); // null = すべて
   const [availableCountries, setAvailableCountries] = useState<string[]>([]);
+  const [activeSources, setActiveSources] = useState<Set<SourceType>>(new Set(FEED_SOURCE_TYPES));
   const [showRanking, setShowRanking] = useState(false);
   const [featured, setFeatured] = useState<FeedArticle[]>([]);
   const [regular, setRegular] = useState<FeedArticle[]>([]);
@@ -71,6 +73,19 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
       .catch(() => {});
   }
 
+  function toggleSource(source: SourceType) {
+    setActiveSources((prev) => {
+      const next = new Set(prev);
+      if (next.has(source)) {
+        if (next.size === 1) return prev; // keep at least one source selected
+        next.delete(source);
+      } else {
+        next.add(source);
+      }
+      return next;
+    });
+  }
+
   function fetchFeedPage(offset: number): Promise<{ items: FeedArticle[]; featured: FeedArticle[]; hasMore: boolean }> {
     const params = new URLSearchParams({
       period,
@@ -79,6 +94,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
       ...(unreadOnly ? { unreadOnly: "1" } : {}),
       ...(bookmarkedOnly ? { bookmarkedOnly: "1" } : {}),
       ...(country ? { country } : {}),
+      ...(activeSources.size < FEED_SOURCE_TYPES.length ? { sources: [...activeSources].join(",") } : {}),
     });
     return fetch(`/api/feed?${params}`)
       .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
@@ -178,7 +194,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
       loadFirstPage();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [period, date, debouncedQuery, unreadOnly, bookmarkedOnly, country]);
+  }, [period, date, debouncedQuery, unreadOnly, bookmarkedOnly, country, activeSources]);
 
   // Infinite scroll: re-attaches after every successful load (regular.length
   // changes) so the observer's callback always closes over the current
@@ -267,6 +283,19 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
           {availableCountries.map((c) => (
             <PeriodChip key={c} active={country === c} onClick={() => setCountry(c)}>
               {countryFlag(c) ?? "🌐"} {c}
+            </PeriodChip>
+          ))}
+        </div>
+      )}
+
+      {!isSearching && !showRanking && (
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+          <PeriodChip active={activeSources.size === FEED_SOURCE_TYPES.length} onClick={() => setActiveSources(new Set(FEED_SOURCE_TYPES))}>
+            {t.feedList.allSources}
+          </PeriodChip>
+          {FEED_SOURCE_TYPES.map((s) => (
+            <PeriodChip key={s} active={activeSources.has(s)} onClick={() => toggleSource(s)}>
+              {SOURCE_LABEL[s]}
             </PeriodChip>
           ))}
         </div>

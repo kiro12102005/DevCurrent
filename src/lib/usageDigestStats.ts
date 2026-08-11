@@ -116,9 +116,18 @@ export async function computeMonthlyUsageStats(): Promise<MonthlyUsageStats> {
     computeUsageForRange(monthStart, monthEnd, true),
     Promise.all(
       weekRanges.map(async (range, i) => {
-        const usage = await computeUsageForRange(range.start, range.end, false);
-        const { topArticles: _topArticles, ...weeklyUsage } = usage;
-        return { weekLabel: `第${i + 1}週`, weekStart: range.start, weekEnd: range.end, ...weeklyUsage };
+        const { newUsers, activeUsers, urlSummariesGenerated, newArticlesCrawled, feedbackCount } =
+          await computeUsageForRange(range.start, range.end, false);
+        return {
+          weekLabel: `第${i + 1}週`,
+          weekStart: range.start,
+          weekEnd: range.end,
+          newUsers,
+          activeUsers,
+          urlSummariesGenerated,
+          newArticlesCrawled,
+          feedbackCount,
+        };
       })
     ),
   ]);

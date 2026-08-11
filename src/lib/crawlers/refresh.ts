@@ -11,10 +11,16 @@ import { crawlQiita } from "./qiita";
 import { crawlZenn } from "./zenn";
 import { crawlHackerNews } from "./hackernews";
 import { crawlArxiv } from "./arxiv";
+import { crawlGithubTrending } from "./githubTrending";
+import { crawlReleaseNotes } from "./releaseNotes";
 import type { CrawledArticle } from "./types";
 
 const FEATURED_PER_SOURCE = 2; // diversity across sources beats a single global top-N
-const FEATURED_MAX_TOTAL = 6; // caps Gemini calls + push notifications per refresh cycle
+// Bumped from 6 to 8 when RELEASE_NOTES joined the featured source list below -
+// QIITA/ZENN/HACKER_NEWS still get their full 2-each guaranteed (6), with room
+// for RELEASE_NOTES's own 2 rather than displacing them (see the featured-pick
+// loop's Set insertion order further down).
+const FEATURED_MAX_TOTAL = 8; // caps Gemini calls + push notifications per refresh cycle
 const TITLE_BACKFILL_BATCH = 20; // caps the one-time-per-cycle catch-up translation call
 const RETENTION_DAYS = 180; // unsummarized, non-featured backlog older than this gets pruned
 const DB_WRITE_CONCURRENCY = 3; // a crawl can create 100+ rows in one cycle - against a
@@ -114,6 +120,8 @@ const CRAWLERS: { source: string; run: () => Promise<CrawledArticle[]> }[] = [
   { source: "Zenn", run: crawlZenn },
   { source: "Hacker News", run: crawlHackerNews },
   { source: "ArXiv", run: crawlArxiv },
+  { source: "GitHub Trending", run: crawlGithubTrending },
+  { source: "Release Notes", run: crawlReleaseNotes },
 ];
 
 export interface RefreshResult {
@@ -189,9 +197,12 @@ export async function refreshFeed(): Promise<RefreshResult> {
     }
   }
 
-  // pick featured candidates BEFORE inserting, so scoring only ever sees this batch
+  // pick featured candidates BEFORE inserting, so scoring only ever sees this batch.
+  // GITHUB_TRENDING is deliberately excluded - trending repos are for browsing,
+  // not the kind of "worth a push notification" pick the others are. ArXiv is
+  // excluded too (see arxiv.ts: no engagement signal, never meaningfully wins).
   const featuredHashes = new Set<string>();
-  for (const source of [SourceType.QIITA, SourceType.ZENN, SourceType.HACKER_NEWS]) {
+  for (const source of [SourceType.QIITA, SourceType.ZENN, SourceType.HACKER_NEWS, SourceType.RELEASE_NOTES]) {
     freshItems
       .filter((item) => item.sourceType === source)
       .sort((a, b) => b.engagement - a.engagement)

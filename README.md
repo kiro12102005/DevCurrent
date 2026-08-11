@@ -14,10 +14,11 @@
 
 ## できること
 
-- **自動収集フィード**: Qiita / Zenn / Hacker News / ArXiv から過去1週間分の記事を自動クロール。**日別／週間まとめの切り替え**ができ、注目ピックアップ（エンゲージメント上位）はその期間内で動的に再計算されるので、今日だけでなく数日前の重要記事も見逃さない。記事カードは2列グリッド表示（スマホでは自動的に1列）、スクロールで追加読み込み。
-- **月間ランキング**: フィード上部の「月間ランキング」チップで、直近30日間の記事をエンゲージメント順に1位から並べたランキング表示に切り替えられる。日別/週間の「注目ピックアップ」がソース別に均等配分されるのに対し、こちらはソースを問わず純粋なエンゲージメント順（`lib/monthlyRanking.ts`）。
-- **発信国の表示・国フィルター**: 記事ごとに発信元と思われる国を🇯🇵🇺🇸🇨🇳のような国旗バッジで表示（Qiita/Zennは日本固定・即時、Hacker News/ArXivはGeminiが記事内容から推定）。フィード上部の国チップから実際にDBへ存在する国だけを動的に絞り込み表示できる（ハードコードされた国リストではないので、対応国が増えれば自動的に選択肢に出る）。
-- **通常記事一覧のソース均等化**: Qiita/Zenn（日本語専門プラットフォーム）はHacker News/ArXivよりクロール量が多く、時系列の単純結合だとページの大半が日本語記事で埋まってしまう問題があった。ソースごとに個別取得した候補プールをラウンドロビンで交互配置することで、スクロールしても常にソースが均等に混ざって表示されるようにしている（`注目ピックアップ`セクションは元々ソース別に均等配分済み）。
+- **自動収集フィード**: Qiita / Zenn / Hacker News / ArXiv / GitHub Trending / リリースノート（Next.js・React・Node.js・TypeScript・Vite・Tailwind CSSの公式安定版リリース）から過去1週間分を自動クロール。**日別／週間まとめの切り替え**ができ、注目ピックアップ（エンゲージメント上位）はその期間内で動的に再計算されるので、今日だけでなく数日前の重要記事も見逃さない。記事カードは2列グリッド表示（スマホでは自動的に1列）、スクロールで追加読み込み。
+- **ソースフィルター**: フィード上部のチップでソースを個別にオン/オフでき、GitHub Trending・リリースノートなど特定ソースだけ見たい／隠したいという好みに対応（`FEED_SOURCE_TYPES`, `lib/feedQuery.ts`）。
+- **月間ランキング**: フィード上部の「月間ランキング」チップで、直近30日間の記事をエンゲージメント順に1位から並べたランキング表示に切り替えられる。日別/週間の「注目ピックアップ」がソース別に均等配分されるのに対し、こちらはソースを問わず純粋なエンゲージメント順（`lib/monthlyRanking.ts`）。GitHub Trendingはスター数というスケールの違うエンゲージメント指標を持つため、このランキングからは除外している。
+- **発信国の表示・国フィルター**: 記事ごとに発信元と思われる国を🇯🇵🇺🇸🇨🇳のような国旗バッジで表示（Qiita/Zennは日本固定・即時、他はGeminiが記事内容から推定）。フィード上部の国チップから実際にDBへ存在する国だけを動的に絞り込み表示できる（ハードコードされた国リストではないので、対応国が増えれば自動的に選択肢に出る）。
+- **通常記事一覧のソース均等化**: Qiita/Zenn（日本語専門プラットフォーム）は他ソースよりクロール量が多く、時系列の単純結合だとページの大半が日本語記事で埋まってしまう問題があった。ソースごとに個別取得した候補プールをラウンドロビンで交互配置することで、スクロールしても常にソースが均等に混ざって表示されるようにしている（`注目ピックアップ`セクションは元々ソース別に均等配分済み）。
 - **注目ピックアップの自動要約**: 注目に選ばれた記事は、サーバー側で自動的に深掘り要約まで生成済みの状態でフィードに並ぶ（要`GEMINI_API_KEY`設定、下記参照）。
 - **プッシュ通知**: 新しい注目記事が見つかると、購読しているブラウザ/スマホにWeb Push通知が届く。
 - **URL入力での要約**: 好きな記事URLを貼る → DBキャッシュ確認 → (未キャッシュなら) スクレイピング → Gemini 2.5 Flash で「要約・メリット・懸念点・今後の展望・用語解説」をボリューム多めに生成。同じURLへの2回目以降のリクエストはキャッシュから即返却。
@@ -130,10 +131,12 @@ const browser = await chromium.launch({
 「自分から探しに行かないと情報にたどり着けない」問題への対策として、フィードは完全自動で更新されます。
 
 1. **`src/lib/crawlers/{qiita,zenn,hackernews,arxiv}.ts`** — 各ソースの公開APIを叩いて記事のタイトル・URL・エンゲージメント数（いいね/ストック/ポイント）を取得。認証不要。**過去7日分を明示的に範囲指定して取得**（「最新N件」だけだと更新頻度の高いサイトで数時間分しか拾えず取りこぼすため、日付範囲・ページネーションで1週間分をカバー）。
-2. **`src/lib/crawlers/refresh.ts`** — 4ソースを並列クロール → 既存記事と重複排除 → 英語タイトルを一括で日本語化（新規分＋既存の未翻訳分を毎回少しずつバックフィル）→ 半年（`RETENTION_DAYS=180`）を超えた未要約・非注目の古い記事を削除（ストレージ節約） → クロール時点でソースごとにエンゲージメント上位2件（最大6件/回）を「速報の注目ピックアップ」として即時スクレイピング＋Gemini生成（`GEMINI_API_KEY`使用）→ 新しい注目記事があればプッシュ通知を送信。
-3. **`src/instrumentation.ts`** — Next.jsのサーバー起動フックを使い、長時間稼働するプロセス（このdevcontainerや自前ホスティング）なら**起動後15秒＋以降`FEED_REFRESH_INTERVAL_HOURS`時間ごとに自動でクロール**が走る。追加設定不要。
-4. **`POST /api/feed/refresh`** — 上記処理をHTTP経由でも呼べるエンドポイント（`x-cron-secret`ヘッダーで保護可）。Vercelなどサーバーレス環境では`setInterval`が使えないため、**Vercel Cron**や**GitHub Actionsの`schedule`**からこのエンドポイントを叩く形で自動化する。
-5. **`GET /api/feed?period=day|week&date=YYYY-MM-DD`** — フィード表示用API。`period=day`は指定日、`period=week`は指定日を含む直近7日間（JST基準）に絞り込む。**「注目ピックアップ」はDBの固定フラグではなく、選択中の期間内でエンゲージメント上位を都度計算し直す**ので、「今日」を見ても「先週」を見ても、その期間で本当に重要だった記事が出てくる（3.のクロール時点の即時ピックアップとは独立した、閲覧時の動的な再ランキング）。
+2. **`src/lib/crawlers/githubTrending.ts`** — GitHub Searchの公開API（`/search/repositories`）で「直近1週間に作成・20スター以上」のリポジトリをスター数順に取得。公式Trending APIは存在しない（`github.com/trending`はHTML限定でAPI契約なし）ため、崩れやすいページスクレイピングの代わりに安定したSearch APIを使ったプロキシ。
+3. **`src/lib/crawlers/releaseNotes.ts`** — Next.js/React/Node.js/TypeScript/Vite/Tailwind CSSなど主要リポジトリのGitHub Releases API（`/repos/{owner}/{repo}/releases`）を巡回し、`prerelease`/`draft`ではない安定版リリースのみ取得（Next.jsは1日に何度もcanaryを出すため、Atomフィードではなくこちらを使い正式リリースだけに絞り込んでいる）。
+4. **`src/lib/crawlers/refresh.ts`** — 6ソースを並列クロール → 既存記事と重複排除 → 英語タイトルを一括で日本語化（新規分＋既存の未翻訳分を毎回少しずつバックフィル）→ 半年（`RETENTION_DAYS=180`）を超えた未要約・非注目の古い記事を削除（ストレージ節約） → クロール時点でソースごとにエンゲージメント上位2件（最大8件/回）を「速報の注目ピックアップ」として即時スクレイピング＋Gemini生成（`GEMINI_API_KEY`使用、GitHub Trendingは対象外）→ 新しい注目記事があればプッシュ通知を送信。
+5. **`src/instrumentation.ts`** — Next.jsのサーバー起動フックを使い、長時間稼働するプロセス（このdevcontainerや自前ホスティング）なら**起動後15秒＋以降`FEED_REFRESH_INTERVAL_HOURS`時間ごとに自動でクロール**が走る。追加設定不要。
+6. **`POST /api/feed/refresh`** — 上記処理をHTTP経由でも呼べるエンドポイント（`x-cron-secret`ヘッダーで保護可）。Vercelなどサーバーレス環境では`setInterval`が使えないため、**Vercel Cron**や**GitHub Actionsの`schedule`**からこのエンドポイントを叩く形で自動化する。
+7. **`GET /api/feed?period=day|week&date=YYYY-MM-DD&sources=QIITA,ZENN`** — フィード表示用API。`period=day`は指定日、`period=week`は指定日を含む直近7日間（JST基準）に絞り込む。`sources`はソースフィルター（未指定なら全ソース）。**「注目ピックアップ」はDBの固定フラグではなく、選択中の期間内でエンゲージメント上位を都度計算し直す**ので、「今日」を見ても「先週」を見ても、その期間で本当に重要だった記事が出てくる（4.のクロール時点の即時ピックアップとは独立した、閲覧時の動的な再ランキング）。
 
 **保存ポリシー（ストレージ管理）**: データは基本的に削除しない。ただし「一度もGemini要約されておらず、注目ピックアップにも一度も選ばれていない」記事は半年経過後に自動削除する（`cleanupOldArticles`、毎リフレッシュサイクルで実行）。要約済み記事・注目ピックアップ・ユーザーが自分で貼ったURLは対象外で無期限保存。
 
@@ -256,7 +259,7 @@ src/
     auth/{session,password,AuthContext}.ts,tsx  # セッション発行/検証・パスワードハッシュ・クライアント側認証状態
     curation/aiToolPicks.ts       # Gemini駆動のAIツールピックアップ生成バッチ
     crawlers/
-      qiita.ts / zenn.ts / hackernews.ts / arxiv.ts   # ソース別クローラ
+      qiita.ts / zenn.ts / hackernews.ts / arxiv.ts / githubTrending.ts / releaseNotes.ts   # ソース別クローラ
       refresh.ts                  # 4ソース統合クロール＋注目選定＋自動要約＋通知のオーケストレーション
       types.ts
   types/                         # フロント/API共通の型
@@ -275,7 +278,7 @@ public/
 
 キャッシュ層が本アプリの心臓部（Gemini無料枠を守るため）:
 
-- **Article**: 記事URLごとに1レコード。`urlHash`（正規化URLのsha256）をユニークキーにして、同じ記事への重複リクエストを検出。`contentHash`でスクレイピング内容の変化も検知できるようにしてある。`sourceType`（Qiita/Zenn/HackerNews/ArXiv/投稿URL）、`country`（発信国、Qiita/Zennは即時「日本」・他はGemini推定）、`engagementScore`・`isFeatured`（自動クロール時のエンゲージメントと注目フラグ）、`sourcePublishedAt`（フィード表示のソート用）を保持。
+- **Article**: 記事URLごとに1レコード。`urlHash`（正規化URLのsha256）をユニークキーにして、同じ記事への重複リクエストを検出。`contentHash`でスクレイピング内容の変化も検知できるようにしてある。`sourceType`（Qiita/Zenn/HackerNews/ArXiv/GitHub Trending/リリースノート/投稿URL）、`country`（発信国、Qiita/Zennは即時「日本」・他はGemini推定）、`engagementScore`・`isFeatured`（自動クロール時のエンゲージメントと注目フラグ）、`sourcePublishedAt`（フィード表示のソート用）を保持。
 - **AIGeneration**: `Article`と1:1。Geminiが生成した深掘り要約・メリデメ・今後の展望・用語解説をJSON文字列で保存。**ここに存在すれば、Gemini APIは二度と呼ばない。**
 - **AIGenerationTranslation**: `AIGeneration`の英語/中国語訳キャッシュ。`(aiGenerationId, language)`をユニークキーにして、同じ記事×言語への翻訳リクエストはGeminiを再度呼ばない（運営者キー使用、UI表示言語が日本語以外の時だけ初回アクセス時に生成）。
 - **User**: `email` + `passwordHash`（bcryptjs）。外部サービス不要の自前認証。意図的にGemini APIキーのカラムは持たせていない（BYOKキーはクライアント側のみで保持する設計のため）。

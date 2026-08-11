@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "DevCurrent API",
-    "description": "Qiita/Zenn/Hacker News/ArXivから自動収集した技術記事フィード、Gemini選定のAIツールピックアップ、音声ポッドキャストを取得できる読み取り専用の公開API。認証不要・無料。Claude Code/Claude Desktopからは同じデータをMCPサーバー（/api/mcp）経由でも利用できます。",
+    "description": "Qiita/Zenn/Hacker News/ArXiv/GitHub Trending/リリースノートから自動収集した技術記事フィード、Gemini選定のAIツールピックアップ、音声ポッドキャストを取得できる読み取り専用の公開API。認証不要・無料。Claude Code/Claude Desktopからは同じデータをMCPサーバー（/api/mcp）経由でも利用できます。",
     "version": "1.0.0"
   },
   "servers": [{ "url": "https://dev-current.vercel.app" }],
@@ -15,7 +15,13 @@
         "parameters": [
           { "name": "period", "in": "query", "schema": { "type": "string", "enum": ["day", "week"], "default": "week" }, "description": "day=指定日のみ, week=直近7日間" },
           { "name": "date", "in": "query", "schema": { "type": "string", "format": "date" }, "description": "YYYY-MM-DD（JST）。未指定なら今日" },
-          { "name": "country", "in": "query", "schema": { "type": "string" }, "description": "発信国で絞り込む（例: アメリカ）" }
+          { "name": "country", "in": "query", "schema": { "type": "string" }, "description": "発信国で絞り込む（例: アメリカ）" },
+          {
+            "name": "sources",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "sourceTypeのカンマ区切りリストで絞り込む（例: QIITA,ZENN）。未指定なら全ソース"
+          }
         ],
         "responses": {
           "200": {
@@ -79,7 +85,7 @@
           "id": { "type": "string" },
           "url": { "type": "string" },
           "title": { "type": ["string", "null"] },
-          "sourceType": { "type": "string", "enum": ["QIITA", "ZENN", "HACKER_NEWS", "ARXIV", "AI_TOOL_PICK", "USER_SUBMITTED"] },
+          "sourceType": { "type": "string", "enum": ["QIITA", "ZENN", "HACKER_NEWS", "ARXIV", "AI_TOOL_PICK", "USER_SUBMITTED", "GITHUB_TRENDING", "RELEASE_NOTES"] },
           "publishedAt": { "type": ["string", "null"], "format": "date-time" },
           "country": { "type": ["string", "null"] },
           "engagementScore": { "type": ["integer", "null"] },
