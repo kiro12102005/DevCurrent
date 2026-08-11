@@ -4,7 +4,7 @@ import { computeLearningStats } from "@/lib/learningStats";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "技術トレンド キャッチアップ 学習実績";
+export const alt = "DevCurrent 学習実績";
 
 export default async function OgImage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -27,7 +27,7 @@ export default async function OgImage({ params }: { params: Promise<{ slug: stri
           fontFamily: "sans-serif",
         }}
       >
-        <div style={{ fontSize: 28, opacity: 0.85, display: "flex" }}>技術トレンド キャッチアップ 学習実績</div>
+        <div style={{ fontSize: 28, opacity: 0.85, display: "flex" }}>DevCurrent 学習実績</div>
         <div style={{ fontSize: 56, fontWeight: 700, marginTop: 16, display: "flex" }}>{name}さんの学習マップ</div>
         {stats && (
           <div style={{ display: "flex", gap: 48, marginTop: 40 }}>

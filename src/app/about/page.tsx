@@ -15,9 +15,9 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "この技術スタックについて｜技術トレンド キャッチアップ",
+  title: "この技術スタックについて｜DevCurrent",
   description:
-    "技術トレンド キャッチアップの設計判断まとめ - なぜこの構成にしたか、本番で踏んだ障害とその修正、コスト設計、品質保証の取り組みを開発者向けに公開しています。",
+    "DevCurrentの設計判断まとめ - なぜこの構成にしたか、本番で踏んだ障害とその修正、コスト設計、品質保証の取り組みを開発者向けに公開しています。",
 };
 
 type Section = {

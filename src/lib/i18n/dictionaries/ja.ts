@@ -27,7 +27,7 @@ const dict = {
     loadFailedError: "読み込みに失敗しました",
   },
   appShell: {
-    title: "技術トレンド キャッチアップ",
+    title: "DevCurrent",
     subtitle: "自動収集フィード＋URL深掘り要約",
     tabFeed: "フィード",
     tabSummarize: "URLで要約",
@@ -150,7 +150,7 @@ const dict = {
     generationFailedRetry: "生成に失敗しました。時間をおいて再度お試しください。",
     imageAlt: "今月のキャッチアップ実績",
     shareButton: "シェア",
-    shareTitle: "技術トレンド キャッチアップ 月間サマリー",
+    shareTitle: "DevCurrent 月間サマリー",
   },
   myPage: {
     sectionSaved: "保存済み",
@@ -172,7 +172,7 @@ const dict = {
     error: "通知設定に失敗しました",
   },
   onboardingModal: {
-    welcomeTitle: "技術トレンド キャッチアップへようこそ",
+    welcomeTitle: "DevCurrentへようこそ",
     welcomeDesc: "4つのタブでできることを簡単にご紹介します。",
     stepFeedTitle: "フィード",
     stepFeedDesc: "Qiita/Zenn/Hacker News/ArXivから自動収集。日別・週間で見逃さずキャッチアップ。",
@@ -197,7 +197,7 @@ const dict = {
     audioUnsupported: "お使いのブラウザは音声再生に対応していません。",
     showSources: "取り上げた記事を見る（{n}件）",
     hideSources: "取り上げた記事を隠す",
-    mediaSessionArtist: "技術トレンド キャッチアップ",
+    mediaSessionArtist: "DevCurrent",
   },
   repoBreakingChangeCheck: {
     title: "リポジトリチェック",
@@ -250,7 +250,7 @@ const dict = {
     unpublishButton: "公開を停止する",
   },
   sharePageContent: {
-    kicker: "技術トレンド キャッチアップ 学習実績",
+    kicker: "DevCurrent 学習実績",
     nameSuffix: "さんの学習マップ",
     memberSinceSuffix: "〜キャッチアップ中",
     statRead: "既読記事",

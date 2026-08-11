@@ -1,7 +1,7 @@
 import { OfflineContent } from "@/components/OfflineContent";
 
 export const metadata = {
-  title: "オフライン - 技術トレンド キャッチアップ",
+  title: "オフライン - DevCurrent",
 };
 
 // Shown by the service worker (fallbacks.document in next.config.ts) when a

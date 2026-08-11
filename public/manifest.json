@@ -1,6 +1,6 @@
 {
-  "name": "技術トレンド キャッチアップ",
-  "short_name": "TrendCatchup",
+  "name": "DevCurrent",
+  "short_name": "DevCurrent",
   "description": "最新技術ニュースを自動収集し、深掘り要約・メリット懸念点・用語解説に変換する学習アプリ",
   "start_url": "/",
   "display": "standalone",

@@ -5,8 +5,8 @@ import type { Metadata } from "next";
 import { ArrowLeft, Database, Share2, Mail, Trash2, ShieldAlert } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "プライバシーポリシー｜技術トレンド キャッチアップ",
-  description: "技術トレンド キャッチアップが収集する情報とその利用目的についてまとめています。",
+  title: "プライバシーポリシー｜DevCurrent",
+  description: "DevCurrentが収集する情報とその利用目的についてまとめています。",
 };
 
 const CONTACT_EMAIL = "contact.somakida@gmail.com";
@@ -25,7 +25,7 @@ export default function PrivacyPage() {
         <div>
           <h1 className="text-2xl font-bold brand-gradient-text leading-tight">プライバシーポリシー</h1>
           <p className="mt-1.5 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-            技術トレンド キャッチアップ（以下「本アプリ」）が収集する情報の種類と利用目的についてまとめています。
+            DevCurrent（以下「本アプリ」）が収集する情報の種類と利用目的についてまとめています。
           </p>
           <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">最終更新日: 2026年7月</p>
         </div>

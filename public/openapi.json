@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "技術トレンド キャッチアップ API",
+    "title": "DevCurrent API",
     "description": "Qiita/Zenn/Hacker News/ArXivから自動収集した技術記事フィード、Gemini選定のAIツールピックアップ、音声ポッドキャストを取得できる読み取り専用の公開API。認証不要・無料。Claude Code/Claude Desktopからは同じデータをMCPサーバー（/api/mcp）経由でも利用できます。",
     "version": "1.0.0"
   },

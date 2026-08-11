@@ -15,8 +15,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!user) return { title: "ページが見つかりません" };
 
   const name = user.publicNickname || "ユーザー";
-  const title = `${name}さんの学習実績 | 技術トレンド キャッチアップ`;
-  const description = `${name}さんが技術トレンド キャッチアップでキャッチアップしてきた記事・分野別の学習マップを見る`;
+  const title = `${name}さんの学習実績 | DevCurrent`;
+  const description = `${name}さんがDevCurrentでキャッチアップしてきた記事・分野別の学習マップを見る`;
 
   return {
     title,

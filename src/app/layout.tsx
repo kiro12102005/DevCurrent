@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const TITLE = "技術トレンド キャッチアップ";
+const TITLE = "DevCurrent";
 const DESCRIPTION = "最新技術ニュースを自動収集し、深掘り要約・メリット懸念点・用語解説に変換する学習アプリ";
 
 export const metadata: Metadata = {
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "TrendCatchup",
+    title: "DevCurrent",
   },
   icons: {
     icon: "/icon-192.png",

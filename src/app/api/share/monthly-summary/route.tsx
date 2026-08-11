@@ -45,7 +45,7 @@ export async function GET() {
         }}
       >
         <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ fontSize: 26, opacity: 0.85, display: "flex" }}>技術トレンド キャッチアップ</div>
+          <div style={{ fontSize: 26, opacity: 0.85, display: "flex" }}>DevCurrent</div>
           <div style={{ fontSize: 34, fontWeight: 700, marginTop: 8, display: "flex" }}>
             {monthLabel}のキャッチアップ実績
           </div>
@@ -64,7 +64,7 @@ export async function GET() {
             </div>
           )}
           <div style={{ fontSize: 28, fontWeight: 700, display: "flex" }}>
-            {name ? `${name}さんの記録` : "技術トレンド キャッチアップ"}
+            {name ? `${name}さんの記録` : "DevCurrent"}
           </div>
         </div>
       </div>

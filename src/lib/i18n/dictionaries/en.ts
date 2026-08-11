@@ -24,7 +24,7 @@ const dict: Dictionary = {
     loadFailedError: "Failed to load",
   },
   appShell: {
-    title: "Tech Trend Catchup",
+    title: "DevCurrent",
     subtitle: "Auto-collected feed + AI-powered URL summaries",
     tabFeed: "Feed",
     tabSummarize: "Summarize URL",
@@ -147,7 +147,7 @@ const dict: Dictionary = {
     generationFailedRetry: "Generation failed. Please try again later.",
     imageAlt: "This month's catchup stats",
     shareButton: "Share",
-    shareTitle: "Tech Trend Catchup Monthly Summary",
+    shareTitle: "DevCurrent Monthly Summary",
   },
   myPage: {
     sectionSaved: "Saved",
@@ -169,7 +169,7 @@ const dict: Dictionary = {
     error: "Failed to update notification settings",
   },
   onboardingModal: {
-    welcomeTitle: "Welcome to Tech Trend Catchup",
+    welcomeTitle: "Welcome to DevCurrent",
     welcomeDesc: "A quick tour of what you can do across the 4 tabs.",
     stepFeedTitle: "Feed",
     stepFeedDesc: "Auto-collected from Qiita/Zenn/Hacker News/ArXiv. Browse by day or week so you never miss anything.",
@@ -194,7 +194,7 @@ const dict: Dictionary = {
     audioUnsupported: "Your browser doesn't support audio playback.",
     showSources: "Show covered articles ({n})",
     hideSources: "Hide covered articles",
-    mediaSessionArtist: "Tech Trend Catchup",
+    mediaSessionArtist: "DevCurrent",
   },
   repoBreakingChangeCheck: {
     title: "Repo Check",
@@ -247,7 +247,7 @@ const dict: Dictionary = {
     unpublishButton: "Unpublish",
   },
   sharePageContent: {
-    kicker: "Tech Trend Catchup Learning Achievements",
+    kicker: "DevCurrent Learning Achievements",
     nameSuffix: "'s Learning Map",
     memberSinceSuffix: " catching up since",
     statRead: "Articles read",
