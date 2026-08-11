@@ -1,4 +1,4 @@
-import { Resend } from "resend";
+import nodemailer, { type Transporter } from "nodemailer";
 import { prisma } from "@/lib/prisma";
 import { getWeeklyPicks, type WeeklyPick } from "@/lib/weeklyPicks";
 import { computeWeeklyUsageStats, type WeeklyUsageStats } from "@/lib/usageDigestStats";
@@ -28,7 +28,7 @@ function renderDigestHtml(picks: WeeklyPick[]): string {
     .join("");
   return `
     <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
-      <h1 style="font-size:18px;background:linear-gradient(135deg,#6d5bf5,#3730a3);-webkit-background-clip:text;background-clip:text;color:transparent;">今週の技術トレンド キャッチアップ</h1>
+      <h1 style="font-size:18px;background:linear-gradient(135deg,#6d5bf5,#3730a3);-webkit-background-clip:text;background-clip:text;color:transparent;">DevCurrent 今週の技術トレンド</h1>
       <p style="color:#555;font-size:14px;">今週注目された記事のピックアップです。</p>
       <ul style="padding-left:20px;">${items}</ul>
       <p style="color:#999;font-size:12px;margin-top:24px;">配信停止は アプリ内の アカウントメニュー から行えます。</p>
@@ -36,20 +36,33 @@ function renderDigestHtml(picks: WeeklyPick[]): string {
   `;
 }
 
-function resendClient(): Resend | null {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return null;
-  return new Resend(apiKey);
+// Uses Gmail SMTP (a regular Google account + an App Password, see
+// https://myaccount.google.com/apppasswords - requires 2-Step Verification)
+// rather than a transactional email provider like Resend, since that would
+// require a paid/verified sending domain to mail arbitrary recipients.
+// Gmail's free tier caps at ~500 sends/day, which comfortably covers this
+// app's mail volume.
+function gmailTransport(): Transporter | null {
+  const user = process.env.GMAIL_USER;
+  const appPassword = process.env.GMAIL_APP_PASSWORD;
+  if (!user || !appPassword) return null;
+  return nodemailer.createTransport({ service: "gmail", auth: { user, pass: appPassword } });
+}
+
+// Gmail SMTP always sends as the authenticated account, so From must be that
+// same address (a display name wrapping it is fine).
+function gmailFrom(): string {
+  return `"DevCurrent" <${process.env.GMAIL_USER}>`;
 }
 
 // Sends the weekly digest to every user who opted in (User.wantsWeeklyDigest).
-// No-op (not an error) if RESEND_API_KEY isn't configured, matching this
-// app's pattern of degrading gracefully when an optional integration key is
-// missing (see GEMINI_API_KEY in refresh.ts).
+// No-op (not an error) if GMAIL_USER/GMAIL_APP_PASSWORD aren't configured,
+// matching this app's pattern of degrading gracefully when an optional
+// integration key is missing (see GEMINI_API_KEY in refresh.ts).
 export async function sendWeeklyDigest(): Promise<{ sent: number; skipped: string }> {
-  const client = resendClient();
+  const client = gmailTransport();
   if (!client) {
-    return { sent: 0, skipped: "RESEND_API_KEY未設定のため週次ダイジェストはスキップされました" };
+    return { sent: 0, skipped: "GMAIL_USER/GMAIL_APP_PASSWORD未設定のため週次ダイジェストはスキップされました" };
   }
 
   const picks = await getWeeklyPicks(PICKS_PER_SOURCE);
@@ -62,18 +75,17 @@ export async function sendWeeklyDigest(): Promise<{ sent: number; skipped: strin
     select: { email: true },
   });
   if (recipients.length === 0) {
-    return { sent: 0, skipped: "配信対象（配信オプトインしたユーザー）がいません" };
+    return { sent: 0, skipped: "配信対象(配信オプトインしたユーザー)がいません" };
   }
 
-  const from = process.env.RESEND_FROM || "onboarding@resend.dev";
   const html = renderDigestHtml(picks);
 
   const results = await Promise.allSettled(
     recipients.map((r) =>
-      client.emails.send({
-        from,
+      client.sendMail({
+        from: gmailFrom(),
         to: r.email,
-        subject: "今週の技術トレンド キャッチアップ",
+        subject: "DevCurrent 今週の技術トレンド",
         html,
       })
     )
@@ -92,15 +104,15 @@ const FEEDBACK_TYPE_LABELS: Record<string, string> = {
 // Best-effort notification to the operator when someone submits the in-app
 // feedback form - the Feedback DB row is the source of truth regardless
 // (see POST /api/feedback), this is just so the operator doesn't have to
-// remember to go check the table. Silently no-ops if RESEND_API_KEY or
-// FEEDBACK_NOTIFY_EMAIL isn't configured, same degrade-gracefully pattern
-// as sendWeeklyDigest above.
+// remember to go check the table. Silently no-ops if GMAIL_USER/
+// GMAIL_APP_PASSWORD or FEEDBACK_NOTIFY_EMAIL isn't configured, same
+// degrade-gracefully pattern as sendWeeklyDigest above.
 export async function notifyFeedbackSubmission(feedback: {
   type: string;
   message: string;
   email: string | null;
 }): Promise<void> {
-  const client = resendClient();
+  const client = gmailTransport();
   const notifyTo = process.env.FEEDBACK_NOTIFY_EMAIL;
   if (!client || !notifyTo) return;
 
@@ -114,9 +126,8 @@ export async function notifyFeedbackSubmission(feedback: {
     </div>
   `;
 
-  const from = process.env.RESEND_FROM || "onboarding@resend.dev";
   try {
-    await client.emails.send({ from, to: notifyTo, subject: `[フィードバック] ${typeLabel}`, html });
+    await client.sendMail({ from: gmailFrom(), to: notifyTo, subject: `[フィードバック] ${typeLabel}`, html });
   } catch (err) {
     console.error("[feedback] operator notification email failed:", err);
   }
@@ -128,15 +139,15 @@ export async function notifyFeedbackSubmission(feedback: {
 // the actual Vercel Firewall rate-limit rule, which can be promoted to real
 // blocking after reviewing traffic). Separate env var from
 // FEEDBACK_NOTIFY_EMAIL so the two concerns can be routed differently later.
-// Silently no-ops if RESEND_API_KEY or ABUSE_ALERT_EMAIL isn't configured,
-// same degrade-gracefully pattern as the rest of this file.
+// Silently no-ops if GMAIL_USER/GMAIL_APP_PASSWORD or ABUSE_ALERT_EMAIL
+// isn't configured, same degrade-gracefully pattern as the rest of this file.
 export async function notifyAbuseDetected(info: {
   ip: string;
   path: string;
   hitCount: number;
   windowMinutes: number;
 }): Promise<void> {
-  const client = resendClient();
+  const client = gmailTransport();
   const notifyTo = process.env.ABUSE_ALERT_EMAIL;
   if (!client || !notifyTo) return;
 
@@ -152,9 +163,8 @@ export async function notifyAbuseDetected(info: {
     </div>
   `;
 
-  const from = process.env.RESEND_FROM || "onboarding@resend.dev";
   try {
-    await client.emails.send({ from, to: notifyTo, subject: `[不審なアクセス検知] ${info.path}`, html });
+    await client.sendMail({ from: gmailFrom(), to: notifyTo, subject: `[不審なアクセス検知] ${info.path}`, html });
   } catch (err) {
     console.error("[abuseAlert] notification email failed:", err);
   }
@@ -215,22 +225,21 @@ function renderUsageDigestHtml(stats: WeeklyUsageStats, appUrl: string): string 
 // opted-in end users with article picks, not operator metrics). Computed
 // from our own Postgres data since Vercel Web Analytics has no read API on
 // the Hobby plan (see computeWeeklyUsageStats). Same degrade-gracefully
-// pattern as the rest of this file: no-ops if RESEND_API_KEY or ADMIN_EMAIL
-// isn't configured.
+// pattern as the rest of this file: no-ops if GMAIL_USER/GMAIL_APP_PASSWORD
+// or ADMIN_EMAIL isn't configured.
 export async function sendUsageDigest(): Promise<{ sent: boolean; skipped: string }> {
-  const client = resendClient();
+  const client = gmailTransport();
   const notifyTo = process.env.ADMIN_EMAIL;
   if (!client || !notifyTo) {
-    return { sent: false, skipped: "RESEND_API_KEYまたはADMIN_EMAIL未設定のため週次利用状況サマリーはスキップされました" };
+    return { sent: false, skipped: "GMAIL_USER/GMAIL_APP_PASSWORDまたはADMIN_EMAIL未設定のため週次利用状況サマリーはスキップされました" };
   }
 
   const stats = await computeWeeklyUsageStats();
   const appUrl = "https://dev-current.vercel.app"; // matches metadataBase in src/app/layout.tsx
-  const from = process.env.RESEND_FROM || "onboarding@resend.dev";
 
   try {
-    await client.emails.send({
-      from,
+    await client.sendMail({
+      from: gmailFrom(),
       to: notifyTo,
       subject: `[週次サマリー] 新規${stats.newUsers}人・アクティブ${stats.activeUsers}人（${formatDateJst(stats.windowStart)}〜${formatDateJst(stats.windowEnd)}）`,
       html: renderUsageDigestHtml(stats, appUrl),

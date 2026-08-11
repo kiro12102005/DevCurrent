@@ -71,7 +71,7 @@ export default function PrivacyPage() {
           <ul className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed list-disc list-inside space-y-1.5">
             <li><strong>Supabase</strong>: データベースのホスティング。</li>
             <li><strong>Vercel</strong>: アプリ本体のホスティング、ポッドキャスト音声ファイルの保存（Vercel Blob）。</li>
-            <li><strong>Resend</strong>: 週次ダイジェストメール・フィードバック通知メールの送信（オプトインした場合のみ）。</li>
+            <li><strong>Gmail（Google）</strong>: 週次ダイジェストメール・フィードバック通知メールの送信（オプトインした場合のみ）。</li>
             <li>
               <strong>Google Gemini API</strong>: 記事要約・模擬面接・ポッドキャスト等のAI機能。ユーザー個人が能動的に使う機能（URL要約・模擬面接・ハンズオン生成など）は各自のGemini
               APIキー（BYOK）で処理され、そのキーはブラウザのlocalStorageにのみ保存されサーバーには保存されません。注目ピックアップの自動要約など全員で共有するコンテンツの生成のみ運営者のAPIキーを使用します。

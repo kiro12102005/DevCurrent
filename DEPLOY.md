@@ -76,13 +76,13 @@ npx vercel --prod # 本番デプロイ
 | `VAPID_SUBJECT` | `mailto:` + 実際の連絡先 |
 | `CRON_SECRET` | 任意。Vercel Cron（GET）だけを保護する（下記参照）。設定しなくても動作する |
 | `ENABLE_AUTO_FEED_CRON` | `"false"`にする（Vercelはサーバーレスなので`instrumentation.ts`のインプロセスタイマーは使えない。下記のスケジューラで代替） |
-| `RESEND_API_KEY` / `RESEND_FROM` | 任意。週次ダイジェストメール用（[resend.com](https://resend.com)で取得）。未設定でも他機能に影響なし |
-| `FEEDBACK_NOTIFY_EMAIL` | 任意。マイページ＞フィードバックの送信内容を通知するメール送信先。`RESEND_API_KEY`未設定時は通知メールだけスキップされ、投稿自体はDBに保存される |
-| `ABUSE_ALERT_EMAIL` | 任意。ログイン・要約・フィードバックなど不正利用対策の対象エンドポイント（下記セクション7参照）で、単一IPから短時間に大量アクセス（5分で40回以上）を検知した際の通知メール送信先。ブロックはせず通知のみ（`src/lib/abuseAlert.ts`、サーバーのメモリ上でカウント・DBには書き込まない）。`RESEND_API_KEY`未設定時は通知自体がスキップされる |
+| `GMAIL_USER` / `GMAIL_APP_PASSWORD` | 任意。週次ダイジェストメール用。GoogleアカウントでSMTP送信するための資格情報（[myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)で取得。2段階認証の有効化が必要）。無料で使えるがGmailの送信上限（1日あたり目安500通）に注意。未設定でも他機能に影響なし |
+| `FEEDBACK_NOTIFY_EMAIL` | 任意。マイページ＞フィードバックの送信内容を通知するメール送信先。`GMAIL_USER`/`GMAIL_APP_PASSWORD`未設定時は通知メールだけスキップされ、投稿自体はDBに保存される |
+| `ABUSE_ALERT_EMAIL` | 任意。ログイン・要約・フィードバックなど不正利用対策の対象エンドポイント（下記セクション7参照）で、単一IPから短時間に大量アクセス（5分で40回以上）を検知した際の通知メール送信先。ブロックはせず通知のみ（`src/lib/abuseAlert.ts`、サーバーのメモリ上でカウント・DBには書き込まない）。`GMAIL_USER`/`GMAIL_APP_PASSWORD`未設定時は通知自体がスキップされる |
 | `BLOB_READ_WRITE_TOKEN` | 音声ポッドキャストを使うなら必須。`vercel blob create-store <name> --access public --yes`で作成すると自動的にVercelプロジェクトの環境変数へ注入される（`.env.local`にも自動反映）。未設定でも他機能に影響なし（ポッドキャスト生成だけスキップ） |
 | `NEXT_PUBLIC_SENTRY_DSN` / `SENTRY_DSN` | Sentryエラートラッキング用DSN（[sentry.io](https://sentry.io)の Settings > Projects > Client Keys で取得）。同じ値を両方に設定。未設定でもビルド・起動は通るがエラーが送信されない |
 | `SENTRY_ORG` / `SENTRY_PROJECT` / `SENTRY_AUTH_TOKEN` | 任意。本番スタックトレースをソースマップ付きで見たい場合に設定（`SENTRY_AUTH_TOKEN`は`project:releases`スコープが必要）。未設定だとアップロードが静かにスキップされ、Sentry上のスタックトレースはminifyされたコードのまま |
-| `ADMIN_EMAIL` | 任意。毎週月曜0時に新規/アクティブユーザー数・今週の人気記事などをまとめた週次利用状況サマリーメールを送る宛先（`RESEND_API_KEY`も必要）。**かつ**、`/admin/usage`ページ（同じ内容をアプリ内で見られる詳細ページ）は、ログイン中のアカウントのメールアドレスがこの値と一致する場合のみ表示される（一致しない場合・未ログインの場合は404）。訪問者数・ページビューはこのアプリのDBには無いため、メール本文・`/admin/usage`ページのどちらにもVercelダッシュボードのAnalyticsタブへの案内を載せている |
+| `ADMIN_EMAIL` | 任意。毎週月曜0時に新規/アクティブユーザー数・今週の人気記事などをまとめた週次利用状況サマリーメールを送る宛先（`GMAIL_USER`/`GMAIL_APP_PASSWORD`も必要）。**かつ**、`/admin/usage`ページ（同じ内容をアプリ内で見られる詳細ページ）は、ログイン中のアカウントのメールアドレスがこの値と一致する場合のみ表示される（一致しない場合・未ログインの場合は404）。訪問者数・ページビューはこのアプリのDBには無いため、メール本文・`/admin/usage`ページのどちらにもVercelダッシュボードのAnalyticsタブへの案内を載せている |
 
 ## 5. 定期実行（自動クロール・自動キュレーション・週次ダイジェスト）
 
