@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { FileText, Printer, TriangleAlert, Swords, ThumbsUp, ThumbsDown, CircleCheckBig, Telescope, BookOpen } from "lucide-react";
 import type { SummarizeResponse } from "@/types/insight";
 import { GlossaryTerm } from "./GlossaryTerm";
+import { GlossaryHighlightedText } from "./GlossaryHighlightedText";
 import { ArticleNotes } from "./ArticleNotes";
 import { GithubRepoCard } from "./GithubRepoCard";
 import { HandsOnGenerator } from "./HandsOnGenerator";
@@ -237,7 +238,11 @@ export function UrlSummarizer({ externalRequest }: { externalRequest?: { url: st
             <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-1.5">
               <FileText className="w-4 h-4" strokeWidth={2.25} /> {t.urlSummarizer.summaryTitle}
             </h3>
-            <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">{result.insight.summary}</p>
+            <GlossaryHighlightedText
+              text={result.insight.summary}
+              glossary={result.insight.glossary}
+              className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line"
+            />
           </section>
 
           <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
