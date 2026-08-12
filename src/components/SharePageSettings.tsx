@@ -55,6 +55,8 @@ export function SharePageSettings() {
   if (loading) return <div className="skeleton h-32 w-full rounded-xl" />;
 
   const shareUrl = shareSlug && typeof window !== "undefined" ? `${window.location.origin}/u/${shareSlug}` : null;
+  const badgeImgUrl = `https://img.shields.io/badge/${encodeURIComponent("DevCurrent")}-${encodeURIComponent("学習中")}-6366f1`;
+  const badgeMarkdown = shareUrl ? `[![DevCurrent](${badgeImgUrl})](${shareUrl})` : null;
 
   return (
     <div className="rounded-xl bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-800 p-4 flex flex-col gap-3">
@@ -97,6 +99,25 @@ export function SharePageSettings() {
           >
             {t.common.copy}
           </button>
+        </div>
+      )}
+
+      {shareUrl && badgeMarkdown && (
+        <div className="flex flex-col gap-1.5 border-t border-gray-100 dark:border-gray-800 pt-3">
+          <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">{t.sharePageSettings.badgeHeading}</p>
+          <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">{t.sharePageSettings.badgeDescription}</p>
+          {/* eslint-disable-next-line @next/next/no-img-element -- external shields.io badge, not an optimizable local/remote asset */}
+          <img src={badgeImgUrl} alt="DevCurrent" className="h-5 w-fit" />
+          <div className="rounded-lg bg-gray-50 dark:bg-gray-800 px-3 py-2 text-xs text-gray-700 dark:text-gray-300 break-all font-mono">
+            {badgeMarkdown}
+            <button
+              type="button"
+              onClick={() => navigator.clipboard?.writeText(badgeMarkdown)}
+              className="ml-2 text-indigo-600 dark:text-indigo-400 hover:underline shrink-0 font-sans"
+            >
+              {t.common.copy}
+            </button>
+          </div>
         </div>
       )}
     </div>

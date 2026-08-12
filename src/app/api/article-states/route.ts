@@ -24,12 +24,12 @@ export async function GET(req: Request) {
 
   const rows = await prisma.userArticleState.findMany({
     where: { userId: user.id, articleId: { in: articleIds } },
-    select: { articleId: true, isRead: true, isBookmarked: true },
+    select: { articleId: true, isRead: true, isBookmarked: true, isLiked: true },
   });
 
-  const states: Record<string, { isRead: boolean; isBookmarked: boolean }> = {};
+  const states: Record<string, { isRead: boolean; isBookmarked: boolean; isLiked: boolean }> = {};
   for (const row of rows) {
-    states[row.articleId] = { isRead: row.isRead, isBookmarked: row.isBookmarked };
+    states[row.articleId] = { isRead: row.isRead, isBookmarked: row.isBookmarked, isLiked: row.isLiked };
   }
 
   return NextResponse.json({ states });

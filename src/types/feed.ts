@@ -8,6 +8,7 @@ export interface FeedArticle {
   publishedAt: string | null;
   country: string | null;
   engagementScore: number | null;
+  likeCount: number;
   hasInsight: boolean;
 }
 

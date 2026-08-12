@@ -27,6 +27,7 @@ model Article {
   sourcePublishedAt DateTime? // publish date reported by the source (Qiita/Zenn/HN/ArXiv), for feed sorting
   country           String? // best-guess origin country (Qiita/Zenn: always Japan; others: Gemini-inferred from title/content)
   engagementScore   Int? // normalized popularity signal from the source (likes/points/stocks) at crawl time
+  likeCount         Int        @default(0) // denormalized count of UserArticleState.isLiked=true rows for this article - public in-app reaction, distinct from engagementScore (which comes from the source site, not this app's own users)
   isFeatured        Boolean    @default(false) // top picks from a refresh cycle - these get auto-summarized + push notified
   tags              String[]   @default([]) // cheap keyword-derived topic tags (see lib/tags.ts) - no extra Gemini cost, used for interest-based filtering
   fetchedAt         DateTime   @default(now())
@@ -138,6 +139,7 @@ model UserArticleState {
 
   isRead       Boolean @default(false)
   isBookmarked Boolean @default(false)
+  isLiked      Boolean @default(false) // public reaction (♥) - toggling this also increments/decrements Article.likeCount, see /api/article-states/[articleId]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

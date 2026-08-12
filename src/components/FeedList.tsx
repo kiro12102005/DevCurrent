@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { RefreshCw, Search, Calendar, Bookmark, Star, Sprout, CircleCheckBig, Square, Trophy } from "lucide-react";
+import { RefreshCw, Search, Calendar, Bookmark, Star, Sprout, CircleCheckBig, Square, Trophy, Heart } from "lucide-react";
 import type { FeedArticle, FeedPeriod, FeedResponse } from "@/types/feed";
 import type { SearchResponse } from "@/types/search";
 import type { SourceType } from "@/types/insight";
@@ -20,7 +20,7 @@ const DAY_CHIPS = Array.from({ length: 7 }, (_, i) => jstDateStringDaysAgo(i)); 
 const SEARCH_DEBOUNCE_MS = 400;
 const MIN_QUERY_LENGTH = 2;
 
-type ArticleState = { isRead: boolean; isBookmarked: boolean };
+type ArticleState = { isRead: boolean; isBookmarked: boolean; isLiked: boolean };
 
 export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) => void }) {
   const { user } = useAuth();
@@ -172,7 +172,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
 
   async function handleToggleState(articleId: string, key: "isRead" | "isBookmarked") {
     hapticTap();
-    const current = states[articleId] ?? { isRead: false, isBookmarked: false };
+    const current = states[articleId] ?? { isRead: false, isBookmarked: false, isLiked: false };
     const next = { ...current, [key]: !current[key] };
     setStates((prev) => ({ ...prev, [articleId]: next }));
     try {
@@ -183,6 +183,30 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
       });
     } catch {
       setStates((prev) => ({ ...prev, [articleId]: current })); // roll back on failure
+    }
+  }
+
+  // Separate from handleToggleState because a like also has to optimistically
+  // bump the public likeCount carried on the article itself (in the
+  // featured/regular lists), not just the per-user state map.
+  async function handleToggleLike(articleId: string) {
+    hapticTap();
+    const current = states[articleId] ?? { isRead: false, isBookmarked: false, isLiked: false };
+    const nextLiked = !current.isLiked;
+    const delta = nextLiked ? 1 : -1;
+    setStates((prev) => ({ ...prev, [articleId]: { ...current, isLiked: nextLiked } }));
+    setFeatured((prev) => prev.map((a) => (a.id === articleId ? { ...a, likeCount: a.likeCount + delta } : a)));
+    setRegular((prev) => prev.map((a) => (a.id === articleId ? { ...a, likeCount: a.likeCount + delta } : a)));
+    try {
+      await fetch(`/api/article-states/${articleId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isLiked: nextLiked }),
+      });
+    } catch {
+      setStates((prev) => ({ ...prev, [articleId]: current })); // roll back on failure
+      setFeatured((prev) => prev.map((a) => (a.id === articleId ? { ...a, likeCount: a.likeCount - delta } : a)));
+      setRegular((prev) => prev.map((a) => (a.id === articleId ? { ...a, likeCount: a.likeCount - delta } : a)));
     }
   }
 
@@ -354,6 +378,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
                     highlight
                     state={states[article.id]}
                     onToggleState={user ? handleToggleState : undefined}
+                    onToggleLike={user ? handleToggleLike : undefined}
                   />
                 ))}
               </div>
@@ -376,6 +401,7 @@ export function FeedList({ onSelectArticle }: { onSelectArticle: (url: string) =
                   onSelect={onSelectArticle}
                   state={states[article.id]}
                   onToggleState={user ? handleToggleState : undefined}
+                  onToggleLike={user ? handleToggleLike : undefined}
                 />
               ))}
             </div>
@@ -433,12 +459,14 @@ function FeedCard({
   highlight = false,
   state,
   onToggleState,
+  onToggleLike,
 }: {
   article: FeedArticle;
   onSelect: (url: string) => void;
   highlight?: boolean;
   state?: ArticleState;
   onToggleState?: (articleId: string, key: "isRead" | "isBookmarked") => void;
+  onToggleLike?: (articleId: string) => void;
 }) {
   const t = useT();
 
@@ -478,6 +506,23 @@ function FeedCard({
             {t.feedList.readOriginal}
           </a>
           <ShareButton title={article.title ?? article.url} url={article.url} className="p-1 text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400" />
+          {onToggleLike ? (
+            <button
+              type="button"
+              onClick={() => onToggleLike(article.id)}
+              className={`flex items-center gap-0.5 p-1 text-xs transition-colors ${
+                state?.isLiked ? "text-rose-600 dark:text-rose-400" : "text-gray-400 dark:text-gray-500 hover:text-rose-500 dark:hover:text-rose-400"
+              }`}
+            >
+              <Heart className="w-3.5 h-3.5" strokeWidth={2.25} fill={state?.isLiked ? "currentColor" : "none"} />
+              {article.likeCount > 0 && article.likeCount}
+            </button>
+          ) : article.likeCount > 0 ? (
+            <span className="flex items-center gap-0.5 p-1 text-xs text-gray-400 dark:text-gray-500">
+              <Heart className="w-3.5 h-3.5" strokeWidth={2.25} />
+              {article.likeCount}
+            </span>
+          ) : null}
         </div>
         {onToggleState && (
           <div className="flex items-center gap-1.5">

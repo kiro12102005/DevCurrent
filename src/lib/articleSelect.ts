@@ -11,6 +11,7 @@ export const ARTICLE_LIST_SELECT = {
   sourcePublishedAt: true,
   country: true,
   engagementScore: true,
+  likeCount: true,
   generation: { select: { id: true } },
 } as const;
 
@@ -22,6 +23,7 @@ export interface ArticleListRow {
   sourcePublishedAt: Date | null;
   country: string | null;
   engagementScore: number | null;
+  likeCount: number;
   generation: { id: string } | null;
 }
 
@@ -34,6 +36,7 @@ export function toFeedArticle(a: ArticleListRow): FeedArticle {
     publishedAt: a.sourcePublishedAt ? a.sourcePublishedAt.toISOString() : null,
     country: a.country,
     engagementScore: a.engagementScore,
+    likeCount: a.likeCount,
     hasInsight: Boolean(a.generation),
   };
 }

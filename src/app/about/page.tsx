@@ -12,6 +12,10 @@ import {
   Smartphone,
   Sparkles,
   ShieldCheck,
+  Newspaper,
+  BrainCircuit,
+  MessagesSquare,
+  BadgeCheck,
 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -181,6 +185,29 @@ const SECTIONS: Section[] = [
   },
 ];
 
+const VALUE_LOOP = [
+  {
+    icon: Newspaper,
+    title: "① 情報収集",
+    body: "Qiita/Zenn/Hacker News/ArXiv/GitHub Trending/主要ライブラリのリリースノートを自動収集。自分から探しに行かなくても、注目記事は深掘り要約つきでフィードに並びます。",
+  },
+  {
+    icon: BrainCircuit,
+    title: "② 深掘り理解",
+    body: "「なんとなく読んだ」で終わらせないよう、要約・メリット/懸念点・今後の展望・用語解説をAIが生成。気になったURLを自分で貼っても同じ深さで理解できます。",
+  },
+  {
+    icon: MessagesSquare,
+    title: "③ アウトプット",
+    body: "読んで終わりにせず、模擬面接AIで自分の言葉に変換したり、3分ハンズオンで実際に手を動かしたり、AIエディタ設定として自分の開発環境に持ち込めます。",
+  },
+  {
+    icon: BadgeCheck,
+    title: "④ 証明",
+    body: "学習マップでキャッチアップ状況を可視化し、共有ページ（/u/[slug]）として履歴書やSNSに貼れる学習実績に変換。就活のポートフォリオとしてそのまま使えます。",
+  },
+];
+
 const TONE_CLASS: Record<Section["tone"], string> = {
   default: "border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900",
   incident: "border-amber-200 dark:border-amber-800 bg-amber-50/60 dark:bg-amber-950/40",
@@ -211,6 +238,25 @@ export default function AboutPage() {
             Next.js 16 (App Router) / TypeScript / Prisma + PostgreSQL (Supabase) / Vercel / Gemini API
           </p>
         </div>
+
+        <section className="rounded-xl border border-indigo-200 dark:border-indigo-900 bg-indigo-50/60 dark:bg-indigo-950/40 p-5">
+          <h2 className="font-bold text-gray-800 dark:text-gray-100 mb-1">このアプリでできること（ご利用者向け）</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
+            単なる記事まとめアプリではなく、「情報収集 → 深掘り理解 → アウトプット → 証明」まで一気通貫でサポートします。
+            ログイン不要な機能も多く、無料で使い始められます。
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {VALUE_LOOP.map((v) => (
+              <div key={v.title} className="rounded-lg bg-white dark:bg-gray-900 border border-indigo-100 dark:border-indigo-900/60 p-3.5">
+                <h3 className="flex items-center gap-1.5 text-sm font-bold text-indigo-700 dark:text-indigo-400 mb-1">
+                  <v.icon className="w-4 h-4 shrink-0" strokeWidth={2.25} />
+                  {v.title}
+                </h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">{v.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
 
         {SECTIONS.map((s) => (
           <section key={s.title} className={`rounded-xl border p-5 ${TONE_CLASS[s.tone]}`}>
